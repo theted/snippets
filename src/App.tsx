@@ -1,26 +1,69 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, FC } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from 'react-query/devtools';
 import './App.css';
+import CreateSnippet from './pages/CreateSnippet';
+import Snippets from './pages/Snippets';
+import Preferences from './pages/Preferences';
+import Spinner from './components/Spinner';
+import { ThemeContext } from './contexts/themeContext';
+import { ENVIRONMENT } from './config';
 
-function App() {
+const queryClient = new QueryClient();
+
+const classes = {
+  wrapper: 'App bg-gray-800',
+  header: 'App-header',
+};
+
+const defaultGlobalState = {
+  theme: window.localStorage.getItem('theme') || 'vs2015',
+  showLineNumbers: window.localStorage.getItem('showLineNumbers') || false,
+};
+
+const App: FC = () => {
+  const [globalstate, setGlobalstate] = useState(defaultGlobalState);
+  const [actuallyshowLineNumbers, setShowLineNumbers] = useState<boolean>(true);
+  const [actualTheme, setTheme] = useState<string>(globalstate.theme);
+  const { theme, showLineNumbers } = globalstate;
+
+  // for our provider
+  const value = {
+    background: '#333',
+    showLineNumbers: actuallyshowLineNumbers,
+    setLineNumbers: () => {
+      setShowLineNumbers(!actuallyshowLineNumbers);
+      window.localStorage.setItem('showLineNumbers', showLineNumbers);
+    },
+    theme: actualTheme,
+    setTheme: (newTheme) => {
+      setTheme(newTheme);
+      window.localStorage.setItem('theme', newTheme);
+    },
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <ThemeContext.Provider value={value}>
+        <Spinner />
+        <div className={classes.wrapper}>
+          <header className={classes.header}>
+            <h1 className="text-white text-4xl">Snippets</h1>
+          </header>
+          <CreateSnippet globalVisible={false} />
+          <Preferences
+            theme={theme}
+            showLineNumbers={showLineNumbers}
+            setGlobalstate={setGlobalstate}
+          />
+          <Snippets />
+        </div>
+      </ThemeContext.Provider>
+      {ENVIRONMENT === 'development' && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;

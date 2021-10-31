@@ -1,0 +1,10 @@
+{
+  "snippets": [
+    {
+      "id": 1,
+      "title": "Functional programming goodies",
+      "content": "const filter = (list, predicate) => list.filter (predicate)\n\nconst filterLessThan = (list, value) => filter (list, (elem) => elem < value)\n\nconst filterGreaterOrEqual = (list, value) => filter (list, (elem) => elem >= value)\n\nconst quicksort = ([head, ...tail]) =>  {\n  if (head === undefined) return []\n\n  let elemsLess = filterLessThan (tail, head),\n      elemsGreater = filterGreaterOrEqual (tail, head)\n\n  return [...quicksort (elemsLess), head, ...quicksort (elemsGreater)]\n}",
+      "language": "javascript"
+    }
+  ]
+}
