@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useQueryClient, useMutation } from 'react-query';
 import { post } from '../utils/api.ts';
 import SnippetForm from '../components/SnippetForm';
+// eslint-disable-next-line import/no-named-as-default
 import Modal from '../components/Modal';
 
 const CreateSnippet: React.FC = () => {
@@ -28,16 +29,8 @@ const CreateSnippet: React.FC = () => {
   });
 
   const closeModal = () => {
-    const allElemes = document.querySelectorAll('.form, .bg');
-
-    allElemes.forEach((elem) => {
-      elem.classList.remove('fadeIn');
-      elem.classList.add('fadeOut');
-    });
-
-    setTimeout(() => {
-      setFormvisible(false);
-    }, 500);
+    // TODO: use modal's close callback
+    setFormvisible(false);
   };
 
   const onSubmit = (event) => {
@@ -51,6 +44,7 @@ const CreateSnippet: React.FC = () => {
     }
   };
 
+  // TODO: move out of component
   if (!formvisible) {
     return (
       <div>
