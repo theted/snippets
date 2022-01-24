@@ -4,4 +4,4 @@ import { Snippet } from '../types';
 
 export const useSnippets = (query: string) => useQuery('snippets', async () => get<Snippet[]>(`snippets?q=${query}&_sort=id&_order=desc`));
 
-export const useSnippet = (id: string) => useQuery(`snippets/${id}`, async () => get<Snippet>(`snippets/${id}`));
+export const useSnippet = (id: number) => useQuery(`snippets/${id}`, async () => get<Snippet>(`snippets/${id}`));
