@@ -2,18 +2,17 @@ import { API_BASE } from '../config';
 
 const defaultHeaders = () => ({ 'Content-Type': 'application/json' });
 
-const fetchData = function (input: any, init?: any | undefined) {
-  return fetch(input, init).then((response) => response.text().then((text) => {
-    const data = text && JSON.parse(text);
+// eslint-disable-next-line max-len
+const fetchData = (input: any, init?: any | undefined) => fetch(input, init).then((response) => response.text().then((text) => {
+  const data = text && JSON.parse(text);
 
-    if (!response.ok) {
-      const error = data.errors[0] || response.statusText;
-      return Promise.reject(error);
-    }
+  if (!response.ok) {
+    const error = data.errors[0] || response.statusText;
+    return Promise.reject(error);
+  }
 
-    return data;
-  }));
-};
+  return data;
+}));
 
 export const get = async <T>(path: string): Promise<T> => {
   const url = `${API_BASE}/${path}`;
@@ -34,8 +33,6 @@ export const post = async <T>(path: string, data: any): Promise<T> => {
 };
 
 export const update = async <T>(path: string, data: any): Promise<T> => {
-  console.log({ UPDATING: data });
-
   const url = `${API_BASE}/${path}`;
   const headers = defaultHeaders();
 

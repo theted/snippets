@@ -3,7 +3,8 @@ import { DEFAULT_THEME } from '../config';
 
 const defaults = {
   showLineNumbers: true,
-  setLineNumbers: (e) => { console.log(e); },
+  // eslint-disable-next-line no-unused-vars
+  setLineNumbers: (e: boolean) => {},
   theme: DEFAULT_THEME,
   setTheme: (theme) => theme,
 };

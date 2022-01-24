@@ -18,6 +18,7 @@ const guerySnippets = async (
 export default function useReactQuery(searchQuery: string) {
   // ! TODO: fix !
   if (searchQuery.length) {
+    // eslint-disable-next-line no-console
     console.log({ searchQuery });
   }
 
