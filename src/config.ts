@@ -21,6 +21,27 @@ export const AVAILABLE_LANGUAGES = [
   'yaml',
 ];
 
+export const LANGUAGE_MAP = {
+  javascript: 'Javascript',
+  typescript: 'Typescript',
+  python: 'Python',
+  csharp: 'C#',
+  css: 'CSS',
+  go: 'Go',
+  dockerfile: 'Dockerfile',
+  php: 'PHP',
+  haml: 'HAML',
+  less: 'LESS',
+  sass: 'SASS',
+  stylus: 'Stylus',
+  markdown: 'Markdown',
+  plaintext: 'Text',
+  sql: 'SQL',
+  yaml: 'YAML',
+};
+
+export const DEFAULT_LANGUAGE = 'javascript';
+
 export const THEMES = [
   'a11yDark',
   'a11yLight',
@@ -123,5 +144,7 @@ export const THEMES = [
   // hand-picked themes:
   // [...]
 ];
+
+export const DEFAULT_THEME = 'vs2015';
 
 export const TRANSITION_TIME = 300;
