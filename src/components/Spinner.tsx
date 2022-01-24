@@ -10,7 +10,7 @@ export const SpinFigure = () => (
 const Spinner: React.FC = () => {
   const isFetching = useIsFetching();
 
-  if (!isFetching) return '';
+  if (!isFetching) return (<div />);
 
   return (
     <div className="absolute top-10 right-10">

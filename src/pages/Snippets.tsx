@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
-import React, { useContext, useState, FC } from 'react';
+import React, { useContext, useState } from 'react';
 import { useQueryClient, useMutation } from 'react-query';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet } from '../types';
@@ -31,7 +32,7 @@ type TempType = {
   error: any;
 }
 
-const Snippets: FC = () => {
+const Snippets: any = () => {
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -67,7 +68,7 @@ const Snippets: FC = () => {
 
   const onEdit = (id: string) => {
     setIsEditing(true);
-    setEditingId(id);
+    setEditingId(Number(id));
   };
 
   const onSearch = (value: string) => {
@@ -103,7 +104,9 @@ const Snippets: FC = () => {
       ))}
 
       {isEditing && (
-        <Modal closeModal={closeModal}>
+        <Modal
+          closeModal={closeModal}
+        >
           {/* TODO: spinner while loading */}
           <SnippetForm
             defaultValues={editingSnippetData}

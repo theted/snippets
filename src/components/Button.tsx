@@ -4,7 +4,7 @@ import cx from 'classnames';
 type Props = {
   type: 'button' | 'submit' | 'reset' | undefined;
   variant: 'success' | 'info' | 'warning' | 'error';
-  onClick?: () => void;
+  onClick: () => void;
 };
 
 const classes = {
@@ -17,6 +17,7 @@ const classes = {
   error: 'bg-red-600',
 };
 
+// TODO: forwardRef
 const Button: React.FC<Props> = ({
   variant, type, onClick, children, ...rest
 }) => (
@@ -36,9 +37,5 @@ const Button: React.FC<Props> = ({
     {children}
   </button>
 );
-
-Button.defaultProps = {
-  onClick: () => {},
-};
 
 export default Button;

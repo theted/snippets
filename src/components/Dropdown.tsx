@@ -8,7 +8,9 @@ type SelectOption = {
 type Props = {
   name: string;
   options: SelectOption[];
-  onChange: () => void;
+  onChange: any; // () => void;
+  // value?: string | number;
+  [key: string]: any;
 }
 
 const classes = {

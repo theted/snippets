@@ -18,7 +18,7 @@ const classes = {
 
 const defaultGlobalState = {
   theme: window.localStorage.getItem('theme') || 'vs2015',
-  showLineNumbers: window.localStorage.getItem('showLineNumbers') || false,
+  showLineNumbers: window.localStorage.getItem('showLineNumbers') as unknown as boolean || false,
 };
 
 const App: FC = () => {
@@ -33,7 +33,7 @@ const App: FC = () => {
     showLineNumbers: actuallyshowLineNumbers,
     setLineNumbers: () => {
       setShowLineNumbers(!actuallyshowLineNumbers);
-      window.localStorage.setItem('showLineNumbers', showLineNumbers);
+      window.localStorage.setItem('showLineNumbers', String(showLineNumbers));
     },
     theme: actualTheme,
     setTheme: (newTheme) => {
@@ -50,7 +50,7 @@ const App: FC = () => {
           <header className={classes.header}>
             <h1 className="text-white text-4xl">Snippets</h1>
           </header>
-          <CreateSnippet globalVisible={false} />
+          <CreateSnippet />
           <Preferences
             theme={theme}
             showLineNumbers={showLineNumbers}

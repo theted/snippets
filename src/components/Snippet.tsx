@@ -19,8 +19,8 @@ import { capitalize } from '../utils/helpers';
 // SyntaxHighlighter.registerLanguage('javascript', js);
 
 type Props = ISnippet & {
-  onDelete: () => void;
-  onEdit: () => void;
+  onDelete: any; // () => void;
+  onEdit: any; // () => void;
   theme: string;
 }
 
@@ -70,27 +70,25 @@ const Snippet: React.FC<Props> = ({
           customStyle={customStyle}
           showLineNumbers={showLineNumbers}
           wrapLongLines
-          // alt syntax - any clearer?
-          // {...
-          //   {
-          //     language: language || 'javascript',
-          //     customStyle,
-          //     showLineNumbers,
-          //     style: allStyles[theme],
-          //     wrapLongLines: true,
-          //   }
-          // }
         >
           {content}
         </SyntaxHighlighter>
       </div>
       <div className={classes.controls}>
-        <button type="button" onClick={() => onDelete(id)} className="mr-3">
+        <button
+          type="button"
+          onClick={() => onDelete(id)}
+          className="mr-3"
+        >
           <i className="icon-trash" />
           {' '}
           Delete
         </button>
-        <button type="button" onClick={() => onEdit(id)} className="mr-3">
+        <button
+          type="button"
+          onClick={() => onEdit(id)}
+          className="mr-3"
+        >
           <i className="icon-pencil" />
           {' '}
           Edit

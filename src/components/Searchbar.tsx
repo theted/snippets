@@ -6,7 +6,8 @@ const classes = {
 };
 
 type Props = {
-  onSearch: () => void;
+  // eslint-disable-next-line no-unused-vars
+  onSearch: (a: string) => void;
 }
 
 const Searchbar: FC<Props> = ({ onSearch }) => {

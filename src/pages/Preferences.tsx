@@ -1,4 +1,4 @@
-import React, { useContext, useState, FC } from 'react';
+import React, { useContext, useState } from 'react';
 import { ThemeContext } from '../contexts/themeContext';
 import { THEMES } from '../config';
 import Dropdown from '../components/Dropdown';
@@ -10,7 +10,7 @@ const classes = {
 
 const options = THEMES.map((lang) => ({ label: lang, value: lang }));
 
-const Preferences: FC = () => {
+const Preferences: any = () => {
   const {
     showLineNumbers, setLineNumbers, setTheme,
   } = useContext(ThemeContext);
@@ -47,7 +47,7 @@ const Preferences: FC = () => {
   }
 
   return (
-    <Modal onClose={() => { setShowPreferences(false); }}>
+    <Modal closeModal={() => { setShowPreferences(false); }}>
       <div className={classes.container}>
         <h4>Preferences</h4>
         <input
