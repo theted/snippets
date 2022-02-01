@@ -3,10 +3,7 @@ import { ThemeContext } from '../contexts/themeContext';
 import { THEMES } from '../config';
 import Dropdown from '../components/Dropdown';
 import Modal from '../components/Modal';
-
-const classes = {
-  container: 'border bg-blue-300 p-4 m-8',
-};
+import Box from '../components/Box';
 
 const options = THEMES.map((lang) => ({ label: lang, value: lang }));
 
@@ -40,7 +37,6 @@ const Preferences: any = () => {
           <i className="demo-icon icon-cog" />
           {' '}
           Preferences
-
         </button>
       </div>
     );
@@ -48,8 +44,7 @@ const Preferences: any = () => {
 
   return (
     <Modal closeModal={() => { setShowPreferences(false); }}>
-      <div className={classes.container}>
-        <h4>Preferences</h4>
+      <Box title="Preferences">
         <input
           name="showLineNumbers"
           type="checkbox"
@@ -66,7 +61,7 @@ const Preferences: any = () => {
         />
 
         <button type="button" onClick={toggleShow}>Hide preferences</button>
-      </div>
+      </Box>
     </Modal>
   );
 };
