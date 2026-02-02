@@ -72,11 +72,12 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
       <div
         ref={modalRef}
         className={classes.container}
+        onClick={closeModalCallback}
       >
         <div className={classes.close}>
           <div className="right-0 p-3" onClick={closeModalCallback}>x</div>
         </div>
-        <div className={classes.content}>
+        <div className={classes.content} onClick={(event) => event.stopPropagation()}>
           {children}
         </div>
       </div>
