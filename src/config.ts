@@ -1,6 +1,6 @@
-export const ENVIRONMENT = 'development';
+export const ENVIRONMENT = process.env.REACT_APP_ENVIRONMENT ?? 'development';
 
-export const API_BASE = 'http://localhost:3200';
+export const API_BASE = process.env.REACT_APP_API_BASE ?? 'http://localhost:3200';
 
 export const AVAILABLE_LANGUAGES = [
   'javascript',
