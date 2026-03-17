@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 import React, { useContext, useState } from 'react';
-import { useQueryClient, useMutation } from 'react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet } from '../types';
 import { update, remove } from '../utils/api.ts';
@@ -10,7 +10,7 @@ import { SpinFigure } from '../components/Spinner';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { ThemeContext } from '../contexts/themeContext';
-import { useSnippet } from '../hooks/react-query';
+import { snippetKeys, useSnippet } from '../hooks/react-query';
 import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
 
@@ -19,48 +19,54 @@ const classes = {
 };
 
 async function removeSnippetCallback(id: string) {
-  remove('snippets', id);
+  return remove('snippets', id);
 }
 
 async function updateSnippetCallback(data: ISnippet) {
-  update(`snippets/${data.id}`, data);
+  return update(`snippets/${data.id}`, data);
 }
 
-type TempType = {
-  data: any;
-  isLoading: boolean;
-  error: any;
-}
-
-const Snippets: any = () => {
+const Snippets: React.FC = () => {
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number>(1);
   const [search, setSearch] = useState<string>('');
   const { data: editingSnippetData }: any = useSnippet(editingId);
-  const { mutate: removeSnippet } = useMutation(removeSnippetCallback, {
+  const { mutate: removeSnippet } = useMutation({
+    mutationFn: removeSnippetCallback,
     onMutate: async (id) => {
-      await queryClient.cancelQueries('snippets');
-      const previousSnippets = queryClient.getQueryData('snippets');
-      queryClient.setQueryData('snippets', (old: any) => old
-        .filter((s) => s.id !== id));
-      return previousSnippets;
+      await queryClient.cancelQueries({ queryKey: snippetKeys.lists() });
+      const previousSnippets = queryClient.getQueriesData<ISnippet[]>({
+        queryKey: snippetKeys.lists(),
+      });
+
+      queryClient.setQueriesData<ISnippet[]>({ queryKey: snippetKeys.lists() }, (old = []) => old
+        .filter((snippet) => snippet.id !== id));
+
+      return { previousSnippets };
+    },
+    onError: (_error, _id, context) => {
+      context?.previousSnippets.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries('snippets');
+      queryClient.invalidateQueries({ queryKey: snippetKeys.all });
     },
   });
-  const { mutate: updateSnippetMutation } = useMutation(updateSnippetCallback, {
+  const { mutate: updateSnippetMutation } = useMutation({
+    mutationFn: updateSnippetCallback,
     onSuccess: () => {
-      queryClient.invalidateQueries('snippets');
+      queryClient.invalidateQueries({ queryKey: snippetKeys.all });
     },
   });
   const debouncedSearchQuery = useDebounce(search, 600);
-  const { data: snippets = [], isLoading, error }: TempType = useReactQuery(debouncedSearchQuery);
+  const { data: snippets = [], isPending, error } = useReactQuery(debouncedSearchQuery);
 
-  if (isLoading) return <SpinFigure />;
-  if (error) return `An error has occurred: ${error.message}`;
+  if (isPending) return <SpinFigure />;
+  if (error instanceof Error) return `An error has occurred: ${error.message}`;
+  if (error) return 'An unknown error has occurred';
 
   const onDelete = async (id: string) => {
     removeSnippet(id);
@@ -73,7 +79,6 @@ const Snippets: any = () => {
 
   const onSearch = (value: string) => {
     setSearch(value);
-    // ^ TODO: update our search hook
   };
 
   const closeModal = () => {

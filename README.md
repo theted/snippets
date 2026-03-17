@@ -16,12 +16,8 @@ A lightweight web app for storing and browsing code snippets, built with React 1
 ### 1. Install dependencies
 
 ```bash
-npm install --legacy-peer-deps
+npm install
 ```
-
-> `--legacy-peer-deps` is required because `react-query` v3 predates React 19
-> and its published peer-dep range hasn't been updated. It works correctly at
-> runtime. See the [upgrade note](#upgrading-react-query) below.
 
 ### 2. Start the mock API (json-server)
 
@@ -175,12 +171,9 @@ To run migrations locally (requires `psql`):
 
 ---
 
-## Upgrading react-query
+## Data Fetching
 
-The project currently uses `react-query` v3, which is in maintenance mode.
-The actively maintained successor is
-[`@tanstack/react-query`](https://tanstack.com/query/latest) v5, which has a
-different import path and a revised API. Migration is straightforward but
-requires touching every file that imports from `react-query`. See the
-[official migration guide](https://tanstack.com/query/v5/docs/framework/react/guides/migrating-to-v5)
-when you're ready to make that switch.
+The app uses [`@tanstack/react-query`](https://tanstack.com/query/latest)
+v5 for client-side server-state management and
+[`@tanstack/react-query-devtools`](https://tanstack.com/query/latest/docs/framework/react/devtools)
+in development.

@@ -6,13 +6,14 @@
         "node": ">=20.19"
     },
     "dependencies": {
+        "@tanstack/react-query": "^5.0.0",
+        "@tanstack/react-query-devtools": "^5.0.0",
         "axios": "^1.13.6",
         "classnames": "^2.5.1",
         "gsap": "^3.14.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-hook-form": "^7.71.2",
-        "react-query": "^3.39.3",
         "react-syntax-highlighter": "^15.6.1",
         "web-vitals": "^4.2.4",
         "zod": "^3.25.76"

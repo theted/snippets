@@ -1,5 +1,5 @@
 import React from 'react';
-import { useIsFetching } from 'react-query';
+import { useIsFetching } from '@tanstack/react-query';
 
 export const SpinFigure = () => (
   <svg className="spinner" viewBox="0 0 50 50">
