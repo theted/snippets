@@ -3,29 +3,28 @@
     "version": "0.1.0",
     "private": true,
     "engines": {
-        "node": ">=20"
+        "node": ">=20.19"
     },
     "dependencies": {
-        "axios": "^1.7.2",
+        "axios": "^1.13.6",
         "classnames": "^2.5.1",
-        "gsap": "^3.12.5",
+        "gsap": "^3.14.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
-        "react-hook-form": "^7.51.3",
+        "react-hook-form": "^7.71.2",
         "react-query": "^3.39.3",
-        "react-syntax-highlighter": "^15.5.0",
-        "source-map-explorer": "^2.5.3",
-        "web-vitals": "^4.2.0",
-        "zod": "^3.23.8"
+        "react-syntax-highlighter": "^15.6.1",
+        "web-vitals": "^4.2.4",
+        "zod": "^3.25.76"
     },
     "scripts": {
-        "analyze": "source-map-explorer 'dist/assets/*.js'",
         "start": "vite",
         "build": "vite build",
         "preview": "vite preview",
         "test": "vitest",
         "dev-server": "json-server --watch data/db.json --middlewares ./middleware.js --port 3200",
-        "lint": "npx eslint ."
+        "lint": "eslint .",
+        "analyze": "source-map-explorer 'dist/assets/*.js'"
     },
     "browserslist": {
         "production": [
@@ -40,31 +39,30 @@
         ]
     },
     "devDependencies": {
-        "@testing-library/dom": "^10.4.0",
-        "@testing-library/jest-dom": "^6.4.2",
-        "@testing-library/react": "^16.2.0",
-        "@testing-library/user-event": "^14.5.2",
-        "@types/jest": "^29.5.12",
-        "@types/node": "^20.14.2",
-        "@types/react": "^19.0.2",
-        "@types/react-dom": "^19.0.2",
-        "@types/react-query": "^1.2.9",
-        "@typescript-eslint/eslint-plugin": "^7.14.1",
-        "@typescript-eslint/parser": "^7.14.1",
-        "@vitejs/plugin-react": "^4.3.1",
-        "autoprefixer": "^10.4.20",
-        "eslint": "^8.57.0",
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@testing-library/user-event": "^14.6.1",
+        "@types/node": "^22.0.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@typescript-eslint/eslint-plugin": "^8.57.1",
+        "@typescript-eslint/parser": "^8.57.1",
+        "@vitejs/plugin-react": "^6.0.1",
+        "autoprefixer": "^10.4.27",
+        "eslint": "^8.57.1",
         "eslint-config-airbnb": "^19.0.4",
-        "eslint-plugin-import": "^2.29.1",
-        "eslint-plugin-jsx-a11y": "^6.8.0",
-        "eslint-plugin-react": "^7.34.1",
-        "eslint-plugin-react-hooks": "^4.6.0",
-        "jsdom": "^24.1.0",
+        "eslint-plugin-import": "^2.32.0",
+        "eslint-plugin-jsx-a11y": "^6.10.2",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^4.6.2",
+        "jsdom": "^29.0.0",
         "json-server": "^0.17.4",
-        "postcss": "^8.4.38",
-        "tailwindcss": "^3.4.4",
-        "typescript": "^5.5.4",
-        "vite": "^5.4.1",
-        "vitest": "^1.6.0"
+        "postcss": "^8.5.8",
+        "source-map-explorer": "^2.5.3",
+        "tailwindcss": "^3.4.19",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.0",
+        "vitest": "^4.1.0"
     }
 }
