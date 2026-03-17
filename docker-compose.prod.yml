@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    image: vimagick/json-server
+    command: -H 0.0.0.0 -p 3200 -w db.json
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      # VITE_API_BASE defaults to /api — the nginx.conf inside the container
+      # proxies /api/ to the api service, so no extra port needs to be exposed.
+      args:
+        VITE_API_BASE: /api
+    ports:
+      - "5566:80"
+    depends_on:
+      - api
+    restart: unless-stopped

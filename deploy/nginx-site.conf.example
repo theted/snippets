@@ -1,0 +1,31 @@
+# EC2 nginx reverse-proxy config for snippets.
+# Place this file at /etc/nginx/sites-available/snippets
+# then: sudo ln -s /etc/nginx/sites-available/snippets /etc/nginx/sites-enabled/snippets
+# and:  sudo nginx -t && sudo systemctl reload nginx
+#
+# Prerequisites: certbot / Let's Encrypt cert already issued for the domain.
+
+server {
+    listen 80;
+    server_name snippets.yourdomain.com;
+
+    # Redirect plain HTTP → HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name snippets.yourdomain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/snippets.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/snippets.yourdomain.com/privkey.pem;
+
+    location / {
+        proxy_pass         http://127.0.0.1:5566;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+}
