@@ -53,7 +53,8 @@ cp .env.example .env
 |---|---|
 | `npm run build` | Production build → `dist/` |
 | `npm run preview` | Serve the production build locally |
-| `npm test` | Run tests in watch mode (vitest) |
+| `npm test` | Run tests once and exit |
+| `npm run test:watch` | Run tests in watch mode (vitest) |
 | `npm run lint` | Lint with ESLint |
 | `npm run analyze` | Bundle size visualiser (requires a prior `build`) |
 
@@ -84,8 +85,8 @@ docker compose -f docker-compose.postgres.yml down -v
 ## Testing
 
 ```bash
-npm test          # interactive watch mode
-npm test -- --run # single pass (used in CI)
+npm test           # single pass
+npm run test:watch # interactive watch mode
 ```
 
 Tests use [Vitest](https://vitest.dev/) and

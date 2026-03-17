@@ -1,14 +1,22 @@
 import React from 'react';
 import { DEFAULT_THEME } from '../config';
 
-const defaults = {
-  showLineNumbers: true,
-  // eslint-disable-next-line no-unused-vars
-  setLineNumbers: (e: boolean) => {},
-  theme: DEFAULT_THEME,
-  setTheme: (theme) => theme,
+export type ThemeContextValue = {
+  background: string;
+  showLineNumbers: boolean;
+  setLineNumbers: (nextValue: boolean) => void;
+  theme: string;
+  setTheme: (theme: string) => void;
 };
 
-export const ThemeContext = React.createContext(defaults);
+const defaults: ThemeContextValue = {
+  background: 'oklch(0.18 0.03 258)',
+  showLineNumbers: true,
+  setLineNumbers: () => {},
+  theme: DEFAULT_THEME,
+  setTheme: () => {},
+};
+
+export const ThemeContext = React.createContext<ThemeContextValue>(defaults);
 
 export default defaults;

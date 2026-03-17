@@ -3,7 +3,7 @@ import { z } from 'zod';
 const Tag = z.string();
 
 export const SnippetSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   userId: z.number().optional(),
   title: z.string(),
   content: z.string(),
@@ -14,5 +14,14 @@ export const SnippetSchema = z.object({
 });
 
 export type Snippet = z.infer<typeof SnippetSchema>;
+export type SnippetId = Snippet['id'];
 
 export const CreateSnippetSchema = SnippetSchema.omit({ id: true });
+export type CreateSnippet = z.infer<typeof CreateSnippetSchema>;
+
+export type SnippetFormValues = {
+  title: string;
+  content: string;
+  description: string;
+  language: string;
+};

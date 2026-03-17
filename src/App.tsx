@@ -6,38 +6,31 @@ import CreateSnippet from './pages/CreateSnippet';
 import Snippets from './pages/Snippets';
 import Preferences from './pages/Preferences';
 import Spinner from './components/Spinner';
-import { ThemeContext } from './contexts/themeContext';
-import { ENVIRONMENT } from './config';
+import { ThemeContext, ThemeContextValue } from './contexts/themeContext';
+import { DEFAULT_THEME, ENVIRONMENT } from './config';
 
 const queryClient = new QueryClient();
 
-const classes = {
-  wrapper: 'App bg-gray-800',
-  header: 'App-header',
-};
+type ThemePreferences = Pick<ThemeContextValue, 'showLineNumbers' | 'theme'>;
 
-const defaultGlobalState = {
-  theme: window.localStorage.getItem('theme') || 'vs2015',
-  showLineNumbers: window.localStorage.getItem('showLineNumbers') as unknown as boolean || false,
-};
+const getDefaultGlobalState = (): ThemePreferences => ({
+  theme: window.localStorage.getItem('theme') || DEFAULT_THEME,
+  showLineNumbers: window.localStorage.getItem('showLineNumbers') === 'true',
+});
 
 const App: FC = () => {
-  const [globalstate, setGlobalstate] = useState(defaultGlobalState);
-  const [actuallyshowLineNumbers, setShowLineNumbers] = useState<boolean>(true);
-  const [actualTheme, setTheme] = useState<string>(globalstate.theme);
-  const { theme, showLineNumbers } = globalstate;
+  const [globalState, setGlobalState] = useState<ThemePreferences>(getDefaultGlobalState);
 
-  // for our provider
-  const value = {
-    background: '#333',
-    showLineNumbers: actuallyshowLineNumbers,
-    setLineNumbers: () => {
-      setShowLineNumbers(!actuallyshowLineNumbers);
-      window.localStorage.setItem('showLineNumbers', String(showLineNumbers));
+  const value: ThemeContextValue = {
+    background: 'oklch(0.18 0.03 258)',
+    showLineNumbers: globalState.showLineNumbers,
+    setLineNumbers: (nextValue: boolean) => {
+      setGlobalState((previous) => ({ ...previous, showLineNumbers: nextValue }));
+      window.localStorage.setItem('showLineNumbers', String(nextValue));
     },
-    theme: actualTheme,
-    setTheme: (newTheme) => {
-      setTheme(newTheme);
+    theme: globalState.theme,
+    setTheme: (newTheme: string) => {
+      setGlobalState((previous) => ({ ...previous, theme: newTheme }));
       window.localStorage.setItem('theme', newTheme);
     },
   };
@@ -46,17 +39,24 @@ const App: FC = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeContext.Provider value={value}>
         <Spinner />
-        <div className={classes.wrapper}>
-          <header className={classes.header}>
-            <h1 className="text-white text-4xl">Snippets</h1>
-          </header>
-          <CreateSnippet />
-          <Preferences
-            theme={theme}
-            showLineNumbers={showLineNumbers}
-            setGlobalstate={setGlobalstate}
-          />
-          <Snippets />
+        <div className="App">
+          <div className="app-shell">
+            <header className="app-hero">
+              <p className="app-kicker">Deep-Focus Code Archive</p>
+              <h1 className="app-title">
+                <span>Snippets</span>
+              </h1>
+              <p className="app-subtitle">
+                A spacious, low-light workspace for the fragments you return to most.
+                The interface stays quiet so the code itself can take the room.
+              </p>
+              <div className="app-toolbar">
+                <CreateSnippet />
+                <Preferences />
+              </div>
+            </header>
+            <Snippets />
+          </div>
         </div>
       </ThemeContext.Provider>
       {ENVIRONMENT === 'development' && (
