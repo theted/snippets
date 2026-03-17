@@ -1,22 +1,108 @@
 .App {
-  display: flex;
+  position: relative;
   min-height: 100vh;
-  /* background-color: #282c34; */
-  /* background-image: radial-gradient( circle farthest-corner at 83.7% 4.3%,  rgba(173,0,171,1) 0%, rgba(15,51,92,1) 90% ); */
-  /* background-image: linear-gradient( 109.6deg,  rgba(33,103,43,1) 11.3%, rgba(117,162,61,1) 91.1% ); */
-  /* background-image: linear-gradient( 180deg,  rgba(155,254,23,1) 45.5%, rgba(36,243,8,1) 97.9% ); */
-  background-image: linear-gradient( 110.3deg,  rgba(73,93,109,1) 4.3%, rgba(49,55,82,1) 96.7% );
-  background-size: cover;
-  background-attachment: fixed;
-  align-items: center;
-  width: 100%;
-  flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
 }
 
+.App::before,
+.App::after {
+  content: '';
+  position: fixed;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(20px);
+}
 
+.App::before {
+  top: -18rem;
+  right: -16rem;
+  width: 40rem;
+  height: 40rem;
+  background: radial-gradient(circle, oklch(0.65 0.18 240 / 0.34) 0%, transparent 70%);
+}
 
-/* animations */
+.App::after {
+  left: -18rem;
+  bottom: -20rem;
+  width: 48rem;
+  height: 48rem;
+  background: radial-gradient(circle, oklch(0.48 0.12 242 / 0.26) 0%, transparent 72%);
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 100rem);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 4vw, 3rem) clamp(1.25rem, 4vw, 4rem) clamp(5rem, 8vw, 8rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 6vw, 5.5rem);
+}
+
+.app-hero {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 78rem;
+  padding-top: clamp(2.75rem, 8vw, 7rem);
+}
+
+.app-kicker {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+}
+
+.app-title {
+  margin: 0;
+  max-width: 10ch;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(4.25rem, 12vw, 9rem);
+  font-weight: 200;
+  line-height: 0.88;
+  letter-spacing: -0.08em;
+  text-wrap: balance;
+}
+
+.app-title span {
+  position: relative;
+  display: inline-block;
+  text-shadow: 0 0 32px oklch(0.7 0.16 245 / 0.16);
+}
+
+.app-title span::after {
+  content: '';
+  position: absolute;
+  left: 0.12em;
+  right: -0.04em;
+  bottom: 0.1em;
+  height: 0.18em;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, oklch(0.78 0.15 230 / 0.42), oklch(0.66 0.17 245 / 0.08) 72%, transparent);
+  filter: blur(1px);
+  z-index: -1;
+}
+
+.app-subtitle {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--color-text-muted);
+  font-size: clamp(1.02rem, 2vw, 1.3rem);
+  line-height: 1.9;
+}
+
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
 .animated {
   animation-duration: 1s;
   animation-fill-mode: both;
@@ -54,9 +140,6 @@
   }
 }
 
-
-
-/* fontello icons */
 @font-face {
   font-family: 'fontello';
   src: url('./font/fontello.eot?71823067');
@@ -68,101 +151,56 @@
   font-weight: normal;
   font-style: normal;
 }
-/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
-/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
-/*
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  @font-face {
-    font-family: 'fontello';
-    src: url('./font/fontello.svg?71823067#fontello') format('svg');
-  }
-}
-*/
+
 [class^="icon-"]:before, [class*=" icon-"]:before {
   font-family: "fontello";
   font-style: normal;
   font-weight: normal;
   speak: never;
-
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
-  margin-right: .2em;
+  margin-right: 0.2em;
   text-align: center;
-  /* opacity: .8; */
-
-  /* For safety - reset parent styles, that can break glyph codes*/
   font-variant: normal;
   text-transform: none;
-
-  /* fix buttons height, for twitter bootstrap */
   line-height: 1em;
-
-  /* Animation center compensation - margins should be symmetric */
-  /* remove if not needed */
-  margin-left: .2em;
-
-  /* you can be more comfortable with increased icons size */
-  /* font-size: 120%; */
-
-  /* Font smoothing. That was taken from TWBS */
+  margin-left: 0.2em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Uncomment for 3D effect */
-  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 
-.icon-search:before { content: '\e800'; } /* '' */
-.icon-plus:before { content: '\e801'; } /* '' */
-.icon-heart:before { content: '\e802'; } /* '' */
-.icon-heart-empty:before { content: '\e803'; } /* '' */
-.icon-star:before { content: '\e804'; } /* '' */
-.icon-star-empty:before { content: '\e805'; } /* '' */
-.icon-user:before { content: '\e806'; } /* '' */
-.icon-home:before { content: '\e807'; } /* '' */
-.icon-link:before { content: '\e808'; } /* '' */
-.icon-ok:before { content: '\e809'; } /* '' */
-.icon-cog:before { content: '\e80a'; } /* '' */
-.icon-lock:before { content: '\e80b'; } /* '' */
-.icon-cancel:before { content: '\e80c'; } /* '' */
-.icon-pencil:before { content: '\e80d'; } /* '' */
-.icon-wrench:before { content: '\e80e'; } /* '' */
-.icon-trash-empty:before { content: '\e80f'; } /* '' */
-.icon-code:before { content: '\f121'; } /* '' */
-.icon-info:before { content: '\f129'; } /* '' */
-.icon-trash:before { content: '\f1f8'; } /* '' */
-
-
-
-/* spinner thing  */
-html, body {
-  height: 100%;
-  background-image: linear-gradient(-105deg, #009acc, #363795);
-}
+.icon-search:before { content: '\e800'; }
+.icon-plus:before { content: '\e801'; }
+.icon-heart:before { content: '\e802'; }
+.icon-heart-empty:before { content: '\e803'; }
+.icon-star:before { content: '\e804'; }
+.icon-star-empty:before { content: '\e805'; }
+.icon-user:before { content: '\e806'; }
+.icon-home:before { content: '\e807'; }
+.icon-link:before { content: '\e808'; }
+.icon-ok:before { content: '\e809'; }
+.icon-cog:before { content: '\e80a'; }
+.icon-lock:before { content: '\e80b'; }
+.icon-cancel:before { content: '\e80c'; }
+.icon-pencil:before { content: '\e80d'; }
+.icon-wrench:before { content: '\e80e'; }
+.icon-trash-empty:before { content: '\e80f'; }
+.icon-code:before { content: '\f121'; }
+.icon-info:before { content: '\f129'; }
+.icon-trash:before { content: '\f1f8'; }
 
 .spinner {
-  -webkit-animation: rotate 2s linear infinite;
-          animation: rotate 2s linear infinite;
-  z-index: 2;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -25px 0 0 -25px;
-  width: 50px;
-  height: 50px;
-}
-.spinner .path {
-  stroke: #93bfec;
-  stroke-linecap: round;
-  -webkit-animation: dash 1.5s ease-in-out infinite;
-          animation: dash 1.5s ease-in-out infinite;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  animation: rotate 1.9s linear infinite;
 }
 
-@-webkit-keyframes rotate {
-  100% {
-    transform: rotate(360deg);
-  }
+.spinner .path {
+  stroke: var(--color-accent-bright);
+  stroke-linecap: round;
+  animation: dash 1.4s ease-in-out infinite;
 }
 
 @keyframes rotate {
@@ -170,31 +208,27 @@ html, body {
     transform: rotate(360deg);
   }
 }
-@-webkit-keyframes dash {
-  0% {
-    stroke-dasharray: 1, 150;
-    stroke-dashoffset: 0;
-  }
-  50% {
-    stroke-dasharray: 90, 150;
-    stroke-dashoffset: -35;
-  }
-  100% {
-    stroke-dasharray: 90, 150;
-    stroke-dashoffset: -124;
-  }
-}
+
 @keyframes dash {
   0% {
     stroke-dasharray: 1, 150;
     stroke-dashoffset: 0;
   }
+
   50% {
     stroke-dasharray: 90, 150;
     stroke-dashoffset: -35;
   }
+
   100% {
     stroke-dasharray: 90, 150;
     stroke-dashoffset: -124;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-title span::after {
+    left: 0;
+    right: 0;
   }
 }

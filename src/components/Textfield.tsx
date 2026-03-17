@@ -1,16 +1,14 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
+import cx from 'classnames';
 
-type Props = {
-  name: string;
-  onChange?: any;
-  placeholder?: string;
-  value?: string;
-}
+type Props = React.ComponentPropsWithoutRef<'input'>;
 
-const classes = 'bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal';
+const classes = 'block w-full appearance-none rounded-[1.4rem] border border-[var(--color-border)] bg-[var(--color-surface-strong)] px-5 py-4 text-base leading-normal text-[var(--color-text)] placeholder:text-[var(--color-text-subtle)] transition duration-300 ease-out focus:border-[var(--color-border-strong)] focus:outline-hidden focus:ring-4 focus:ring-[var(--color-accent-soft)] md:px-6 md:py-5 md:text-lg';
 
-const Textfield: React.FC<Props> = (props) => (<input {...props} className={classes} />);
+const Textfield: React.FC<Props> = ({ className, ...props }) => (
+  <input {...props} className={cx(classes, className)} />
+);
 
 export default Textfield;

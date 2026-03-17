@@ -1,34 +1,45 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-/* eslint-disable no-unused-vars */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-import React, { useRef, useEffect, forwardRef } from 'react';
+import React, {
+  PropsWithChildren, RefObject, useCallback, useEffect, useRef,
+} from 'react';
 import { gsap } from 'gsap';
 
-type Props = {
-  children: any;
+type Props = PropsWithChildren<{
   closeModal?: () => void;
-  [key: string]: any;
-}
+}>;
 
-const ANIMATION_DURATION = 700;
-
-const classes = {
-  container: 'w-full h-screen flex items-center justify-center align-center fixed top-10 z-20 opacity-0',
-  content: '',
-  bg: 'bg fixed top-0 left-0 bottom-0 right-0 z-10',
-  close: '',
+type ModalRefs = {
+  modalRef: RefObject<HTMLDivElement | null>;
+  backgroundRef: RefObject<HTMLDivElement | null>;
+  closeModal?: () => void;
 };
 
-export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }) => {
-  gsap.to(modalRef.current, {
-    opacity: 0,
-  });
-  gsap.to(backgroundRef.current, {
-    background: 'rgba(0, 0, 0, 0)',
-    delay: 0.2,
-  });
+const ANIMATION_DURATION = 500;
+
+const classes = {
+  container: 'fixed inset-0 z-30 flex items-center justify-center p-4 opacity-0 md:p-8',
+  content: 'relative z-30 w-full max-w-5xl',
+  bg: 'fixed inset-0 z-20',
+  close: 'absolute right-5 top-5 z-40 inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
+};
+
+export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }: ModalRefs) => {
+  if (modalRef.current) {
+    gsap.to(modalRef.current, {
+      opacity: 0,
+      y: 32,
+      duration: 0.4,
+      ease: 'power3.in',
+    });
+  }
+
+  if (backgroundRef.current) {
+    gsap.to(backgroundRef.current, {
+      background: 'oklch(0.12 0.012 258 / 0)',
+      duration: 0.4,
+    });
+  }
 
   if (closeModal) {
     setTimeout(() => {
@@ -37,54 +48,74 @@ export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }) => {
   }
 };
 
-const entryAnimation = ({ modalRef, backgroundRef }) => {
-  gsap.to(modalRef.current, {
-    opacity: 1,
-    duration: 0.5,
-    delay: 0.2,
-  });
-  gsap.to(backgroundRef.current, {
-    background: 'rgba(0, 0, 0, 0.7)',
-  });
+const entryAnimation = ({ modalRef, backgroundRef }: Omit<ModalRefs, 'closeModal'>) => {
+  if (modalRef.current) {
+    gsap.to(modalRef.current, {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      ease: 'power3.out',
+    });
+  }
+
+  if (backgroundRef.current) {
+    gsap.to(backgroundRef.current, {
+      background: 'oklch(0.12 0.012 258 / 0.78)',
+      duration: 0.4,
+    });
+  }
 };
 
 const Modal: React.FC<Props> = ({ closeModal, children }) => {
   const backgroundRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const closeModalCallback = () => closeModalFunc({ modalRef, backgroundRef, closeModal });
+  const closeModalCallback = useCallback(() => {
+    closeModalFunc({ modalRef, backgroundRef, closeModal });
+  }, [closeModal]);
 
   useEffect(() => {
     entryAnimation({ modalRef, backgroundRef });
   }, []);
 
   useEffect(() => {
-    document.addEventListener('keydown', (e) => {
-      // eslint-disable-next-line no-unused-expressions
-      e.key === 'Escape' && closeModalCallback();
-    });
-    return () => {
-      document.removeEventListener('keydown', (e) => e);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeModalCallback();
+      }
     };
-  }, [closeModal]);
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeModalCallback]);
 
   return (
     <>
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
         className={classes.container}
+        style={{ transform: 'translateY(40px)' }}
         onClick={closeModalCallback}
       >
-        <div className={classes.close}>
-          <div className="right-0 p-3" onClick={closeModalCallback}>x</div>
-        </div>
         <div className={classes.content} onClick={(event) => event.stopPropagation()}>
+          <button
+            type="button"
+            className={classes.close}
+            onClick={closeModalCallback}
+            aria-label="Close modal"
+          >
+            Close
+          </button>
           {children}
         </div>
       </div>
       <div
         ref={backgroundRef}
         className={classes.bg}
-        style={{ background: 'rgba(0, 0, 0, 0)' }}
+        style={{ background: 'oklch(0.12 0.012 258 / 0)' }}
         onClick={closeModalCallback}
       />
     </>

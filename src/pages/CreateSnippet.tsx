@@ -1,70 +1,43 @@
-/* eslint-disable no-console */
-
 import React, { useState } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { post } from '../utils/api.ts';
-import { snippetKeys } from '../hooks/react-query';
+import Button from '../components/Button';
 import SnippetForm from '../components/SnippetForm';
 // eslint-disable-next-line import/no-named-as-default
 import Modal from '../components/Modal';
-import { Snippet } from '../types';
+import { CreateSnippet as CreateSnippetInput, Snippet, SnippetFormValues } from '../types';
+import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 
 const CreateSnippet: React.FC = () => {
   const queryClient = useQueryClient();
-  const [formvisible, setFormvisible] = useState<boolean>(false);
-  // TODO: refactor into reusable helper util method
-  const mutation = useMutation({
-    mutationFn: (data: Snippet) => post<Snippet>('snippets', data),
-    onMutate: async (newSnippet) => {
-      await queryClient.cancelQueries({ queryKey: snippetKeys.lists() });
-      const previousSnippets = queryClient.getQueryData<Snippet[]>(snippetKeys.list(''));
-
-      queryClient.setQueryData<Snippet[]>(snippetKeys.list(''), (old = []) => [newSnippet, ...old]);
-
-      return { previousSnippets };
-    },
-    onError: (err, data, context: any) => {
-      console.log({ err, data, context });
-      queryClient.setQueryData(snippetKeys.list(''), context?.previousSnippets);
-    },
-    onSettled: () => {
-      console.log('Settled!');
-      queryClient.invalidateQueries({ queryKey: snippetKeys.all });
+  const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
+  const createSnippetMutation = useMutation({
+    mutationFn: (data: CreateSnippetInput) => post<Snippet, CreateSnippetInput>('snippets', data),
+    onSuccess: async () => {
+      await invalidateSnippetQueries(queryClient);
+      setIsFormVisible(false);
     },
   });
 
-  const closeModal = () => {
-    // TODO: use modal's close callback
-    setFormvisible(false);
+  const closeModal = () => setIsFormVisible(false);
+
+  const onSubmit = (formValues: SnippetFormValues) => {
+    createSnippetMutation.mutate(formValues);
   };
 
-  const onSubmit = (event) => {
-    mutation.mutate(event);
-    closeModal();
-  };
+  const openModal = () => setIsFormVisible(true);
 
-  const toggleFormvisible = () => {
-    if (formvisible) { closeModal(); } else {
-      setFormvisible(true);
-    }
-  };
-
-  // TODO: move out of component
-  if (!formvisible) {
+  if (!isFormVisible) {
     return (
-      <div>
-        <button
-          type="button"
-          onClick={toggleFormvisible}
-          className="text-white"
-        >
-          <i className="icon-plus" />
-          <span>
-            Create snippet
-          </span>
-
-        </button>
-      </div>
+      <Button
+        type="button"
+        variant="success"
+        onClick={openModal}
+        className="min-w-[14rem] justify-center md:justify-start"
+      >
+        <i className="icon-plus" />
+        <span>Create Snippet</span>
+      </Button>
     );
   }
 

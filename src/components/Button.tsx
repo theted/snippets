@@ -1,34 +1,28 @@
 import React from 'react';
 import cx from 'classnames';
 
-type Props = {
-  type: 'button' | 'submit' | 'reset' | undefined;
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: React.ReactNode;
   variant: 'success' | 'info' | 'warning' | 'error';
-  onClick: () => void;
 };
 
 const classes = {
-  base: 'text-white rounded-full',
-  alignment: 'inline-flex justify-center items-center',
-  paddings: 'h-10 px-5',
-  success: 'bg-green-600',
-  info: 'bg-blue-600',
-  warning: 'bg-yellow-600',
-  error: 'bg-red-600',
+  base: 'inline-flex items-center justify-center gap-3 rounded-full border px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] transition duration-300 ease-out focus:outline-hidden focus:ring-4 focus:ring-[var(--color-accent-soft)]',
+  success: 'border-transparent bg-[var(--color-accent)] text-[var(--color-ink)] hover:-translate-y-0.5 hover:bg-[var(--color-accent-bright)]',
+  info: 'border-[var(--color-border-strong)] bg-[var(--color-surface)] text-[var(--color-text)] hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)]',
+  warning: 'border-[var(--color-border)] bg-transparent text-[var(--color-text-muted)] hover:-translate-y-0.5 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-text)]',
+  error: 'border-transparent bg-[var(--color-danger)] text-[var(--color-text)] hover:-translate-y-0.5 hover:bg-[oklch(0.7_0.19_25)]',
 };
 
-// TODO: forwardRef
 const Button: React.FC<Props> = ({
-  variant, type, onClick, children, ...rest
+  variant, type = 'button', onClick, className, children, ...rest
 }) => (
   <button
-    type="button"
+    type={type}
     className={cx(
       classes.base,
-      classes.alignment,
-      classes.paddings,
       classes[variant],
-      'mr-4',
+      className,
     )}
     onClick={onClick}
     // eslint-disable-next-line react/jsx-props-no-spreading

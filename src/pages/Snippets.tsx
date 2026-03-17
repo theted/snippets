@@ -1,128 +1,170 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable max-len */
 import React, { useContext, useState } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
-import { Snippet as ISnippet } from '../types';
+import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import { update, remove } from '../utils/api.ts';
 import Searchbar from '../components/Searchbar';
 import { SpinFigure } from '../components/Spinner';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { ThemeContext } from '../contexts/themeContext';
-import { snippetKeys, useSnippet } from '../hooks/react-query';
+import { useSnippet } from '../hooks/react-query';
 import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
+import {
+  invalidateSnippetQueries,
+  removeSnippetFromLists,
+  restoreSnippetLists,
+  SnippetListSnapshot,
+  snapshotSnippetLists,
+} from '../utils/snippetQueryCache';
 
 const classes = {
-  container: '',
+  container: 'w-full',
+  stream: 'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
+  empty: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-14 text-center backdrop-blur-2xl md:px-14 md:py-20',
+  emptyTitle: 'font-[var(--font-display)] text-3xl font-[250] tracking-[-0.05em] text-[var(--color-text)] md:text-5xl',
+  emptyText: 'mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--color-text-muted)] md:text-base',
+  error: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-10 text-[var(--color-text)] backdrop-blur-2xl',
 };
 
-async function removeSnippetCallback(id: string) {
+async function removeSnippetCallback(id: SnippetId) {
   return remove('snippets', id);
 }
 
 async function updateSnippetCallback(data: ISnippet) {
-  return update(`snippets/${data.id}`, data);
+  return update<ISnippet, ISnippet>(`snippets/${data.id}`, data);
 }
 
 const Snippets: React.FC = () => {
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingId, setEditingId] = useState<number>(1);
+  const [editingId, setEditingId] = useState<SnippetId | null>(null);
   const [search, setSearch] = useState<string>('');
-  const { data: editingSnippetData }: any = useSnippet(editingId);
-  const { mutate: removeSnippet } = useMutation({
+  const {
+    data: editingSnippetData,
+    error: editingSnippetError,
+  } = useSnippet(editingId);
+  const { mutate: removeSnippet } = useMutation<void, Error, SnippetId, { previousSnippets: SnippetListSnapshot }>({
     mutationFn: removeSnippetCallback,
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: snippetKeys.lists() });
-      const previousSnippets = queryClient.getQueriesData<ISnippet[]>({
-        queryKey: snippetKeys.lists(),
-      });
-
-      queryClient.setQueriesData<ISnippet[]>({ queryKey: snippetKeys.lists() }, (old = []) => old
-        .filter((snippet) => snippet.id !== id));
+      const previousSnippets = await snapshotSnippetLists(queryClient);
+      removeSnippetFromLists(queryClient, id);
 
       return { previousSnippets };
     },
     onError: (_error, _id, context) => {
-      context?.previousSnippets.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
-      });
+      restoreSnippetLists(queryClient, context?.previousSnippets);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: snippetKeys.all });
+    onSuccess: async () => {
+      await invalidateSnippetQueries(queryClient);
     },
   });
   const { mutate: updateSnippetMutation } = useMutation({
     mutationFn: updateSnippetCallback,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: snippetKeys.all });
+    onSuccess: async () => {
+      await invalidateSnippetQueries(queryClient);
+      setEditingId(null);
     },
   });
   const debouncedSearchQuery = useDebounce(search, 600);
   const { data: snippets = [], isPending, error } = useReactQuery(debouncedSearchQuery);
 
-  if (isPending) return <SpinFigure />;
-  if (error instanceof Error) return `An error has occurred: ${error.message}`;
-  if (error) return 'An unknown error has occurred';
+  if (isPending) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <SpinFigure />
+      </div>
+    );
+  }
 
-  const onDelete = async (id: string) => {
-    removeSnippet(id);
-  };
+  if (error instanceof Error) {
+    return (
+      <div className={classes.error}>
+        An error has occurred:
+        {' '}
+        {error.message}
+      </div>
+    );
+  }
 
-  const onEdit = (id: string) => {
-    setIsEditing(true);
-    setEditingId(Number(id));
-  };
+  if (error) {
+    return <div className={classes.error}>An unknown error has occurred.</div>;
+  }
 
-  const onSearch = (value: string) => {
-    setSearch(value);
-  };
+  const onDelete = (id: SnippetId) => removeSnippet(id);
 
-  const closeModal = () => {
-    setIsEditing(false);
-  };
+  const onEdit = (id: SnippetId) => setEditingId(id);
 
-  const updateSnippet = (data: ISnippet) => {
-    updateSnippetMutation(data);
-    setIsEditing(false);
+  const onSearch = (value: string) => setSearch(value);
+
+  const closeModal = () => setEditingId(null);
+
+  const updateSnippet = (formValues: SnippetFormValues) => {
+    if (!editingSnippetData) {
+      return;
+    }
+
+    updateSnippetMutation({
+      ...editingSnippetData,
+      ...formValues,
+    });
   };
 
   return (
-    <div className={classes.container}>
+    <section className={classes.container}>
       <Searchbar onSearch={onSearch} />
 
-      {snippets.map((snippet) => (
-        <Snippet
-          key={snippet.id || Math.random()}
-          id={snippet.id}
-          title={snippet.title}
-          description={snippet.description}
-          content={snippet.content}
-          language={snippet.language}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          theme={theme}
-        />
-      ))}
+      <div className={classes.stream}>
+        {snippets.length === 0 ? (
+          <div className={classes.empty}>
+            <h2 className={classes.emptyTitle}>Nothing matches that search.</h2>
+            <p className={classes.emptyText}>
+              Try a broader term, or add a fresh snippet to start shaping the archive.
+            </p>
+          </div>
+        ) : (
+          snippets.map((snippet) => (
+            <Snippet
+              key={snippet.id}
+              id={snippet.id}
+              title={snippet.title}
+              description={snippet.description}
+              content={snippet.content}
+              language={snippet.language}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              theme={theme}
+            />
+          ))
+        )}
+      </div>
 
-      {isEditing && (
+      {editingId !== null && (
         <Modal
           closeModal={closeModal}
         >
-          {/* TODO: spinner while loading */}
-          <SnippetForm
-            defaultValues={editingSnippetData}
-            isEditing
-            onSubmit={updateSnippet}
-            closeModal={closeModal}
-          />
+          {editingSnippetError instanceof Error ? (
+            <div className={classes.error}>
+              {`Unable to load snippet: ${editingSnippetError.message}`}
+            </div>
+          ) : editingSnippetData ? (
+            <SnippetForm
+              defaultValues={editingSnippetData}
+              isEditing
+              onSubmit={updateSnippet}
+              closeModal={closeModal}
+            />
+          ) : (
+            <div className="flex min-h-[12rem] items-center justify-center rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
+              <SpinFigure />
+            </div>
+          )}
         </Modal>
       )}
 
-    </div>
+    </section>
   );
 };
 
