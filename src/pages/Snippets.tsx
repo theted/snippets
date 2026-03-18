@@ -10,7 +10,7 @@ import { SpinFigure } from '../components/Spinner';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { ThemeContext } from '../contexts/themeContext';
-import { useSnippet } from '../hooks/react-query';
+import { useSnippet, snippetKeys } from '../hooks/react-query';
 import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
 import { capitalize } from '../utils/helpers';
@@ -134,6 +134,11 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
                 key={snippet.id}
                 className="snippet-stream-item"
                 style={{ '--item-index': index } as React.CSSProperties}
+                onMouseEnter={() => queryClient.prefetchQuery({
+                  queryKey: snippetKeys.detail(snippet.id),
+                  queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${snippet.id}`)),
+                  staleTime: 60_000,
+                })}
               >
                 <Snippet
                   id={snippet.id}

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { get } from '../utils/api.ts';
 import { Snippet, SnippetId } from '../types';
 
@@ -19,14 +19,25 @@ type UseSnippetOptions = {
   enabled?: boolean;
 };
 
-export const useSnippet = (id: SnippetId | null, options: UseSnippetOptions = {}) => useQuery({
-  queryKey: snippetKeys.detail(id ?? 0),
-  enabled: id !== null && (options.enabled ?? true),
-  queryFn: async () => {
-    if (id === null) {
-      throw new Error('Snippet id is required');
-    }
+export const useSnippet = (id: SnippetId | null, options: UseSnippetOptions = {}) => {
+  const queryClient = useQueryClient();
 
-    return get<Snippet>(`snippets/${id}`);
-  },
-});
+  return useQuery({
+    queryKey: snippetKeys.detail(id ?? 0),
+    enabled: id !== null && (options.enabled ?? true),
+    // Seed from any cached list so the detail page renders instantly on first visit
+    initialData: () => {
+      if (id === null) return undefined;
+      const lists = queryClient.getQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() });
+      for (const [, data] of lists) {
+        const found = data?.find((s) => s.id === id);
+        if (found) return found;
+      }
+      return undefined;
+    },
+    queryFn: async () => {
+      if (id === null) throw new Error('Snippet id is required');
+      return get<Snippet>(`snippets/${id}`);
+    },
+  });
+};

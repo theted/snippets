@@ -18,6 +18,33 @@ export function restoreSnippetLists(
   });
 }
 
+export type SnippetDetailSnapshot = [QueryKey, Snippet | undefined];
+
+export async function snapshotAndPatchSnippet(
+  queryClient: QueryClient,
+  updated: Snippet,
+): Promise<{ lists: SnippetListSnapshot; detail: SnippetDetailSnapshot }> {
+  await queryClient.cancelQueries({ queryKey: snippetKeys.lists() });
+  await queryClient.cancelQueries({ queryKey: snippetKeys.detail(updated.id) });
+
+  const lists = queryClient.getQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() });
+  const detailKey = snippetKeys.detail(updated.id);
+  const detail: SnippetDetailSnapshot = [detailKey, queryClient.getQueryData<Snippet>(detailKey)];
+
+  // Patch list caches
+  queryClient.setQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() }, (snippets = []) =>
+    snippets.map((s) => (s.id === updated.id ? updated : s)));
+
+  // Patch detail cache
+  queryClient.setQueryData(detailKey, updated);
+
+  return { lists, detail };
+}
+
+export function restoreSnippetDetail(queryClient: QueryClient, snapshot: SnippetDetailSnapshot): void {
+  queryClient.setQueryData(snapshot[0], snapshot[1]);
+}
+
 export function removeSnippetFromLists(queryClient: QueryClient, snippetId: SnippetId): void {
   queryClient.setQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() }, (snippets = []) => snippets
     .filter((snippet) => snippet.id !== snippetId));
