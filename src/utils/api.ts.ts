@@ -84,10 +84,8 @@ export const remove = async (
   idKey: string | number = 'id',
 ): Promise<void> => {
   const url = `${API_BASE}/${entity}/${idKey}`;
-  const headers = defaultHeaders();
 
   await fetchData<void>(url, {
     method: 'DELETE',
-    headers,
   });
 };

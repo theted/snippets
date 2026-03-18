@@ -17,13 +17,13 @@
  */
 
 export const GLASS_OPACITY = 0.82;
-export const GLASS_BLUR    = 32; // px
+export const GLASS_BLUR    = 40; // px
 
 export type GlassIntensity = 'subtle' | 'medium' | 'strong';
 
 // ── Per-intensity base alphas (scaled by GLASS_OPACITY at runtime) ─
 
-const BASE_BG:      Record<GlassIntensity, number> = { subtle: 0.22, medium: 0.38, strong: 0.76 };
+const BASE_BG:      Record<GlassIntensity, number> = { subtle: 0.17, medium: 0.30, strong: 0.64 };
 const BASE_BORDER:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.32, strong: 0.44 };
 const BASE_SHIMMER: Record<GlassIntensity, number> = { subtle: 0.24, medium: 0.38, strong: 0.64 };
 const BASE_SHADOW:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.34, strong: 0.46 };

@@ -33,8 +33,8 @@ const classes = {
     titleBlock: 'max-w-4xl group/link',
     titleLink: 'block outline-none',
     kicker: 'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
-    title: 'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl [text-shadow:0_1px_0_oklch(1_0_0_/_0.14),0_2px_12px_oklch(0_0_0_/_0.32)]',
-    description: 'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg',
+    title: 'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl text-bevel-strong',
+    description: 'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg text-bevel',
     code: 'relative z-10 overflow-hidden rounded-[1.8rem] text-base',
     language:
         'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel',
