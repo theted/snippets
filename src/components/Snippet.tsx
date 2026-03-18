@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
@@ -15,45 +15,66 @@ type Props = ISnippet & {
     onDelete: (id: SnippetId) => void;
     onEdit: (id: SnippetId) => void;
     theme: string;
+    /** Compact mode — smaller padding, smaller title, capped code height.
+     *  Used by grid and masonry layouts. Stream layout uses full size. */
+    compact?: boolean;
 };
 
 type SyntaxTheme = Record<string, React.CSSProperties>;
 
 const allStyles = syntaxStyles as Record<string, SyntaxTheme>;
 
-const classes = {
-    container:
-        'group relative overflow-hidden rounded-[2.2rem] p-6 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 md:p-10 lg:p-12 cursor-pointer',
-    // Subtle top-edge shimmer — simulates light catching the glass rim
-    glassEdge:
-        'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
-    glow: 'pointer-events-none absolute right-[-8rem] top-[-6rem] h-96 w-96 rounded-full',
-    heading: 'relative z-10 pb-10',
-    meta: 'flex flex-col gap-6 md:flex-row md:items-start md:justify-between',
-    titleBlock: 'max-w-4xl group/link',
-    titleLink: 'block outline-none',
-    kicker: 'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
-    title: 'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl text-bevel-strong',
-    description: 'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg text-bevel',
-    code: 'relative z-10 overflow-hidden rounded-[1.8rem] text-base',
-    language:
-        'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel',
-    controls:
-        'relative z-30 mt-8 flex flex-wrap gap-3 opacity-100 transition duration-300 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
-    controlButton:
-        'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
+// ── Full (stream) class set ────────────────────────────────────────────────────
+
+const fullClasses = {
+    container:     'group relative overflow-hidden rounded-[2.2rem] p-6 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 md:p-10 lg:p-12 cursor-pointer',
+    glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
+    glow:          'pointer-events-none absolute right-[-8rem] top-[-6rem] h-96 w-96 rounded-full',
+    heading:       'relative z-10 pb-10',
+    meta:          'flex flex-col gap-6 md:flex-row md:items-start md:justify-between',
+    titleBlock:    'max-w-4xl group/link',
+    titleLink:     'block outline-none',
+    kicker:        'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
+    title:         'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl text-bevel-strong',
+    description:   'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg text-bevel',
+    code:          'relative z-10 overflow-hidden rounded-[1.8rem] text-base',
+    language:      'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel',
+    controls:      'relative z-30 mt-8 flex flex-wrap gap-3 opacity-100 transition duration-300 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
+    controlButton: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
+    codeMaxHeight: 'min(800px, 90vh)',
+    codeFontSize:  '1.18rem',
+    codeLineHeight: '1.75',
 };
 
-const customStyle = {
+// ── Compact (grid / masonry) class set ────────────────────────────────────────
+
+const compactClasses = {
+    container:     'group relative overflow-hidden rounded-[1.6rem] p-4 md:p-5 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 cursor-pointer',
+    glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
+    glow:          'pointer-events-none absolute right-[-4rem] top-[-3rem] h-48 w-48 rounded-full',
+    heading:       'relative z-10 pb-3',
+    meta:          'flex items-start justify-between gap-3',
+    titleBlock:    'min-w-0 group/link',
+    titleLink:     'block outline-none',
+    kicker:        'text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel',
+    title:         'mt-1 font-[var(--font-display)] text-lg font-[300] tracking-[-0.04em] text-[var(--color-text)] md:text-xl text-bevel-strong',
+    description:   'mt-1.5 text-xs leading-5 text-[var(--color-text-muted)] line-clamp-2 text-bevel',
+    code:          'relative z-10 overflow-hidden rounded-[1.2rem] text-sm',
+    language:      'inline-flex shrink-0 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[0.60rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-text-muted)] text-bevel',
+    controls:      'relative z-30 mt-3 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
+    controlButton: 'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
+    codeMaxHeight: '220px',
+    codeFontSize:  '0.82rem',
+    codeLineHeight: '1.6',
+};
+
+const baseCodeStyle = {
     margin: 0,
     padding: '0.5rem 0',
-    borderRadius: '1.8rem',
-    fontSize: '1.18rem',
-    lineHeight: '1.75',
-    letterSpacing: '0.012em',
     background: 'transparent',
     border: 'none',
     boxShadow: 'none',
+    letterSpacing: '0.012em',
     WebkitFontSmoothing: 'antialiased' as const,
     MozOsxFontSmoothing: 'grayscale' as const,
     textRendering: 'geometricPrecision' as const,
@@ -68,7 +89,9 @@ const Snippet: React.FC<Props> = ({
     onDelete,
     onEdit,
     theme,
+    compact = false,
 }) => {
+    const navigate = useNavigate();
     const { showLineNumbers } = useContext(ThemeContext);
     const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
     const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
@@ -79,7 +102,14 @@ const Snippet: React.FC<Props> = ({
     const cardRef = useRef<HTMLDivElement>(null);
     const codeWrapRef = useRef<HTMLDivElement>(null);
 
-    // Show fade indicator whenever the code block has hidden content below
+    const c = compact ? compactClasses : fullClasses;
+    const codeStyle = {
+        ...baseCodeStyle,
+        borderRadius: compact ? '1.2rem' : '1.8rem',
+        fontSize: c.codeFontSize,
+        lineHeight: c.codeLineHeight,
+    };
+
     useEffect(() => {
         const el = codeWrapRef.current;
         if (el) setShowScrollFade(el.scrollHeight > el.clientHeight + 4);
@@ -106,9 +136,6 @@ const Snippet: React.FC<Props> = ({
 
     const handleDeleteConfirm = () => {
         setConfirmingDelete(false);
-        // Animate the card out (cosmetic). Delete fires via setTimeout so it is
-        // never blocked by GSAP completion — the card's own CSS `transition`
-        // declaration can interfere with onComplete on some browsers.
         const ANIM_MS = 360;
         if (cardRef.current) {
             gsap.to(cardRef.current, {
@@ -126,7 +153,7 @@ const Snippet: React.FC<Props> = ({
     return (
         <div
             ref={cardRef}
-            className={classes.container}
+            className={c.container}
             style={{
                 border: '1px solid transparent',
                 backgroundImage: `
@@ -143,6 +170,7 @@ const Snippet: React.FC<Props> = ({
                     : '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)',
                 transition: 'box-shadow 500ms ease',
             }}
+            onClick={() => navigate(`/snippets/${id}`)}
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -150,29 +178,26 @@ const Snippet: React.FC<Props> = ({
             {/* Stretched background link — makes the whole card clickable */}
             <Link
                 to={`/snippets/${id}`}
-                className="absolute inset-0 z-0 rounded-[2.2rem]"
+                className={`absolute inset-0 z-0 rounded-[inherit]`}
                 tabIndex={-1}
                 aria-hidden="true"
             />
-            <div className={classes.glassEdge} />
-            {/* Top-right glow */}
+            <div className={c.glassEdge} />
             <div
-                className={classes.glow}
+                className={c.glow}
                 style={{
-                    background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.14) 0%, transparent 70%)',
-                    filter: 'blur(72px)',
+                    background: 'radial-gradient(circle, oklch(0.52 0.24 238 / 0.14) 0%, transparent 70%)',
+                    filter: `blur(${compact ? '48px' : '72px'})`,
                 }}
             />
-            {/* Bottom-left glow — cooler teal, balances the top-right */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-[-5rem] left-[-5rem] h-80 w-80 rounded-full"
+                className={`pointer-events-none absolute ${compact ? 'bottom-[-3rem] left-[-3rem] h-48 w-48' : 'bottom-[-5rem] left-[-5rem] h-80 w-80'} rounded-full`}
                 style={{
                     background: 'radial-gradient(circle, oklch(0.58 0.14 210 / 0.12) 0%, transparent 70%)',
-                    filter: 'blur(64px)',
+                    filter: `blur(${compact ? '48px' : '64px'})`,
                 }}
             />
-            {/* Mouse-tracking shimmer — more subtle than the search panel */}
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 transition-opacity duration-500"
@@ -182,32 +207,28 @@ const Snippet: React.FC<Props> = ({
                     opacity: isHovered ? 1 : 0,
                 }}
             />
-            <div className={classes.heading}>
-                <div className={classes.meta}>
-                    <div className={classes.titleBlock}>
-                        <Link to={`/snippets/${id}`} className={classes.titleLink}>
-                            <p className={classes.kicker}>Snippet {id}</p>
-                            <h3
-                                className={`${classes.title} transition-colors duration-300 group-hover/link:text-[var(--color-accent-bright)]`}
-                            >
+            <div className={c.heading}>
+                <div className={c.meta}>
+                    <div className={c.titleBlock}>
+                        <Link to={`/snippets/${id}`} className={c.titleLink} onClick={(e) => e.stopPropagation()}>
+                            <p className={c.kicker}>Snippet {id}</p>
+                            <h3 className={`${c.title} transition-colors duration-300 group-hover/link:text-[var(--color-accent-bright)]`}>
                                 {capitalize(title || 'Untitled snippet')}
                             </h3>
-                            {description && <p className={classes.description}>{description}</p>}
+                            {description && <p className={c.description}>{description}</p>}
                         </Link>
                     </div>
-                    <span className={classes.language}>{language || 'plaintext'}</span>
+                    <span className={c.language}>{language || 'plaintext'}</span>
                 </div>
             </div>
-            <div className={classes.code}>
-                {/* Scroll wrapper — caps height and enables inline scrolling.
-            overflowX:auto lets wide code scroll right instead of wrapping. */}
+            <div className={c.code}>
                 <div
                     data-testid="code-scroll-wrap"
                     ref={codeWrapRef}
                     onScroll={handleCodeScroll}
                     className="no-scrollbar"
                     style={{
-                        maxHeight: 'min(800px, 90vh)',
+                        maxHeight: c.codeMaxHeight,
                         overflowY: 'auto',
                         overflowX: 'auto',
                     }}
@@ -215,15 +236,13 @@ const Snippet: React.FC<Props> = ({
                     <SyntaxHighlighter
                         language={language || 'javascript'}
                         style={syntaxTheme}
-                        customStyle={{ ...customStyle, borderRadius: 0, marginBottom: 0 }}
+                        customStyle={{ ...codeStyle, borderRadius: 0, marginBottom: 0, overflow: 'visible' }}
                         showLineNumbers={showLineNumbers}
                     >
                         {content}
                     </SyntaxHighlighter>
                 </div>
             </div>
-            {/* Full-panel scroll fade — absolute over the whole card so the gradient
-          spans edge-to-edge. Fades from transparent (top half) to dark (bottom). */}
             <div
                 data-testid="scroll-fade"
                 aria-hidden="true"
@@ -234,11 +253,11 @@ const Snippet: React.FC<Props> = ({
                     borderRadius: 'inherit',
                 }}
             />
-            <div className={classes.controls}>
+            <div className={c.controls}>
                 <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(true); }}
-                    className={classes.controlButton}
+                    className={c.controlButton}
                 >
                     <i className="icon-trash" />
                     Delete
@@ -246,7 +265,7 @@ const Snippet: React.FC<Props> = ({
                 <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(id); }}
-                    className={classes.controlButton}
+                    className={c.controlButton}
                 >
                     <i className="icon-pencil" />
                     Edit
@@ -254,7 +273,7 @@ const Snippet: React.FC<Props> = ({
                 <button
                     type="button"
                     onClick={handleCopy}
-                    className={classes.controlButton}
+                    className={c.controlButton}
                 >
                     <i className="icon-code" />
                     Copy

@@ -127,7 +127,8 @@ test('shows only the matching snippet after a search', async () => {
 
   await waitFor(() => {
     expect(screen.queryByText('Second snippet')).not.toBeInTheDocument();
-    expect(screen.getByText('First snippet')).toBeInTheDocument();
+    // 'First snippet' appears in both the inline result list and the full card stream
+    expect(screen.getAllByText('First snippet').length).toBeGreaterThan(0);
   });
 });
 

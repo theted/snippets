@@ -154,3 +154,10 @@ export const THEMES = [
 export const DEFAULT_THEME = 'vs2015';
 
 export const TRANSITION_TIME = 300;
+
+// ── Snippet stream layout ──────────────────────────────────────────────────────
+// 'stream'  — full-width cards stacked vertically (original, editorial feel)
+// 'grid'    — 2–3 column CSS grid, compact cards, more snippets per screen
+// 'masonry' — CSS multi-column, compact cards, natural per-item height
+export type SnippetLayout = 'stream' | 'grid' | 'masonry';
+export const DEFAULT_SNIPPET_LAYOUT: SnippetLayout = 'grid';

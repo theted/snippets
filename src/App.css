@@ -34,7 +34,7 @@
 .app-shell {
   position: relative;
   z-index: 1;
-  width: min(100%, 100rem);
+  width: min(100%, 132rem);
   margin: 0 auto;
   padding: clamp(1.25rem, 4vw, 3rem) clamp(1.25rem, 4vw, 4rem) clamp(5rem, 8vw, 8rem);
   display: flex;
@@ -46,7 +46,7 @@
   position: relative;
   display: grid;
   gap: 1.5rem;
-  max-width: 78rem;
+  max-width: 128rem;
   padding-top: clamp(2.75rem, 8vw, 7rem);
 }
 
@@ -408,7 +408,7 @@ kbd {
 .app-footer {
   position: relative;
   z-index: 1;
-  width: min(100%, 100rem);
+  width: min(100%, 132rem);
   margin: 0 auto;
   padding: 0 clamp(1.25rem, 4vw, 4rem) clamp(2.5rem, 4vw, 3.5rem);
   display: flex;

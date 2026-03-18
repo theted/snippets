@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
-import React, { useContext, useState, useRef, useLayoutEffect, useEffect, RefObject } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState, useRef, useEffect, RefObject } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
@@ -15,6 +14,7 @@ import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
 import { capitalize } from '../utils/helpers';
 import Toast from '../components/Toast';
+import { DEFAULT_SNIPPET_LAYOUT, SnippetLayout } from '../config';
 import {
   invalidateSnippetQueries,
   removeSnippetFromLists,
@@ -26,9 +26,36 @@ import {
   snapshotAndPatchSnippet,
 } from '../utils/snippetQueryCache';
 
-const classes = {
-  container: 'w-full',
-  stream: 'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
+const LayoutGridIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+    <rect x="0" y="0" width="4.5" height="4.5" rx="1" />
+    <rect x="6.5" y="0" width="4.5" height="4.5" rx="1" />
+    <rect x="0" y="6.5" width="4.5" height="4.5" rx="1" />
+    <rect x="6.5" y="6.5" width="4.5" height="4.5" rx="1" />
+  </svg>
+);
+
+const LayoutMasonryIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+    <rect x="0" y="0" width="4.5" height="7" rx="1" />
+    <rect x="6.5" y="0" width="4.5" height="4.5" rx="1" />
+    <rect x="0" y="8.5" width="4.5" height="2.5" rx="1" />
+    <rect x="6.5" y="6" width="4.5" height="5" rx="1" />
+  </svg>
+);
+
+const LayoutStreamIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+    <rect x="0" y="0" width="11" height="2.8" rx="1" />
+    <rect x="0" y="4.1" width="11" height="2.8" rx="1" />
+    <rect x="0" y="8.2" width="11" height="2.8" rx="1" />
+  </svg>
+);
+
+const LAYOUT_CLASSES: Record<SnippetLayout, string> = {
+  stream:  'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
+  grid:    'mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:mt-16 md:gap-10',
+  masonry: 'mt-12 sm:columns-2 xl:columns-3 gap-8 md:mt-16 md:gap-10',
 };
 
 async function removeSnippetCallback(id: SnippetId) {
@@ -46,6 +73,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   const { theme } = useContext(ThemeContext);
   const [editingId, setEditingId] = useState<SnippetId | null>(null);
   const [search, setSearch] = useState<string>('');
+  const [layout, setLayout] = useState<SnippetLayout>(
+    () => (localStorage.getItem('snippetLayout') as SnippetLayout | null) ?? DEFAULT_SNIPPET_LAYOUT,
+  );
+
+  const handleLayoutChange = (next: SnippetLayout) => {
+    setLayout(next);
+    localStorage.setItem('snippetLayout', next);
+  };
   const {
     data: editingSnippetData,
     error: editingSnippetError,
@@ -103,17 +138,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
 
   const isSearching = Boolean(search);
 
-  // Lock the section height before search hides the snippet stream so the
-  // page never collapses/jumps when the user starts typing. useLayoutEffect
-  // (no deps) re-captures on every non-searching render so the value is
-  // always fresh. In jsdom the ref is null so tests are unaffected.
   const sectionRef = useRef<HTMLElement>(null);
-  const lockedHeightRef = useRef<number>(0);
-  useLayoutEffect(() => {
-    if (!isSearching && sectionRef.current) {
-      lockedHeightRef.current = sectionRef.current.scrollHeight;
-    }
-  });
 
   const onDelete = (id: SnippetId) => removeSnippet(id);
   const onEdit = (id: SnippetId) => setEditingId(id);
@@ -126,11 +151,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className={classes.container}
-      style={isSearching && lockedHeightRef.current ? { minHeight: lockedHeightRef.current } : undefined}
-    >
+    <section ref={sectionRef} className="w-full">
       <Searchbar
         ref={searchbarRef}
         onSearch={onSearch}
@@ -140,40 +161,62 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
         debouncedQuery={debouncedSearchQuery}
       />
 
-      {/* ── Full snippet stream — only when not searching ── */}
+      {/* ── Layout toggle ── */}
       {!isSearching && (
-        <div className={classes.stream}>
-          {snippets.length === 0 ? (
-            <p className="search-results-status" style={{ paddingTop: '1rem' }}>
-              No snippets yet — create one to get started.
-            </p>
-          ) : (
-            snippets.map((snippet, index) => (
-              <div
-                key={snippet.id}
-                className="snippet-stream-item"
-                style={{ '--item-index': index } as React.CSSProperties}
-                onMouseEnter={() => queryClient.prefetchQuery({
-                  queryKey: snippetKeys.detail(snippet.id),
-                  queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${snippet.id}`)),
-                  staleTime: 60_000,
-                })}
-              >
-                <Snippet
-                  id={snippet.id}
-                  title={snippet.title}
-                  description={snippet.description}
-                  content={snippet.content}
-                  language={snippet.language}
-                  onDelete={onDelete}
-                  onEdit={onEdit}
-                  theme={theme}
-                />
-              </div>
-            ))
-          )}
+        <div className="mt-6 flex justify-end gap-1.5">
+          {(['grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => handleLayoutChange(l)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.20em] transition duration-200 ${
+                layout === l
+                  ? 'border-[var(--color-border-strong)] bg-[var(--color-surface-strong)] text-[var(--color-text)]'
+                  : 'border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)] hover:text-[var(--color-text-muted)]'
+              }`}
+            >
+              {l === 'grid' && <LayoutGridIcon />}
+              {l === 'masonry' && <LayoutMasonryIcon />}
+              {l === 'stream' && <LayoutStreamIcon />}
+              {l}
+            </button>
+          ))}
         </div>
       )}
+
+      {/* ── Snippet grid / stream / masonry ── */}
+      <div className={LAYOUT_CLASSES[layout]}>
+        {snippets.length === 0 ? (
+          <p className="search-results-status" style={{ paddingTop: '1rem' }}>
+            {isSearching ? `No snippets matched "${debouncedSearchQuery}"` : 'No snippets yet — create one to get started.'}
+          </p>
+        ) : (
+          snippets.map((snippet, index) => (
+            <div
+              key={snippet.id}
+              className={layout === 'masonry' ? 'break-inside-avoid mb-8 md:mb-10' : 'snippet-stream-item'}
+              style={layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined}
+              onMouseEnter={() => queryClient.prefetchQuery({
+                queryKey: snippetKeys.detail(snippet.id),
+                queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${snippet.id}`)),
+                staleTime: 60_000,
+              })}
+            >
+              <Snippet
+                id={snippet.id}
+                title={snippet.title}
+                description={snippet.description}
+                content={snippet.content}
+                language={snippet.language}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                theme={theme}
+                compact={layout !== 'stream'}
+              />
+            </div>
+          ))
+        )}
+      </div>
 
       {editingId !== null && (
         <Modal closeModal={closeModal}>
