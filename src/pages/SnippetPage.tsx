@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
 import { useSnippet } from '../hooks/react-query';
 import { update, remove } from '../utils/api.ts';
@@ -27,6 +28,8 @@ const SnippetPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: snippet, isPending, error } = useSnippet(snippetId || null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const exitTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const { mutate: updateSnippet, error: updateError, reset: resetUpdate } = useMutation({
     mutationFn: (formValues: SnippetFormValues) => update(
@@ -41,8 +44,20 @@ const SnippetPage: React.FC = () => {
 
   const { mutate: deleteSnippet, error: deleteError, reset: resetDelete } = useMutation({
     mutationFn: () => remove('snippets', snippetId),
+    onMutate: () => {
+      if (contentRef.current) {
+        exitTweenRef.current = gsap.to(contentRef.current, {
+          opacity: 0,
+          y: -20,
+          filter: 'blur(8px)',
+          duration: 0.45,
+          ease: 'power3.in',
+        });
+      }
+    },
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
+      if (exitTweenRef.current) await exitTweenRef.current;
       navigate('/');
     },
   });
@@ -64,7 +79,7 @@ const SnippetPage: React.FC = () => {
           Back to archive
         </Link>
 
-        <div className={`${classes.content} snippet-detail-enter`}>
+        <div ref={contentRef} className={`${classes.content} snippet-detail-enter`}>
           {isPending && (
             <div className="flex min-h-[40vh] items-center justify-center">
               <SpinFigure />

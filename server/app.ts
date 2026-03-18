@@ -29,6 +29,7 @@ export async function buildApp() {
   await app.register(cors, {
     origin: config.corsOrigin,
     credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
   app.setErrorHandler((error, _request, reply) => {
