@@ -16,7 +16,7 @@ test('renders "Edit snippet" heading in edit mode', () => {
 test('renders all form fields', () => {
   render(<SnippetForm onSubmit={vi.fn()} closeModal={vi.fn()} />);
   expect(screen.getByPlaceholderText('Title')).toBeInTheDocument();
-  expect(screen.getByPlaceholderText('Content')).toBeInTheDocument();
+  expect(screen.getByLabelText(/^code$/i)).toBeInTheDocument();
   expect(screen.getByPlaceholderText('Description (optional)')).toBeInTheDocument();
   expect(screen.getByRole('combobox', { name: /language/i })).toBeInTheDocument();
 });
@@ -30,7 +30,7 @@ test('pre-fills fields from defaultValues', () => {
     />,
   );
   expect(screen.getByPlaceholderText('Title')).toHaveValue('Existing title');
-  expect(screen.getByPlaceholderText('Content')).toHaveValue('console.log(1)');
+  expect(screen.getByLabelText(/^code$/i)).toHaveValue('console.log(1)');
 });
 
 test('calls onSubmit with entered form values', async () => {
@@ -39,7 +39,7 @@ test('calls onSubmit with entered form values', async () => {
   render(<SnippetForm onSubmit={onSubmit} closeModal={vi.fn()} />);
 
   await user.type(screen.getByPlaceholderText('Title'), 'My Title');
-  await user.type(screen.getByPlaceholderText('Content'), 'const x = 1;');
+  await user.type(screen.getByLabelText(/^code$/i), 'const x = 1;');
   await user.click(screen.getByRole('button', { name: /^create$/i }));
 
   expect(onSubmit).toHaveBeenCalledWith(

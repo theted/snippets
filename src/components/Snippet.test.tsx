@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
@@ -18,9 +19,11 @@ const defaultProps = {
 
 function renderSnippet(props: Partial<typeof defaultProps> = {}) {
   return render(
-    <ThemeContext.Provider value={themeDefaults}>
-      <Snippet {...defaultProps} {...props} />
-    </ThemeContext.Provider>,
+    <MemoryRouter>
+      <ThemeContext.Provider value={themeDefaults}>
+        <Snippet {...defaultProps} {...props} />
+      </ThemeContext.Provider>
+    </MemoryRouter>,
   );
 }
 

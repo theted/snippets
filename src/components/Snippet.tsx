@@ -1,22 +1,12 @@
 /* eslint-disable max-len */
 import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-// import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
-// import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
-
-// import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import {
-  a11yLight, agate, anOldHope, androidstudio, arduinoLight, arta, ascetic, atelierCaveDark, atelierCaveLight, atelierDuneDark, atelierDuneLight, atelierEstuaryDark, atelierEstuaryLight, atelierForestDark, atelierForestLight, atelierHeathDark, atelierHeathLight, atelierLakesideDark, atelierLakesideLight, atelierPlateauDark, atelierPlateauLight, atelierSavannaDark, atelierSavannaLight, atelierSeasideDark, atelierSeasideLight, atelierSulphurpoolDark, atelierSulphurpoolLight, atomOneDark, atomOneDarkReasonable, atomOneLight, brownPaper, codepenEmbed, colorBrewer, darcula, dark, defaultStyle, docco, dracula, far, foundation, github, githubGist, gml, googlecode, gradientDark, gradientLight, grayscale, gruvboxDark, gruvboxLight, hopscotch, hybrid, idea, irBlack, isblEditorDark, isblEditorLight, kimbieDark, kimbieLight, lightfair, lioshi, magula, monoBlue, monokai, monokaiSublime, nightOwl, nnfx, nnfxDark, nord, obsidian, ocean, paraisoDark, paraisoLight, pojoaque, purebasic, qtcreatorDark, qtcreatorLight, railscasts, rainbow, routeros, schoolBook, shadesOfPurple, solarizedDark, solarizedLight, srcery, stackoverflowDark, stackoverflowLight, sunburst, tomorrow, tomorrowNight, tomorrowNightBlue, tomorrowNightBright, tomorrowNightEighties, vs, vs2015, xcode, xt256, zenburn,
-} from 'react-syntax-highlighter/dist/esm/styles/hljs';
-
-// ...
+import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 import { ThemeContext } from '../contexts/themeContext';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
-
-// setup languages
-// SyntaxHighlighter.registerLanguage('javascript', js);
 
 type Props = ISnippet & {
   onDelete: (id: SnippetId) => void;
@@ -24,16 +14,19 @@ type Props = ISnippet & {
   theme: string;
 }
 
-const allStyles = {
-  a11yLight, agate, anOldHope, androidstudio, arduinoLight, arta, ascetic, atelierCaveDark, atelierCaveLight, atelierDuneDark, atelierDuneLight, atelierEstuaryDark, atelierEstuaryLight, atelierForestDark, atelierForestLight, atelierHeathDark, atelierHeathLight, atelierLakesideDark, atelierLakesideLight, atelierPlateauDark, atelierPlateauLight, atelierSavannaDark, atelierSavannaLight, atelierSeasideDark, atelierSeasideLight, atelierSulphurpoolDark, atelierSulphurpoolLight, atomOneDark, atomOneDarkReasonable, atomOneLight, brownPaper, codepenEmbed, colorBrewer, darcula, dark, defaultStyle, docco, dracula, far, foundation, github, githubGist, gml, googlecode, gradientDark, gradientLight, grayscale, gruvboxDark, gruvboxLight, hopscotch, hybrid, idea, irBlack, isblEditorDark, isblEditorLight, kimbieDark, kimbieLight, lightfair, lioshi, magula, monoBlue, monokai, monokaiSublime, nightOwl, nnfx, nnfxDark, nord, obsidian, ocean, paraisoDark, paraisoLight, pojoaque, purebasic, qtcreatorDark, qtcreatorLight, railscasts, rainbow, routeros, schoolBook, shadesOfPurple, solarizedDark, solarizedLight, srcery, stackoverflowDark, stackoverflowLight, sunburst, tomorrow, tomorrowNight, tomorrowNightBlue, tomorrowNightBright, tomorrowNightEighties, vs, vs2015, xcode, xt256, zenburn,
-};
+type SyntaxTheme = Record<string, React.CSSProperties>;
+
+const allStyles = syntaxStyles as Record<string, SyntaxTheme>;
 
 const classes = {
-  container: 'group relative overflow-hidden rounded-[2.2rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 backdrop-blur-2xl transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--color-border-strong)] md:p-10 lg:p-12',
-  glow: 'pointer-events-none absolute right-[-6rem] top-[-4rem] h-56 w-56 rounded-full bg-[radial-gradient(circle,_oklch(0.72_0.16_240_/_0.2)_0%,_transparent_70%)] blur-2xl',
+  container: 'group relative overflow-hidden rounded-[2.2rem] border border-[var(--color-border)] bg-[oklch(0.22_0.028_254_/_0.42)] p-6 backdrop-blur-2xl transition duration-500 ease-out hover:-translate-y-1 hover:border-[var(--color-border-strong)] md:p-10 lg:p-12',
+  // Subtle top-edge shimmer — simulates light catching the glass rim
+  glassEdge: 'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
+  glow: 'pointer-events-none absolute right-[-6rem] top-[-4rem] h-64 w-64 rounded-full bg-[radial-gradient(circle,_oklch(0.72_0.16_240_/_0.28)_0%,_transparent_70%)] blur-2xl',
   heading: 'relative z-10 pb-10',
   meta: 'flex flex-col gap-6 md:flex-row md:items-start md:justify-between',
-  titleBlock: 'max-w-4xl',
+  titleBlock: 'max-w-4xl group/link',
+  titleLink: 'block outline-none',
   kicker: 'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)]',
   title: 'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl',
   description: 'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg',
@@ -48,9 +41,9 @@ const customStyle = {
   padding: '3rem',
   borderRadius: '1.8rem',
   fontSize: '1rem',
-  background: 'linear-gradient(180deg, oklch(0.2 0.024 254 / 0.96), oklch(0.17 0.02 255 / 0.98))',
-  border: '1px solid oklch(0.39 0.043 248 / 0.32)',
-  boxShadow: 'inset 0 1px 0 oklch(0.77 0.12 235 / 0.08), 0 32px 90px oklch(0.05 0.015 250 / 0.42)',
+  background: 'linear-gradient(160deg, oklch(0.19 0.022 254 / 0.88), oklch(0.15 0.018 255 / 0.92))',
+  border: '1px solid oklch(0.39 0.043 248 / 0.28)',
+  boxShadow: 'inset 0 1px 0 oklch(0.77 0.12 235 / 0.08), 0 24px 64px oklch(0.05 0.015 250 / 0.36)',
   transition: 'all 300ms ease',
 };
 
@@ -68,20 +61,30 @@ const Snippet: React.FC<Props> = ({
   const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
 
   return (
-    <div className={classes.container}>
+    <div
+      className={classes.container}
+      style={{
+        boxShadow: '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)',
+      }}
+    >
+      <div className={classes.glassEdge} />
       <div className={classes.glow} />
       <div className={classes.heading}>
         <div className={classes.meta}>
           <div className={classes.titleBlock}>
-            <p className={classes.kicker}>
-              Snippet
-              {' '}
-              {id}
-            </p>
-            <h3 className={classes.title}>{capitalize(title || 'Untitled snippet')}</h3>
-            {description && (
-              <p className={classes.description}>{description}</p>
-            )}
+            <Link to={`/snippets/${id}`} className={classes.titleLink}>
+              <p className={classes.kicker}>
+                Snippet
+                {' '}
+                {id}
+              </p>
+              <h3 className={`${classes.title} transition-colors duration-300 group-hover/link:text-[var(--color-accent-bright)]`}>
+                {capitalize(title || 'Untitled snippet')}
+              </h3>
+              {description && (
+                <p className={classes.description}>{description}</p>
+              )}
+            </Link>
           </div>
           <span className={classes.language}>{language || 'plaintext'}</span>
         </div>

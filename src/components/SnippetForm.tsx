@@ -17,15 +17,37 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
   language: DEFAULT_LANGUAGE,
 };
 
+// ─── Styles ────────────────────────────────────────────────────────────────────
+
 const classes = {
-  form: 'relative z-30 block w-full rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 backdrop-blur-2xl md:p-8 lg:p-10',
-  kicker: 'text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]',
-  title: 'mt-3 font-[var(--font-display)] text-3xl font-[250] tracking-[-0.05em] text-[var(--color-text)] md:text-5xl',
-  intro: 'max-w-2xl text-sm leading-7 text-[var(--color-text-muted)] md:text-base',
-  section: 'mt-8 space-y-3',
-  label: 'text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]',
-  actions: 'mt-10 flex flex-wrap gap-4',
+  // Card — frosted glass: low-opacity fill lets backdrop-blur-2xl show through
+  form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] border border-[oklch(0.44_0.05_248_/_0.45)] bg-[var(--color-glass-card)] p-7 backdrop-blur-2xl md:p-10 lg:p-12',
+  // Two-column grid: code left (wider), metadata right.
+  // On mobile the columns collapse to a single stack.
+  grid: 'flex flex-col gap-8 md:grid md:grid-cols-[1.7fr_1fr] md:items-start md:gap-10 lg:gap-14',
+
+  // Left column — code
+  codeCol: 'flex flex-col gap-4 md:gap-5',
+  codeTextarea: 'flex-1 font-[var(--font-code)] text-sm leading-7 md:min-h-[32rem]',
+
+  // Right column — header + fields + actions
+  metaCol: 'flex flex-col gap-7',
+
+  // Form header (visible in right col on desktop, top of stack on mobile)
+  header: 'pb-1',
+  kicker: 'text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)]',
+  title: 'mt-2 font-[var(--font-display)] text-3xl font-[200] tracking-[-0.055em] text-[var(--color-text)] md:text-4xl',
+  intro: 'mt-3 max-w-sm text-sm leading-7 text-[var(--color-text-muted)]',
+
+  // Individual field groups
+  fieldGroup: 'flex flex-col gap-2.5',
+  label: 'text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]',
+
+  // Actions — pushed to the bottom of the right column on desktop
+  actions: 'flex flex-wrap gap-3 md:pt-1',
 };
+
+// ─── Component ─────────────────────────────────────────────────────────────────
 
 type Props = {
   defaultValues?: Partial<SnippetFormValues>;
@@ -62,79 +84,103 @@ const SnippetForm: React.FC<Props> = ({
       }}
       className={classes.form}
     >
-      <div>
-        <p className={classes.kicker}>{isEditing ? 'Refine The Draft' : 'Add To The Library'}</p>
-        <h1 className={classes.title}>
-          {isEditing ? 'Edit' : 'Create'}
-          {' '}
-          snippet
-        </h1>
-        <p className={classes.intro}>
-          Use the generous canvas to shape a snippet that is easy to revisit later.
-          Keep titles crisp and let the code block carry the story.
-        </p>
-      </div>
-      <div className={classes.section}>
-        <label className={classes.label} htmlFor="snippet-title">Title</label>
-        <Textfield
-          id="snippet-title"
-          name="title"
-          value={formState.title}
-          placeholder="Title"
-          onChange={inputHandler}
-          className="text-lg md:text-xl"
-        />
-      </div>
-      <div className={classes.section}>
-        <label className={classes.label} htmlFor="snippet-content">Code</label>
-        <Textarea
-          id="snippet-content"
-          name="content"
-          placeholder="Content"
-          onChange={inputHandler}
-          rows={15}
-          value={formState.content}
-        />
-      </div>
-      <div className={classes.section}>
-        <label className={classes.label} htmlFor="snippet-description">Description</label>
-        <Textarea
-          id="snippet-description"
-          name="description"
-          placeholder="Description (optional)"
-          onChange={inputHandler}
-          rows={5}
-          value={formState.description}
-          className="min-h-[10rem]"
-        />
-      </div>
-      <div className={classes.section}>
-        <label className={classes.label} htmlFor="snippet-language">Language</label>
-        <Dropdown
-          id="snippet-language"
-          name="language"
-          options={languages}
-          value={formState.language}
-          onChange={inputHandler}
-          className="md:max-w-sm"
-        />
-      </div>
-      <div className={classes.actions}>
-        <Button
-          variant={isEditing ? 'info' : 'success'}
-          type="submit"
-          className="min-w-[12rem]"
-        >
-          {isEditing ? 'Update' : 'Create'}
-        </Button>
-        <Button
-          type="button"
-          variant="warning"
-          onClick={closeModal}
-          className="min-w-[12rem]"
-        >
-          Cancel
-        </Button>
+      {/* Subtle top-right glow to echo the snippet card aesthetic */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-5rem] top-[-3rem] h-48 w-48 rounded-full opacity-60"
+        style={{
+          background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.18) 0%, transparent 70%)',
+          filter: 'blur(24px)',
+        }}
+      />
+
+      <div className={classes.grid}>
+        {/* ── LEFT: code ────────────────────────────────────── */}
+        <div className={classes.codeCol}>
+          <label className={classes.label} htmlFor="snippet-content">Code</label>
+          <Textarea
+            id="snippet-content"
+            name="content"
+            placeholder="Paste or type your code here…"
+            onChange={inputHandler}
+            value={formState.content}
+            className={classes.codeTextarea}
+            // rows is a hint; actual height comes from the CSS min-h class
+            rows={22}
+          />
+        </div>
+
+        {/* ── RIGHT: header + metadata + actions ────────────── */}
+        <div className={classes.metaCol}>
+          {/* Form heading */}
+          <div className={classes.header}>
+            <p className={classes.kicker}>{isEditing ? 'Refine The Draft' : 'Add To The Library'}</p>
+            <h1 className={classes.title}>
+              {isEditing ? 'Edit' : 'Create'}
+              {' '}
+              snippet
+            </h1>
+            <p className={classes.intro}>
+              Keep titles crisp and let the code block carry the story.
+            </p>
+          </div>
+
+          {/* Title */}
+          <div className={classes.fieldGroup}>
+            <label className={classes.label} htmlFor="snippet-title">Title</label>
+            <Textfield
+              id="snippet-title"
+              name="title"
+              value={formState.title}
+              placeholder="Title"
+              onChange={inputHandler}
+            />
+          </div>
+
+          {/* Description */}
+          <div className={classes.fieldGroup}>
+            <label className={classes.label} htmlFor="snippet-description">Description</label>
+            <Textarea
+              id="snippet-description"
+              name="description"
+              placeholder="Description (optional)"
+              onChange={inputHandler}
+              rows={4}
+              value={formState.description}
+            />
+          </div>
+
+          {/* Language */}
+          <div className={classes.fieldGroup}>
+            <label className={classes.label} htmlFor="snippet-language">Language</label>
+            <Dropdown
+              id="snippet-language"
+              name="language"
+              options={languages}
+              value={formState.language}
+              onChange={inputHandler}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className={classes.actions}>
+            <Button
+              variant="success"
+              type="submit"
+              className="min-w-[10rem]"
+            >
+              {isEditing ? 'Update' : 'Create'}
+            </Button>
+            <Button
+              type="button"
+              variant="warning"
+              onClick={closeModal}
+              className="min-w-[10rem]"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
       </div>
     </form>
   );

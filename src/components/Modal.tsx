@@ -3,6 +3,7 @@
 import React, {
   PropsWithChildren, RefObject, useCallback, useEffect, useRef,
 } from 'react';
+import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
 
 type Props = PropsWithChildren<{
@@ -18,10 +19,15 @@ type ModalRefs = {
 const ANIMATION_DURATION = 500;
 
 const classes = {
-  container: 'fixed inset-0 z-30 flex items-center justify-center p-4 opacity-0 md:p-8',
-  content: 'relative z-30 w-full max-w-5xl',
+  // overflow-y-auto lets tall forms (edit/create) scroll inside the overlay
+  // without moving the page behind it. The GSAP opacity+y tween runs on this
+  // element so the whole thing fades+slides as one unit.
+  container: 'fixed inset-0 z-30 overflow-y-auto opacity-0',
+  // Inner wrapper centres content and acts as the click-outside target
+  inner: 'flex min-h-full items-center justify-center p-4 md:p-8',
+  content: 'relative w-full max-w-6xl',
   bg: 'fixed inset-0 z-20',
-  close: 'absolute right-5 top-5 z-40 inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
+  close: 'absolute right-4 top-4 z-40 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };
 
 export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }: ModalRefs) => {
@@ -37,6 +43,7 @@ export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }: ModalRef
   if (backgroundRef.current) {
     gsap.to(backgroundRef.current, {
       background: 'oklch(0.12 0.012 258 / 0)',
+      backdropFilter: 'blur(0px)',
       duration: 0.4,
     });
   }
@@ -60,8 +67,10 @@ const entryAnimation = ({ modalRef, backgroundRef }: Omit<ModalRefs, 'closeModal
 
   if (backgroundRef.current) {
     gsap.to(backgroundRef.current, {
-      background: 'oklch(0.12 0.012 258 / 0.78)',
-      duration: 0.4,
+      background: 'oklch(0.12 0.012 258 / 0.72)',
+      backdropFilter: 'blur(14px)',
+      duration: 0.5,
+      ease: 'power2.out',
     });
   }
 };
@@ -90,7 +99,7 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
     };
   }, [closeModalCallback]);
 
-  return (
+  return ReactDOM.createPortal(
     <>
       <div
         ref={modalRef}
@@ -98,27 +107,30 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
         aria-modal="true"
         className={classes.container}
         style={{ transform: 'translateY(40px)' }}
-        onClick={closeModalCallback}
       >
-        <div className={classes.content} onClick={(event) => event.stopPropagation()}>
-          <button
-            type="button"
-            className={classes.close}
-            onClick={closeModalCallback}
-            aria-label="Close modal"
-          >
-            Close
-          </button>
-          {children}
+        {/* Click-outside target — stopPropagation on the card prevents bubbling */}
+        <div className={classes.inner} onClick={closeModalCallback}>
+          <div className={classes.content} onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className={classes.close}
+              onClick={closeModalCallback}
+              aria-label="Close modal"
+            >
+              <i className="icon-cancel" style={{ fontSize: '0.8em' }} />
+              Close
+            </button>
+            {children}
+          </div>
         </div>
       </div>
       <div
         ref={backgroundRef}
         className={classes.bg}
-        style={{ background: 'oklch(0.12 0.012 258 / 0)' }}
-        onClick={closeModalCallback}
+        style={{ background: 'oklch(0.12 0.012 258 / 0)', backdropFilter: 'blur(0px)' }}
       />
-    </>
+    </>,
+    document.body,
   );
 };
 

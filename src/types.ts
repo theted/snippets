@@ -25,3 +25,20 @@ export type SnippetFormValues = {
   description: string;
   language: string;
 };
+
+export const AuthUserSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  displayName: z.string(),
+  avatarUrl: z.string().optional(),
+});
+
+export type AuthUser = z.infer<typeof AuthUserSchema>;
+export type UserId = AuthUser['id'];
+
+export const AuthSessionResponseSchema = z.object({
+  authEnabled: z.boolean(),
+  user: AuthUserSchema.nullable(),
+});
+
+export type AuthSessionResponse = z.infer<typeof AuthSessionResponseSchema>;

@@ -2,6 +2,10 @@ export const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT ?? 'development';
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3200';
 
+export const GOOGLE_AUTH_ENABLED = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === 'true';
+
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+
 export const AVAILABLE_LANGUAGES = [
   'javascript',
   'typescript',
