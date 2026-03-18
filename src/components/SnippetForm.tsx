@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE } from '../config';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
@@ -21,8 +21,7 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const classes = {
-  // Card — frosted glass: low-opacity fill lets backdrop-blur-2xl show through
-  form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] border border-[oklch(0.44_0.05_248_/_0.45)] bg-[var(--color-glass-card)] p-8 backdrop-blur-2xl md:p-12 lg:p-14',
+  form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] p-8 backdrop-blur-2xl md:p-12 lg:p-14',
   // Two-column grid: code left (wider), metadata right.
   // On mobile the columns collapse to a single stack.
   grid: 'flex flex-col gap-8 md:grid md:grid-cols-[1.7fr_1fr] md:items-start md:gap-10 lg:gap-14',
@@ -65,6 +64,9 @@ const SnippetForm: React.FC<Props> = ({
     ...EMPTY_FORM_STATE,
     ...defaultValues,
   });
+  const [mousePos, setMousePos] = useState({ x: 50, y: 20 });
+  const [isHovered, setIsHovered] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const inputHandler = (event: InputChangeEvent) => {
     const { name, value } = event.target;
@@ -73,6 +75,14 @@ const SnippetForm: React.FC<Props> = ({
 
   const handleCodeChange = (value: string) => {
     setFormState((currentState) => ({ ...currentState, content: value }));
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLFormElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
   };
 
   useEffect(() => {
@@ -84,19 +94,62 @@ const SnippetForm: React.FC<Props> = ({
 
   return (
     <form
+      ref={formRef}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit(formState);
       }}
       className={classes.form}
+      style={{
+        // Gradient border: last backgroundImage layer clips to border-box so
+        // the 1px transparent border area shows the mouse-tracking gradient.
+        border: '1px solid transparent',
+        backgroundImage: `
+          radial-gradient(ellipse at ${mousePos.x}% ${mousePos.y}%, oklch(0.54 0.16 245 / ${isHovered ? '0.18' : '0.08'}) 0%, transparent 58%),
+          radial-gradient(ellipse at 85% 95%, oklch(0.36 0.1 255 / 0.12) 0%, transparent 44%),
+          linear-gradient(oklch(0.17 0.022 254 / 0.52), oklch(0.17 0.022 254 / 0.52)),
+          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
+            oklch(0.78 0.2 232 / ${isHovered ? '0.9' : '0.5'}),
+            oklch(0.42 0.08 245 / ${isHovered ? '0.55' : '0.38'}) 50%,
+            oklch(0.28 0.04 250 / 0.3) 100%)
+        `,
+        backgroundOrigin: 'padding-box, padding-box, padding-box, border-box',
+        backgroundClip: 'padding-box, padding-box, padding-box, border-box',
+        boxShadow: isHovered
+          ? `0 32px 80px oklch(0.05 0.015 250 / 0.5), inset 0 1px 0 oklch(0.88 0.14 228 / 0.22)`
+          : `0 16px 56px oklch(0.05 0.015 250 / 0.36), inset 0 1px 0 oklch(0.8 0.1 230 / 0.12)`,
+        transition: 'box-shadow 500ms ease, backgroundImage 500ms ease',
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Subtle top-right glow to echo the snippet card aesthetic */}
+      {/* Top-edge glass shimmer */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute right-[-5rem] top-[-3rem] h-48 w-48 rounded-full opacity-60"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px transition-opacity duration-500"
         style={{
-          background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.18) 0%, transparent 70%)',
-          filter: 'blur(24px)',
+          background: `linear-gradient(90deg, transparent, ${isHovered ? 'oklch(0.92 0.16 224 / 0.7)' : 'oklch(0.82 0.1 230 / 0.36)'}, transparent)`,
+        }}
+      />
+      {/* Mouse-tracking reflective highlight */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, oklch(0.86 0.1 228 / 0.11) 0%, transparent 52%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+      {/* Ambient corner glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-4rem] top-[-3rem] h-56 w-56 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.22) 0%, transparent 70%)',
+          filter: 'blur(28px)',
+          transition: 'opacity 400ms ease',
+          opacity: isHovered ? 0.9 : 0.5,
         }}
       />
 

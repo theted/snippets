@@ -42,11 +42,15 @@ const customStyle = {
   margin: 0,
   padding: '0.5rem 0',
   borderRadius: '1.8rem',
-  fontSize: '1.1rem',
+  fontSize: '1.18rem',
+  lineHeight: '1.75',
+  letterSpacing: '0.012em',
   background: 'transparent',
   border: 'none',
   boxShadow: 'none',
-  transition: 'all 300ms ease',
+  WebkitFontSmoothing: 'antialiased' as const,
+  MozOsxFontSmoothing: 'grayscale' as const,
+  textRendering: 'geometricPrecision' as const,
 };
 
 const Snippet: React.FC<Props> = ({
@@ -170,20 +174,21 @@ const Snippet: React.FC<Props> = ({
           >
             {content}
           </SyntaxHighlighter>
+          {/* Sticky fade — lives inside the scroll container so it sticks to
+              the visible bottom edge. negative margin-top collapses its space
+              so it overlaps the last lines without pushing content down. */}
+          <div
+            data-testid="scroll-fade"
+            aria-hidden="true"
+            className="pointer-events-none sticky bottom-0 left-0 right-0 transition-opacity duration-300"
+            style={{
+              height: '6rem',
+              marginTop: '-6rem',
+              background: 'linear-gradient(to bottom, transparent, oklch(0.14 0.016 255 / 0.97))',
+              opacity: showScrollFade ? 1 : 0,
+            }}
+          />
         </div>
-        {/* Scroll-fade gradient — the parent .code div has overflow:hidden +
-            border-radius so this clips flush to the bottom corners. */}
-        <div
-          data-testid="scroll-fade"
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 transition-opacity duration-300"
-          style={{
-            bottom: 0,
-            height: '6rem',
-            background: 'linear-gradient(to bottom, transparent, oklch(0.14 0.016 255 / 0.97))',
-            opacity: showScrollFade ? 1 : 0,
-          }}
-        />
       </div>
       <div className={classes.controls}>
         <button

@@ -57,7 +57,7 @@ const appOverlay = EditorView.theme({
   },
   // Gutter (line-numbers column)
   '.cm-gutters': {
-    background: 'oklch(0.14 0.016 258 / 0.7) !important',
+    background: 'oklch(0.14 0.016 258 / 0.42) !important',
     borderRight: '1px solid oklch(0.39 0.043 248 / 0.28) !important',
     color: 'oklch(0.48 0.03 255) !important',
   },
@@ -156,8 +156,9 @@ const CodeEditor: React.FC<Props> = ({
     <div
       className="overflow-hidden rounded-[1.5rem] border border-[var(--color-border)] transition-[border-color,box-shadow] duration-300 focus-within:border-[oklch(0.62_0.16_240_/_0.65)] focus-within:[box-shadow:0_0_0_3px_oklch(0.71_0.17_244_/_0.14),inset_0_1px_0_oklch(0.77_0.12_235_/_0.08)]"
       style={{
-        background: 'linear-gradient(160deg, oklch(0.18 0.022 254 / 0.94), oklch(0.14 0.018 255 / 0.97))',
-        boxShadow: 'inset 0 1px 0 oklch(0.77 0.12 235 / 0.08), 0 16px 48px oklch(0.05 0.015 250 / 0.3)',
+        background: 'linear-gradient(160deg, oklch(0.18 0.022 254 / 0.38), oklch(0.14 0.018 255 / 0.48))',
+        backdropFilter: 'blur(24px)',
+        boxShadow: 'inset 0 1px 0 oklch(0.77 0.12 235 / 0.1), 0 16px 48px oklch(0.05 0.015 250 / 0.2)',
         fontSize: '1.05rem',
       }}
     >

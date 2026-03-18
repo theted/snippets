@@ -3,12 +3,13 @@ import React from 'react';
 /*
  * BackgroundAnimation — feature-flagged ambient layer.
  *
- * Architecture:
- *  - position:fixed, inset-0, z-index:-1  → always behind all content
- *  - pointer-events:none                  → never intercepts interaction
- *  - Pure CSS @keyframes                  → compositor-only, zero JS per frame
- *  - mix-blend-mode:screen on orbs       → additive light blending (like real light)
- *  - SVG feTurbulence grain               → film-grain texture to reduce banding
+ * Performance design:
+ *  - Pure CSS @keyframes on transform/opacity only → compositor thread, zero JS
+ *  - No filter:blur on animated elements → no per-frame rasterisation cost
+ *  - No mix-blend-mode on animated elements → no per-frame layer re-compositing
+ *  - Gradient softness comes from wide transparent stops in radial-gradient
+ *  - Static grain via CSS ::after pseudo-element (SVG data URI, no CPU feTurbulence)
+ *  - will-change:transform only on elements that actually translate
  */
 
 // eslint-disable-next-line no-console
@@ -34,20 +35,7 @@ const BackgroundAnimation: React.FC = () => (
     {/* ── Aurora strip — horizontal shimmer band ─────  */}
     <div className="bg-anim-aurora" />
 
-    {/* ── Film grain via SVG filter ──────────────────── */}
-    <svg className="bg-anim-grain" xmlns="http://www.w3.org/2000/svg">
-      <filter id="grain-filter">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.72"
-          numOctaves="4"
-          stitchTiles="stitch"
-        />
-        <feColorMatrix type="saturate" values="0" />
-        <feBlend in="SourceGraphic" mode="multiply" />
-      </filter>
-      <rect width="100%" height="100%" filter="url(#grain-filter)" />
-    </svg>
+    {/* Grain is a CSS ::after pseudo-element on .bg-anim-root */}
 
   </div>
 );

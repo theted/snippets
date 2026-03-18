@@ -95,16 +95,22 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
 
   return (
     <div
-      className="searchbar-hero group relative overflow-hidden rounded-[2.4rem] border backdrop-blur-2xl px-6 py-8 md:px-10 md:py-10 lg:px-12 lg:py-12"
+      className="searchbar-hero group relative overflow-hidden rounded-[2.4rem] backdrop-blur-2xl px-6 py-8 md:px-10 md:py-10 lg:px-12 lg:py-12"
       style={{
-        background: `
+        border: '1px solid transparent',
+        backgroundImage: `
           radial-gradient(ellipse at 28% 0%, oklch(0.58 0.18 245 / ${isFocused ? '0.42' : '0.24'}) 0%, transparent 52%),
           radial-gradient(ellipse at 90% 95%, oklch(0.36 0.1 255 / ${isFocused ? '0.28' : '0.16'}) 0%, transparent 44%),
-          var(--color-glass-card)
+          linear-gradient(var(--color-glass-card), var(--color-glass-card)),
+          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
+            oklch(0.78 0.2 232 / ${isFocused ? '0.95' : isHovered ? '0.85' : '0.45'}),
+            oklch(0.42 0.08 245 / ${isFocused ? '0.65' : isHovered ? '0.55' : '0.35'}) 50%,
+            oklch(0.28 0.04 250 / 0.28) 100%)
         `,
-        borderColor: isFocused ? 'oklch(0.62 0.16 240 / 0.72)' : 'var(--color-border)',
+        backgroundOrigin: 'padding-box, padding-box, padding-box, border-box',
+        backgroundClip: 'padding-box, padding-box, padding-box, border-box',
         boxShadow: isFocused ? focusBoxShadow : isHovered ? hoverBoxShadow : baseBoxShadow,
-        transition: 'box-shadow 500ms ease, border-color 400ms ease, background 500ms ease',
+        transition: 'box-shadow 500ms ease, background 500ms ease',
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
