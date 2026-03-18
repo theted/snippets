@@ -1,0 +1,669 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import GlassPanel from '../components/GlassPanel';
+import { GLASS_BLUR, GLASS_OPACITY, getGlassStyles } from '../design/glass';
+
+// ── Background presets ────────────────────────────────────────────────────────
+
+const BG_PRESETS = [
+  {
+    id: 'night',
+    label: 'Night',
+    swatch: 'linear-gradient(135deg, oklch(0.20 0.06 240), oklch(0.12 0.04 260))',
+    gradient: `
+      radial-gradient(circle at 14% 18%, oklch(0.42 0.24 216 / 0.26), transparent 26%),
+      radial-gradient(circle at 88% 10%, oklch(0.50 0.28 206 / 0.28), transparent 24%),
+      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.11 0.08 248 / 0.94), transparent 100%),
+      linear-gradient(180deg, oklch(0.12 0.030 246) 0%, oklch(0.07 0.05 250) 100%)
+    `,
+  },
+  {
+    id: 'ember',
+    label: 'Ember',
+    swatch: 'linear-gradient(135deg, oklch(0.22 0.08 28), oklch(0.10 0.04 15))',
+    gradient: `
+      radial-gradient(circle at 18% 15%, oklch(0.48 0.22 38 / 0.30), transparent 32%),
+      radial-gradient(circle at 82% 72%, oklch(0.40 0.20 18 / 0.28), transparent 36%),
+      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.10 0.06 22 / 0.92), transparent 100%),
+      linear-gradient(180deg, oklch(0.11 0.028 28) 0%, oklch(0.06 0.016 18) 100%)
+    `,
+  },
+  {
+    id: 'forest',
+    label: 'Forest',
+    swatch: 'linear-gradient(135deg, oklch(0.20 0.07 155), oklch(0.09 0.03 165))',
+    gradient: `
+      radial-gradient(circle at 25% 35%, oklch(0.44 0.20 155 / 0.28), transparent 34%),
+      radial-gradient(circle at 78% 15%, oklch(0.38 0.16 175 / 0.24), transparent 30%),
+      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.09 0.06 160 / 0.94), transparent 100%),
+      linear-gradient(180deg, oklch(0.11 0.032 152) 0%, oklch(0.06 0.018 162) 100%)
+    `,
+  },
+  {
+    id: 'dusk',
+    label: 'Dusk',
+    swatch: 'linear-gradient(135deg, oklch(0.22 0.09 290), oklch(0.10 0.04 310))',
+    gradient: `
+      radial-gradient(circle at 65% 8%, oklch(0.52 0.24 292 / 0.30), transparent 34%),
+      radial-gradient(circle at 12% 75%, oklch(0.42 0.20 322 / 0.26), transparent 36%),
+      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.10 0.07 300 / 0.92), transparent 100%),
+      linear-gradient(180deg, oklch(0.11 0.030 285) 0%, oklch(0.07 0.022 305) 100%)
+    `,
+  },
+  {
+    id: 'dawn',
+    label: 'Dawn',
+    swatch: 'linear-gradient(135deg, oklch(0.94 0.04 80), oklch(0.82 0.06 45))',
+    gradient: `
+      radial-gradient(circle at 22% 20%, oklch(0.90 0.08 72 / 0.40), transparent 38%),
+      radial-gradient(circle at 80% 60%, oklch(0.78 0.10 42 / 0.28), transparent 40%),
+      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.72 0.06 50 / 0.50), transparent 100%),
+      linear-gradient(180deg, oklch(0.95 0.014 78) 0%, oklch(0.86 0.022 55) 100%)
+    `,
+  },
+] as const;
+
+type BgId = (typeof BG_PRESETS)[number]['id'];
+
+// ── Inline tinted panel — wraps GlassPanel with a colour wash overlay ──────
+
+type TintedPanelProps = React.PropsWithChildren<{
+  label: string;
+  sub?: string;
+  /** oklch(...) colour token for the tint overlay */
+  tint: string;
+  rounded?: string;
+  className?: string;
+}>;
+
+const TintedPanel: React.FC<TintedPanelProps> = ({ label, sub, tint, rounded, className = '', children }) => (
+  <GlassPanel intensity="medium" topGlow rounded={rounded ?? 'rounded-[2rem]'} className={`p-7 ${className}`}>
+    {/* Colour wash sits on top of the glass base */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-[inherit]"
+      style={{ background: tint, mixBlendMode: 'screen', opacity: 0.18 }}
+    />
+    <p className="relative z-10 text-[0.62rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel">
+      {label}
+    </p>
+    {sub && (
+      <p className="relative z-10 mt-1 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">{sub}</p>
+    )}
+    {children && <div className="relative z-10 mt-4">{children}</div>}
+  </GlassPanel>
+);
+
+// ── Manual blur-level panel — bypasses GlassPanel to demo raw blur values ───
+
+type BlurPanelProps = { blur: number; label: string; sub: string };
+
+const BlurPanel: React.FC<BlurPanelProps> = ({ blur, label, sub }) => {
+  const glass = getGlassStyles('medium');
+  return (
+    <div
+      className="relative overflow-hidden rounded-[2rem] p-7"
+      style={{ ...glass.panel, backdropFilter: `blur(${blur}px)` }}
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${glass.shimmerColor}, transparent)` }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-4rem] top-[-12rem] h-[28rem] w-[58rem] rounded-full"
+        style={glass.topRightGlow}
+      />
+      <p className="relative z-10 text-[0.62rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel">
+        {label}
+      </p>
+      <p className="relative z-10 mt-1 font-[var(--font-display)] text-3xl font-[200] tracking-[-0.05em] text-[var(--color-text)] text-bevel-strong">
+        {blur}px
+      </p>
+      <p className="relative z-10 mt-2 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">{sub}</p>
+    </div>
+  );
+};
+
+// ── Prose content reused inside several panels ────────────────────────────────
+
+const SampleContent: React.FC<{ title: string; body: string }> = ({ title, body }) => (
+  <>
+    <p className="font-[var(--font-display)] text-xl font-[300] tracking-[-0.03em] text-[var(--color-text)] text-bevel-strong">
+      {title}
+    </p>
+    <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">{body}</p>
+  </>
+);
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+const GlassShowcase: React.FC = () => {
+  const [bgId, setBgId] = useState<BgId>('night');
+  const activeBg = BG_PRESETS.find((b) => b.id === bgId)!;
+
+  // Override the body background while on this page; restore on unmount
+  React.useEffect(() => {
+    const prevBg         = document.body.style.background;
+    const prevAttachment = document.body.style.backgroundAttachment;
+    const prevTransition = document.body.style.transition;
+    document.body.style.transition          = 'background 700ms ease';
+    document.body.style.background          = activeBg.gradient;
+    document.body.style.backgroundAttachment = 'fixed';
+    return () => {
+      document.body.style.background           = prevBg;
+      document.body.style.backgroundAttachment = prevAttachment;
+      document.body.style.transition           = prevTransition;
+    };
+  }, [activeBg.gradient]);
+
+  return (
+  <div className="relative min-h-screen">
+
+    {/* Sticky background switcher */}
+    <div className="sticky top-4 z-50 flex justify-end px-4 pt-4 md:px-8">
+      <div
+        className="inline-flex items-center gap-1 rounded-full p-1.5"
+        style={{
+          background: 'oklch(0.14 0.024 254 / 0.72)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid oklch(0.4 0.044 248 / 0.32)',
+          boxShadow: '0 4px 24px oklch(0.05 0.015 250 / 0.40)',
+        }}
+      >
+        {BG_PRESETS.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => setBgId(preset.id)}
+            title={preset.label}
+            className="relative flex items-center gap-2 rounded-full px-3 py-1.5 transition duration-200"
+            style={{
+              background: bgId === preset.id ? 'oklch(0.28 0.04 252 / 0.80)' : 'transparent',
+            }}
+          >
+            {/* Gradient swatch dot */}
+            <span
+              className="block h-3 w-3 shrink-0 rounded-full ring-1 ring-white/10"
+              style={{ background: preset.swatch }}
+            />
+            <span
+              className="text-[0.60rem] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: bgId === preset.id ? 'oklch(0.95 0.006 255)' : 'oklch(0.62 0.03 255)' }}
+            >
+              {preset.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div
+      className="mx-auto px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,6vw,5rem)]"
+      style={{ maxWidth: '132rem', color: bgId === 'dawn' ? 'oklch(0.22 0.03 50)' : undefined }}
+    >
+
+      {/* ── Back nav ── */}
+      <Link
+        to="/"
+        className="mb-14 inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.28em] transition duration-200"
+        style={{ color: bgId === 'dawn' ? 'oklch(0.38 0.05 50)' : 'var(--color-text-subtle)' }}
+      >
+        ← Back
+      </Link>
+
+      {/* ── Hero ── */}
+      <div className="mb-20">
+        <p
+          className="text-[0.72rem] font-semibold uppercase tracking-[0.42em]"
+          style={{ color: bgId === 'dawn' ? 'oklch(0.45 0.06 55)' : 'var(--color-text-subtle)' }}
+        >
+          Design system
+        </p>
+        <h1
+          className="mt-3 font-[var(--font-display)] text-[clamp(3.5rem,10vw,7rem)] font-[200] leading-[0.9] tracking-[-0.07em]"
+          style={{ color: bgId === 'dawn' ? 'oklch(0.18 0.04 45)' : 'var(--color-text)' }}
+        >
+          Glass
+        </h1>
+        <p
+          className="mt-5 max-w-xl text-sm leading-7"
+          style={{ color: bgId === 'dawn' ? 'oklch(0.36 0.04 50)' : 'var(--color-text-muted)' }}
+        >
+          All panels draw from two master knobs —{' '}
+          <code className="rounded px-1 font-[var(--font-code)] text-[0.8em] text-[var(--color-accent-bright)]">
+            GLASS_OPACITY&nbsp;{GLASS_OPACITY}
+          </code>{' '}
+          and{' '}
+          <code className="rounded px-1 font-[var(--font-code)] text-[0.8em] text-[var(--color-accent-bright)]">
+            GLASS_BLUR&nbsp;{GLASS_BLUR}px
+          </code>
+          . Adjust those two values to retheme every surface at once.
+        </p>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 0 — Design philosophy
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="00 — Philosophy" sub="The principles behind every glass surface in this UI." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {[
+            {
+              title: 'One light source',
+              body: 'Every panel behaves as if lit from the upper-right. The top-edge shimmer line, the corner glow, and the inset box-shadow all point toward the same imaginary origin — so layering panels never creates contradictory lighting.',
+            },
+            {
+              title: 'Background is content',
+              body: 'Glass works because what\'s behind the panel is intentionally beautiful. The frosted blur turns the dark gradient and animated orbs into an abstract texture — the panel doesn\'t hide its context, it frames it.',
+            },
+            {
+              title: 'Two knobs, infinite surface',
+              body: 'GLASS_OPACITY and GLASS_BLUR are the only global controls. Every surface — cards, modals, nav bars, toasts — is a multiplier of those two values. Tune them once and the entire UI shifts in unison.',
+            },
+            {
+              title: 'Depth through opacity',
+              body: 'Panels closer to the user (modals, popovers) use "strong" intensity. Background panels use "subtle". This creates a natural focus hierarchy without resorting to drop shadows alone.',
+            },
+            {
+              title: 'Colour as atmosphere',
+              body: 'Tinted glass is not branding — it\'s emotional temperature. Blue is neutral and analytical. Amber signals caution. Emerald signals life. The tint is always applied as a screen-blend wash, never as a flat fill, so the texture stays intact.',
+            },
+            {
+              title: 'Motion reinforces material',
+              body: 'The mouse-tracking radial gradient inside each panel simulates specular reflection — the highlight follows your cursor as if light is bouncing off the surface. GSAP handles panel entrances and exits so the glass feels like it has physical weight.',
+            },
+          ].map(({ title, body }) => (
+            <GlassPanel key={title} intensity="subtle" topGlow rounded="rounded-[1.8rem]" className="p-6">
+              <p className="font-[var(--font-display)] text-base font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">{title}</p>
+              <p className="mt-2.5 text-xs leading-6 text-[var(--color-text-muted)] text-bevel">{body}</p>
+            </GlassPanel>
+          ))}
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 1 — Intensity
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="01 — Intensity" sub="Three tiers scale against the global opacity + blur master values." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {(['subtle', 'medium', 'strong'] as const).map((intensity) => (
+            <GlassPanel key={intensity} intensity={intensity} topGlow bottomGlow rounded="rounded-[2rem]" className="p-7">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel">
+                {intensity}
+              </p>
+              <p className="mt-3 font-[var(--font-display)] text-4xl font-[200] tracking-[-0.06em] text-[var(--color-text)] text-bevel-strong">
+                {intensity === 'subtle' ? 'Airy' : intensity === 'medium' ? 'Glass' : 'Dense'}
+              </p>
+              <p className="mt-3 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">
+                {intensity === 'subtle' && 'Near-transparent. Background bleeds through almost undisturbed.'}
+                {intensity === 'medium' && 'The default. Enough body to read text clearly while staying luminous.'}
+                {intensity === 'strong' && 'Opaque presence. Used for modals and elevated form surfaces.'}
+              </p>
+              <IntensityBar intensity={intensity} />
+            </GlassPanel>
+          ))}
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 2 — Tinted glass
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="02 — Tinted" sub="A screen-blend colour wash over the base glass — same blur and border, different hue." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+          <TintedPanel label="Sapphire" sub="hue 240" tint="oklch(0.55 0.28 240)">
+            <SampleContent title="Blue" body="The default palette anchor." />
+          </TintedPanel>
+          <TintedPanel label="Teal" sub="hue 200" tint="oklch(0.60 0.22 200)">
+            <SampleContent title="Teal" body="Cool, ocean-floor calm." />
+          </TintedPanel>
+          <TintedPanel label="Violet" sub="hue 290" tint="oklch(0.58 0.26 290)">
+            <SampleContent title="Violet" body="Deep, ceremonial weight." />
+          </TintedPanel>
+          <TintedPanel label="Rose" sub="hue 10" tint="oklch(0.62 0.22 10)">
+            <SampleContent title="Rose" body="Warm, attention-drawing." />
+          </TintedPanel>
+          <TintedPanel label="Amber" sub="hue 72" tint="oklch(0.72 0.20 72)">
+            <SampleContent title="Amber" body="Caution or highlight." />
+          </TintedPanel>
+          <TintedPanel label="Emerald" sub="hue 160" tint="oklch(0.65 0.22 160)">
+            <SampleContent title="Emerald" body="Success, growth, life." />
+          </TintedPanel>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 3 — Blur levels
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="03 — Blur" sub="Same opacity and border; only backdrop-filter changes. Current global setting shown in bold." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <BlurPanel blur={8}  label="Minimal"  sub="Barely frosted — background structure still visible." />
+          <BlurPanel blur={20} label="Light"    sub="Gentle diffusion without losing the depth behind." />
+          <BlurPanel blur={GLASS_BLUR} label={`Default · active`} sub={`Your current GLASS_BLUR setting.`} />
+          <BlurPanel blur={72} label="Heavy"    sub="Fully frosted. Background becomes pure colour." />
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 4 — Glow combinations
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="04 — Ambient glow" sub="Top-right (blue) and bottom-left (teal) corner glows can be toggled independently." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <GlassPanel intensity="medium" topGlow={false} bottomGlow={false} rounded="rounded-[2rem]" className="p-7">
+            <GlowLabel>No glow</GlowLabel>
+            <p className="mt-3 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">Flat glass surface — useful for dense data grids where ambient light would distract.</p>
+          </GlassPanel>
+          <GlassPanel intensity="medium" topGlow={true} bottomGlow={false} rounded="rounded-[2rem]" className="p-7">
+            <GlowLabel>Top-right only</GlowLabel>
+            <p className="mt-3 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">The default. Deep-blue wash drifts from the upper corner, mimicking a light source above.</p>
+          </GlassPanel>
+          <GlassPanel intensity="medium" topGlow={false} bottomGlow={true} rounded="rounded-[2rem]" className="p-7">
+            <GlowLabel>Bottom-left only</GlowLabel>
+            <p className="mt-3 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">Teal counter-glow from below — adds grounding weight without the top highlight.</p>
+          </GlassPanel>
+          <GlassPanel intensity="medium" topGlow={true} bottomGlow={true} rounded="rounded-[2rem]" className="p-7">
+            <GlowLabel>Both glows</GlowLabel>
+            <p className="mt-3 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">Blue-to-teal diagonal tension. Maximum luminosity — best for hero or showcase panels.</p>
+          </GlassPanel>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 5 — Corner radius
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="05 — Radius" sub="The rounded prop is a Tailwind class — any value works." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          {[
+            { r: 'rounded-[0.5rem]', label: '8px', sub: 'Almost sharp' },
+            { r: 'rounded-[1rem]',   label: '16px', sub: 'UI default' },
+            { r: 'rounded-[2rem]',   label: '32px', sub: 'Soft panel' },
+            { r: 'rounded-[3.5rem]', label: '56px', sub: 'Pill / blob' },
+          ].map(({ r, label, sub }) => (
+            <GlassPanel key={r} intensity="medium" topGlow rounded={r} className="p-7">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel">
+                {label}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">{sub}</p>
+            </GlassPanel>
+          ))}
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 6 — Nested glass (glass on glass)
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="06 — Nested" sub="Glass panels layered inside glass panels. Each layer adds a degree of frosted depth." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+          {/* Depth stack */}
+          <GlassPanel intensity="subtle" topGlow bottomGlow rounded="rounded-[2rem]" className="p-6">
+            <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel mb-4">Depth stack</p>
+            <GlassPanel intensity="medium" topGlow rounded="rounded-[1.4rem]" className="p-5">
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel mb-3">Layer 2</p>
+              <GlassPanel intensity="strong" rounded="rounded-[1rem]" className="p-4">
+                <p className="text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">Layer 3 · strong</p>
+                <p className="mt-1 text-xs text-[var(--color-text-muted)] text-bevel">Each layer adds opacity.</p>
+              </GlassPanel>
+            </GlassPanel>
+          </GlassPanel>
+
+          {/* Card with glass header bar */}
+          <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="overflow-hidden p-0">
+            {/* Header band — stronger glass strip */}
+            <div
+              className="relative flex items-center justify-between px-6 py-4"
+              style={{
+                background: 'oklch(0.26 0.035 254 / 0.55)',
+                borderBottom: '1px solid oklch(0.5 0.05 248 / 0.22)',
+              }}
+            >
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Activity</p>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[0.55rem] font-bold text-[var(--color-accent-bright)]">3</span>
+            </div>
+            {/* Body rows */}
+            <div className="p-4 flex flex-col gap-2">
+              {['Deployment successful', 'New comment on #42', 'Build passed'].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-[0.9rem] px-3 py-2.5" style={{ background: 'oklch(0.22 0.028 254 / 0.38)' }}>
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: ['oklch(0.76 0.16 160)', 'oklch(0.71 0.17 244)', 'oklch(0.76 0.16 160)'][i] }} />
+                  <p className="text-xs text-[var(--color-text-muted)] text-bevel">{item}</p>
+                </div>
+              ))}
+            </div>
+          </GlassPanel>
+
+          {/* Modal-inside-panel illusion */}
+          <GlassPanel intensity="subtle" rounded="rounded-[2rem]" className="relative p-6">
+            <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel mb-5">Background context</p>
+            <p className="text-xs leading-5 text-[var(--color-text-muted)] text-bevel mb-5">
+              Content behind the dialog stays visible through the frosting — the user never loses their place.
+            </p>
+            {/* Simulated elevated dialog */}
+            <GlassPanel intensity="strong" topGlow rounded="rounded-[1.4rem]" className="p-5"
+              style={{ boxShadow: '0 16px 56px oklch(0.05 0.015 250 / 0.64), inset 0 1px 0 oklch(0.8 0.1 230 / 0.22)' }}
+            >
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel">Confirm action</p>
+              <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">This will permanently remove the item.</p>
+              <div className="mt-4 flex gap-2">
+                <button className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Cancel</button>
+                <button className="rounded-full border border-[oklch(0.65_0.19_25_/_0.5)] bg-[oklch(0.65_0.19_25_/_0.18)] px-3 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] text-[oklch(0.82_0.12_20)]">Delete</button>
+              </div>
+            </GlassPanel>
+          </GlassPanel>
+
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 7 — Component patterns
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="07 — Components" sub="Common UI patterns rendered in glass — profile, metrics, media, navigation." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+          {/* Profile card */}
+          <GlassPanel intensity="medium" topGlow bottomGlow rounded="rounded-[2rem]" className="p-6 flex flex-col items-center text-center">
+            {/* Avatar */}
+            <div className="relative mb-4">
+              <div className="h-16 w-16 rounded-full flex items-center justify-center text-xl font-[300] text-[var(--color-text)]"
+                style={{ background: 'linear-gradient(135deg, oklch(0.38 0.12 240 / 0.7), oklch(0.30 0.10 260 / 0.6))', border: '1px solid oklch(0.5 0.08 248 / 0.4)' }}>
+                AK
+              </div>
+              <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-[oklch(0.20_0.025_254)] bg-[oklch(0.76_0.16_160)]" />
+            </div>
+            <p className="font-[var(--font-display)] text-base font-[400] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">Alex K.</p>
+            <p className="mt-0.5 text-[0.65rem] text-[var(--color-text-subtle)] text-bevel uppercase tracking-[0.18em]">Design Engineer</p>
+            <div className="mt-4 flex gap-1.5">
+              {['Follow', 'Message'].map((lbl, i) => (
+                <button key={lbl} className="rounded-full px-3.5 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] transition duration-200"
+                  style={i === 0
+                    ? { background: 'oklch(0.71 0.17 244 / 0.22)', border: '1px solid oklch(0.71 0.17 244 / 0.4)', color: 'oklch(0.82 0.10 230)' }
+                    : { background: 'oklch(0.22 0.028 254 / 0.5)', border: '1px solid oklch(0.4 0.044 248 / 0.38)', color: 'var(--color-text-muted)' }}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+          </GlassPanel>
+
+          {/* Metric cards */}
+          <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="p-6 flex flex-col gap-4">
+            <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Dashboard</p>
+            {[
+              { label: 'Snippets', value: '248', trend: '+12', up: true },
+              { label: 'Views',    value: '18.4k', trend: '+8%', up: true },
+              { label: 'Errors',   value: '3',    trend: '+3',  up: false },
+            ].map(({ label, value, trend, up }) => (
+              <div key={label} className="flex items-end justify-between">
+                <div>
+                  <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel uppercase tracking-[0.16em]">{label}</p>
+                  <p className="mt-0.5 font-[var(--font-display)] text-2xl font-[200] tracking-[-0.04em] text-[var(--color-text)] text-bevel-strong">{value}</p>
+                </div>
+                <span className="mb-0.5 text-[0.65rem] font-semibold" style={{ color: up ? 'oklch(0.76 0.16 160)' : 'oklch(0.65 0.19 25)' }}>{trend}</span>
+              </div>
+            ))}
+          </GlassPanel>
+
+          {/* Media / now-playing card */}
+          <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="p-6">
+            <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel mb-4">Now playing</p>
+            {/* Album art placeholder */}
+            <div className="mx-auto mb-4 h-24 w-24 rounded-[1rem] flex items-center justify-center text-3xl"
+              style={{ background: 'linear-gradient(135deg, oklch(0.32 0.14 250), oklch(0.24 0.10 280))', border: '1px solid oklch(0.4 0.08 252 / 0.4)' }}>
+              ♪
+            </div>
+            <p className="text-center font-[var(--font-display)] text-base font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">Glass Structures</p>
+            <p className="mt-0.5 text-center text-[0.65rem] text-[var(--color-text-subtle)] text-bevel">Ambient · 4:12</p>
+            {/* Progress bar */}
+            <div className="mt-4 h-1 w-full rounded-full bg-[var(--color-border)]">
+              <div className="h-1 w-[38%] rounded-full bg-[var(--color-accent-bright)] opacity-70" />
+            </div>
+            {/* Controls */}
+            <div className="mt-4 flex justify-center gap-5 text-[var(--color-text-muted)]">
+              {['⏮', '⏸', '⏭'].map((icon, i) => (
+                <button key={i} className="text-lg transition duration-200 hover:text-[var(--color-text)]"
+                  style={i === 1 ? { color: 'var(--color-text)', transform: 'scale(1.2)' } : undefined}>{icon}</button>
+              ))}
+            </div>
+          </GlassPanel>
+
+          {/* Notification stack */}
+          <div className="relative flex flex-col gap-3">
+            {[
+              { icon: '✓', title: 'Deploy succeeded', body: 'main → production', color: 'oklch(0.76 0.16 160)', bg: 'oklch(0.76 0.16 160 / 0.12)', border: 'oklch(0.76 0.16 160 / 0.35)' },
+              { icon: '!', title: 'High memory usage', body: 'Instance i-4f2a · 91%', color: 'oklch(0.80 0.13 88)', bg: 'oklch(0.80 0.13 88 / 0.10)', border: 'oklch(0.80 0.13 88 / 0.32)' },
+              { icon: '↑', title: 'New version ready', body: 'v2.4.1 available', color: 'oklch(0.71 0.17 244)', bg: 'oklch(0.71 0.17 244 / 0.10)', border: 'oklch(0.71 0.17 244 / 0.32)' },
+            ].map(({ icon, title, body, color, bg, border }) => (
+              <GlassPanel key={title} intensity="medium" topGlow={false} rounded="rounded-[1.4rem]" className="flex items-start gap-3 p-4"
+                style={{ borderColor: border, background: bg, backdropFilter: 'blur(24px)' }}>
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                  style={{ background: `${color.replace(')', ' / 0.18)')}`, color }}>{icon}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-[var(--color-text)] text-bevel">{title}</p>
+                  <p className="mt-0.5 text-[0.65rem] text-[var(--color-text-subtle)] text-bevel truncate">{body}</p>
+                </div>
+              </GlassPanel>
+            ))}
+          </div>
+
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 8 — Navigation patterns
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="08 — Navigation" sub="Bars, tabs, and breadcrumbs — all common surfaces where glass reinforces hierarchy." light={bgId === 'dawn'}>
+        <div className="flex flex-col gap-6">
+
+          {/* Glass nav bar */}
+          <div className="flex items-center justify-between gap-4 rounded-[1.8rem] px-6 py-3.5"
+            style={{ background: 'oklch(0.20 0.025 254 / 0.62)', backdropFilter: 'blur(32px)', border: '1px solid oklch(0.4 0.044 248 / 0.32)', boxShadow: '0 4px 32px oklch(0.05 0.015 250 / 0.36)' }}>
+            <span className="font-[var(--font-display)] text-sm font-[300] tracking-[-0.03em] text-[var(--color-text)] text-bevel-strong">Snippets</span>
+            <div className="flex items-center gap-1">
+              {['Archive', 'Explore', 'Docs', 'Settings'].map((item, i) => (
+                <button key={item} className="rounded-full px-4 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.18em] transition duration-200"
+                  style={i === 0
+                    ? { background: 'oklch(0.28 0.04 252 / 0.7)', color: 'var(--color-text)' }
+                    : { color: 'var(--color-text-subtle)' }}>
+                  {item}
+                </button>
+              ))}
+            </div>
+            <div className="h-7 w-7 rounded-full flex items-center justify-center text-xs"
+              style={{ background: 'oklch(0.32 0.10 244 / 0.5)', color: 'var(--color-accent-bright)', border: '1px solid oklch(0.5 0.08 244 / 0.4)' }}>
+              AK
+            </div>
+          </div>
+
+          {/* Tab bar + breadcrumb row */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Segmented tabs */}
+            <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-4">
+              <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Segmented control</p>
+              <div className="flex gap-1 rounded-[1.2rem] p-1" style={{ background: 'oklch(0.16 0.020 256 / 0.5)' }}>
+                {['All', 'Javascript', 'Python', 'Go'].map((tab, i) => (
+                  <button key={tab} className="flex-1 rounded-[0.9rem] px-3 py-2 text-[0.60rem] font-semibold uppercase tracking-[0.16em] transition duration-200"
+                    style={i === 0
+                      ? { background: 'oklch(0.27 0.038 253 / 0.9)', color: 'var(--color-text)', boxShadow: '0 2px 8px oklch(0.05 0.015 250 / 0.36)' }
+                      : { color: 'var(--color-text-subtle)' }}>
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </GlassPanel>
+
+            {/* Breadcrumb + pill tags */}
+            <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-4 flex flex-col gap-4">
+              <div>
+                <p className="mb-2.5 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Breadcrumb</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {['Archive', 'Javascript', 'fetch-utils.ts'].map((crumb, i, arr) => (
+                    <React.Fragment key={crumb}>
+                      <span className="text-[0.65rem] text-[i < arr.length - 1 ? 'var(--color-text-subtle)' : 'var(--color-text)'] text-bevel"
+                        style={{ color: i < arr.length - 1 ? 'var(--color-text-subtle)' : 'var(--color-text)' }}>{crumb}</span>
+                      {i < arr.length - 1 && <span className="text-[0.60rem] text-[var(--color-text-subtle)]">/</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2.5 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Tags</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: 'typescript', color: 'oklch(0.71 0.17 244)' },
+                    { label: 'async',      color: 'oklch(0.65 0.22 160)' },
+                    { label: 'http',       color: 'oklch(0.72 0.18 290)' },
+                    { label: 'utility',    color: 'oklch(0.80 0.13 88)' },
+                  ].map(({ label, color }) => (
+                    <span key={label} className="inline-flex items-center rounded-full px-2.5 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.16em]"
+                      style={{ background: `${color.replace(')', ' / 0.14)')}`, border: `1px solid ${color.replace(')', ' / 0.32)')}`, color }}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </GlassPanel>
+          </div>
+        </div>
+      </Section>
+
+    </div>
+  </div>
+  );
+};
+
+// ── Small layout helpers ──────────────────────────────────────────────────────
+
+const Section: React.FC<React.PropsWithChildren<{ label: string; sub: string; light?: boolean }>> = ({ label, sub, light, children }) => (
+  <section className="mb-20">
+    <div className="mb-7">
+      <p
+        className="text-[0.68rem] font-semibold uppercase tracking-[0.34em]"
+        style={{ color: light ? 'oklch(0.45 0.06 55)' : 'var(--color-text-subtle)' }}
+      >
+        {label}
+      </p>
+      <p
+        className="mt-1 text-sm"
+        style={{ color: light ? 'oklch(0.36 0.04 50)' : 'var(--color-text-muted)' }}
+      >
+        {sub}
+      </p>
+    </div>
+    {children}
+  </section>
+);
+
+const GlowLabel: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel">
+    {children}
+  </p>
+);
+
+const IntensityBar: React.FC<{ intensity: 'subtle' | 'medium' | 'strong' }> = ({ intensity }) => {
+  const w = intensity === 'subtle' ? 'w-1/4' : intensity === 'medium' ? 'w-1/2' : 'w-full';
+  return (
+    <div className="mt-5 h-px w-full rounded-full bg-[var(--color-border)]">
+      <div className={`h-px rounded-full bg-[var(--color-accent-bright)] opacity-60 transition-all ${w}`} />
+    </div>
+  );
+};
+
+export default GlassShowcase;

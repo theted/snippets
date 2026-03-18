@@ -60,12 +60,25 @@ const GlassPanel: React.FC<Props> = ({
         }}
       />
 
-      {/* Mouse-tracking light — follows cursor, fades in/out on hover */}
+      {/* Shadow — large, soft darkening on the side away from the cursor */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(ellipse 70% 55% at ${mousePos.x}% ${mousePos.y}%, oklch(0.82 0.08 228 / 0.06) 0%, transparent 70%)`,
+          background: `radial-gradient(ellipse 160% 130% at ${100 - mousePos.x}% ${100 - mousePos.y}%, oklch(0.04 0.01 255 / 0.20) 0%, transparent 58%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+
+      {/* Light wash — very large, screen-blended coloured light that follows the cursor.
+          screen() merges the light's hue into the panel background rather than just
+          whitening it, so the panel shifts in colour temperature as the light moves. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(ellipse 190% 150% at ${mousePos.x}% ${mousePos.y}%, oklch(0.28 0.05 215 / 0.22) 0%, transparent 55%)`,
+          mixBlendMode: 'screen',
           opacity: isHovered ? 1 : 0,
         }}
       />

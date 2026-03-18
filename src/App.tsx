@@ -9,6 +9,7 @@ import { SearchbarHandle } from './components/Searchbar';
 import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
+import GlassShowcase from './pages/GlassShowcase';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
 import BackgroundAnimation from './components/BackgroundAnimation';
@@ -122,6 +123,12 @@ const App: FC = () => {
                                                         <i className="icon-info" />
                                                         <span>Shortcuts</span>
                                                     </Link>
+                                                    <Link
+                                                        to="/glass"
+                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                    >
+                                                        <span>Glass</span>
+                                                    </Link>
                                                 </div>
                                                 <div className="mt-8 flex justify-end">
                                                     <GoogleAuth />
@@ -140,6 +147,7 @@ const App: FC = () => {
                             />
                             <Route path="/snippets/:id" element={<SnippetPage />} />
                             <Route path="/docs" element={<Docs />} />
+                            <Route path="/glass" element={<GlassShowcase />} />
                         </Routes>
                     </div>
                 </ThemeContext.Provider>
