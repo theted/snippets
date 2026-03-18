@@ -1,10 +1,10 @@
 /* eslint-disable max-len */
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, RefObject } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import { update, remove } from '../utils/api.ts';
-import Searchbar from '../components/Searchbar';
+import Searchbar, { SearchbarHandle } from '../components/Searchbar';
 import { SpinFigure } from '../components/Spinner';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
@@ -37,7 +37,9 @@ async function updateSnippetCallback(data: ISnippet) {
   return update<ISnippet, ISnippet>(`snippets/${data.id}`, data);
 }
 
-const Snippets: React.FC = () => {
+type Props = { searchbarRef?: RefObject<SearchbarHandle | null> };
+
+const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext);
   const [editingId, setEditingId] = useState<SnippetId | null>(null);
@@ -121,7 +123,7 @@ const Snippets: React.FC = () => {
 
   return (
     <section className={classes.container}>
-      <Searchbar onSearch={onSearch} />
+      <Searchbar ref={searchbarRef} onSearch={onSearch} />
 
       <div className={classes.stream}>
         {snippets.length === 0 ? (

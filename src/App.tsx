@@ -1,10 +1,11 @@
-import React, { useState, FC } from 'react';
+import React, { useState, useRef, useEffect, FC } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import './App.css';
-import CreateSnippet from './pages/CreateSnippet';
+import CreateSnippet, { CreateSnippetHandle } from './pages/CreateSnippet';
 import Snippets from './pages/Snippets';
+import { SearchbarHandle } from './components/Searchbar';
 import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import GoogleAuth from './components/GoogleAuth';
@@ -24,6 +25,23 @@ const getDefaultGlobalState = (): ThemePreferences => ({
 
 const App: FC = () => {
   const [globalState, setGlobalState] = useState<ThemePreferences>(getDefaultGlobalState);
+  const createSnippetRef = useRef<CreateSnippetHandle>(null);
+  const searchbarRef = useRef<SearchbarHandle>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'i') {
+        e.preventDefault();
+        createSnippetRef.current?.open();
+      }
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        searchbarRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const value: ThemeContextValue = {
     background: 'oklch(0.18 0.03 258)',
@@ -60,14 +78,14 @@ const App: FC = () => {
                         The interface stays quiet so the code itself can take the room.
                       </p>
                       <div className="app-toolbar">
-                        <CreateSnippet />
+                        <CreateSnippet ref={createSnippetRef} />
                         <Preferences />
                       </div>
                       <div className="mt-8 flex justify-end">
                         <GoogleAuth />
                       </div>
                     </header>
-                    <Snippets />
+                    <Snippets searchbarRef={searchbarRef} />
                   </div>
                 )}
               />

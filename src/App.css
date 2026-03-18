@@ -11,7 +11,8 @@
   border-radius: 9999px;
   pointer-events: none;
   z-index: 0;
-  filter: blur(72px);
+  filter: blur(110px);
+  animation: fadeInOnly 650ms ease both;
 }
 
 .App::before {
@@ -72,7 +73,10 @@
 .app-title span {
   position: relative;
   display: inline-block;
-  text-shadow: 0 0 32px oklch(0.7 0.16 245 / 0.16);
+  /* 1px sharp white raise (bevel) + soft blue ambient glow */
+  text-shadow:
+    0 1px 0 oklch(0.98 0.006 255 / 0.28),
+    0 0 52px oklch(0.72 0.18 244 / 0.14);
 }
 
 .app-title span::after {
@@ -122,17 +126,33 @@
   to   { opacity: 1; }
 }
 
-/* .app-hero contains position:fixed modal children (CreateSnippet), so we
-   must NOT use a transform here — any active transform would turn .app-hero
-   into a containing block for fixed descendants, clipping the modal overlay.
-   Opacity-only fade avoids that entirely. */
+/* Zoom + slide-up + fade — used for panel entrances.
+   Safe on .app-hero now that the modal uses createPortal
+   (portal renders at document.body, not inside .app-hero,
+   so .app-hero's transform no longer creates a containing
+   block for the modal's position:fixed overlay). */
+@keyframes zoomSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Sequence: bg orbs (0ms) → hero (80ms) → searchbar (360ms) → snippets (580ms+) */
+
 .app-hero {
-  animation: fadeInOnly 1.1s ease both;
+  animation: zoomSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 80ms;
 }
 
 .snippet-stream-item {
   animation: fadeInUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--item-index, 0) * 80ms + 200ms);
+  animation-delay: calc(var(--item-index, 0) * 90ms + 580ms);
 }
 
 .snippet-detail-enter {
@@ -261,6 +281,22 @@
     stroke-dasharray: 90, 150;
     stroke-dashoffset: -124;
   }
+}
+
+/* ─── Hero Searchbar ─────────────────────────────────────────────── */
+
+.searchbar-hero {
+  animation: zoomSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 360ms;
+}
+
+.searchbar-hero:hover {
+  border-color: oklch(0.58 0.1 242 / 0.62);
+}
+
+/* Focus state overrides hover — both border-color and the Textfield's own ring */
+.searchbar-hero:focus-within {
+  border-color: oklch(0.62 0.16 240 / 0.72);
 }
 
 @media (max-width: 768px) {

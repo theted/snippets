@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -59,6 +59,16 @@ const Snippet: React.FC<Props> = ({
 }) => {
   const { showLineNumbers } = useContext(ThemeContext);
   const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
+  const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
 
   return (
     <div
@@ -66,9 +76,21 @@ const Snippet: React.FC<Props> = ({
       style={{
         boxShadow: '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)',
       }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className={classes.glassEdge} />
       <div className={classes.glow} />
+      {/* Mouse-tracking shimmer — more subtle than the search panel */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, oklch(0.86 0.08 228 / 0.07) 0%, transparent 50%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
       <div className={classes.heading}>
         <div className={classes.meta}>
           <div className={classes.titleBlock}>

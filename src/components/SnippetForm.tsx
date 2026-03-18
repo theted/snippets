@@ -52,12 +52,13 @@ const classes = {
 type Props = {
   defaultValues?: Partial<SnippetFormValues>;
   isEditing?: boolean;
+  focusContent?: boolean;
   onSubmit: (values: SnippetFormValues) => void;
   closeModal: () => void;
 }
 
 const SnippetForm: React.FC<Props> = ({
-  defaultValues, isEditing = false, onSubmit, closeModal,
+  defaultValues, isEditing = false, focusContent = false, onSubmit, closeModal,
 }) => {
   const [formState, setFormState] = useState<SnippetFormValues>({
     ...EMPTY_FORM_STATE,
@@ -100,6 +101,7 @@ const SnippetForm: React.FC<Props> = ({
           <label className={classes.label} htmlFor="snippet-content">Code</label>
           <Textarea
             id="snippet-content"
+            autoFocus={focusContent}
             name="content"
             placeholder="Paste or type your code here…"
             onChange={inputHandler}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { post } from '../utils/api.ts';
 import Button from '../components/Button';
@@ -8,7 +8,9 @@ import Modal from '../components/Modal';
 import { CreateSnippet as CreateSnippetInput, Snippet, SnippetFormValues } from '../types';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 
-const CreateSnippet: React.FC = () => {
+export type CreateSnippetHandle = { open: () => void };
+
+const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
   const queryClient = useQueryClient();
   const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
   const createSnippetMutation = useMutation({
@@ -26,6 +28,8 @@ const CreateSnippet: React.FC = () => {
   };
 
   const openModal = () => setIsFormVisible(true);
+
+  useImperativeHandle(ref, () => ({ open: openModal }));
 
   // Always render the button so the toolbar layout never shifts when the
   // modal opens — previously the button was replaced by the modal, causing
@@ -46,11 +50,12 @@ const CreateSnippet: React.FC = () => {
           <SnippetForm
             onSubmit={onSubmit}
             closeModal={closeModal}
+            focusContent
           />
         </Modal>
       )}
     </>
   );
-};
+});
 
 export default CreateSnippet;
