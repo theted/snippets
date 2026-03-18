@@ -43,6 +43,7 @@
 }
 
 .app-hero {
+  position: relative;
   display: grid;
   gap: 1.5rem;
   max-width: 78rem;

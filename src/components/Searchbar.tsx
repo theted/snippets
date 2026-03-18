@@ -99,13 +99,13 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
       style={{
         border: '1px solid transparent',
         backgroundImage: `
-          radial-gradient(ellipse at 28% 0%, oklch(0.58 0.18 245 / ${isFocused ? '0.42' : '0.24'}) 0%, transparent 52%),
-          radial-gradient(ellipse at 90% 95%, oklch(0.36 0.1 255 / ${isFocused ? '0.28' : '0.16'}) 0%, transparent 44%),
+          radial-gradient(ellipse at 28% 0%, oklch(0.58 0.18 245 / ${isFocused ? '0.32' : '0.16'}) 0%, transparent 52%),
+          radial-gradient(ellipse at 90% 95%, oklch(0.36 0.1 255 / ${isFocused ? '0.2' : '0.1'}) 0%, transparent 44%),
           linear-gradient(var(--color-glass-card), var(--color-glass-card)),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
-            oklch(0.78 0.2 232 / ${isFocused ? '0.95' : isHovered ? '0.85' : '0.45'}),
-            oklch(0.42 0.08 245 / ${isFocused ? '0.65' : isHovered ? '0.55' : '0.35'}) 50%,
-            oklch(0.28 0.04 250 / 0.28) 100%)
+            oklch(0.72 0.16 232 / ${isFocused ? '0.72' : isHovered ? '0.52' : '0.32'}),
+            oklch(0.38 0.07 245 / ${isFocused ? '0.48' : isHovered ? '0.36' : '0.22'}) 52%,
+            oklch(0.28 0.04 250 / 0.2) 100%)
         `,
         backgroundOrigin: 'padding-box, padding-box, padding-box, border-box',
         backgroundClip: 'padding-box, padding-box, padding-box, border-box',
@@ -118,6 +118,31 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
       onFocusCapture={() => setIsFocused(true)}
       onBlur={handleBlur}
     >
+      {/* SVG noise filter definition — hidden, referenced by grain overlay */}
+      <svg aria-hidden="true" className="pointer-events-none absolute" style={{ width: 0, height: 0 }}>
+        <defs>
+          <filter id="searchbar-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" result="noise" />
+            <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise" />
+            <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended" />
+            <feComposite in="blended" in2="SourceGraphic" operator="in" />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Grain / sandy texture overlay */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-[2.4rem]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+          backgroundSize: '256px 256px',
+          backgroundRepeat: 'repeat',
+          opacity: 0.045,
+          mixBlendMode: 'overlay',
+        }}
+      />
+
       {/* Top-edge glass shimmer */}
       <div
         aria-hidden="true"
@@ -148,13 +173,22 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
           opacity: isFocused ? 1 : 0,
         }}
       />
+      {/* Focus lighten — brightens the whole panel when the input is active */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          background: 'linear-gradient(160deg, oklch(0.92 0.04 240 / 0.07) 0%, oklch(0.88 0.06 238 / 0.05) 100%)',
+          opacity: isFocused ? 1 : 0,
+        }}
+      />
 
       {/* Mouse-tracking reflective highlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / 0.1) 0%, transparent 55%)`,
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / 0.055) 0%, transparent 55%)`,
           opacity: isHovered ? 1 : 0,
         }}
       />
