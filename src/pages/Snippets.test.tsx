@@ -8,6 +8,19 @@ import themeDefaults from '../contexts/themeContext';
 import Snippets from './Snippets';
 import * as api from '../utils/api.ts';
 
+vi.mock('../components/CodeEditor', () => ({
+  default: ({
+    id, value, onChange, placeholder,
+  }: {
+    id?: string; value: string; onChange: (v: string) => void; placeholder?: string;
+  }) => React.createElement('textarea', {
+    id,
+    value,
+    placeholder,
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value),
+  }),
+}));
+
 vi.mock('gsap', () => ({
   gsap: {
     to: vi.fn((_, vars) => { vars?.onComplete?.(); }),
@@ -78,8 +91,9 @@ test('shows error state when the fetch fails', async () => {
   vi.mocked(api.get).mockRejectedValue(new Error('Network error'));
   renderSnippets();
   await waitFor(() => {
-    expect(screen.getByText(/an error has occurred/i)).toBeInTheDocument();
-    expect(screen.getByText(/network error/i)).toBeInTheDocument();
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent(/could not load snippets/i);
+    expect(alert).toHaveTextContent(/network error/i);
   });
 });
 

@@ -3,6 +3,19 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SnippetForm from './SnippetForm';
 
+vi.mock('./CodeEditor', () => ({
+  default: ({
+    id, value, onChange, placeholder,
+  }: {
+    id?: string; value: string; onChange: (v: string) => void; placeholder?: string;
+  }) => React.createElement('textarea', {
+    id,
+    value,
+    placeholder,
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value),
+  }),
+}));
+
 test('renders "Create snippet" heading in create mode', () => {
   render(<SnippetForm onSubmit={vi.fn()} closeModal={vi.fn()} />);
   expect(screen.getByRole('heading', { name: /create snippet/i })).toBeInTheDocument();

@@ -132,9 +132,9 @@ const Snippet: React.FC<Props> = ({
                 backgroundImage: `
           linear-gradient(oklch(0.22 0.028 254 / 0.42), oklch(0.22 0.028 254 / 0.42)),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
-            oklch(0.66 0.14 232 / ${isHovered ? '0.11' : '0.07'}),
-            oklch(0.34 0.06 245 / ${isHovered ? '0.07' : '0.04'}) 52%,
-            oklch(0.26 0.04 250 / 0.02) 100%)
+            oklch(0.66 0.14 232 / ${isHovered ? '0.08' : '0.06'}),
+            oklch(0.34 0.06 245 / ${isHovered ? '0.05' : '0.03'}) 52%,
+            oklch(0.26 0.04 250 / 0.01) 100%)
         `,
                 backgroundOrigin: 'padding-box, border-box',
                 backgroundClip: 'padding-box, border-box',

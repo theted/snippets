@@ -17,7 +17,7 @@
  */
 
 export const GLASS_OPACITY = 0.82;
-export const GLASS_BLUR    = 28; // px
+export const GLASS_BLUR    = 32; // px
 
 export type GlassIntensity = 'subtle' | 'medium' | 'strong';
 
@@ -27,7 +27,7 @@ const BASE_BG:      Record<GlassIntensity, number> = { subtle: 0.22, medium: 0.3
 const BASE_BORDER:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.32, strong: 0.44 };
 const BASE_SHIMMER: Record<GlassIntensity, number> = { subtle: 0.24, medium: 0.38, strong: 0.64 };
 const BASE_SHADOW:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.34, strong: 0.46 };
-const BASE_GLOW:    Record<GlassIntensity, number> = { subtle: 0.10, medium: 0.15, strong: 0.20 };
+const BASE_GLOW:    Record<GlassIntensity, number> = { subtle: 0.07, medium: 0.10, strong: 0.13 };
 const GLOW_BLUR:    Record<GlassIntensity, number> = { subtle: 96,   medium: 120,  strong: 108 };
 
 // ── Colour constants ────────────────────────────────────────────────
