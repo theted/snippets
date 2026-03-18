@@ -20,11 +20,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-snippets}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-snippets}
       POSTGRES_SSL: ${POSTGRES_SSL:-false}
-      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
       GOOGLE_AUTH_ENABLED: ${GOOGLE_AUTH_ENABLED:-false}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-snippets_session}
-      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:-}
+      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET}
     volumes:
       - ./data:/app/data
     restart: unless-stopped

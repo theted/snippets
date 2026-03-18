@@ -57,7 +57,7 @@ export function getConfig(): AppConfig {
 
   return {
     apiPort: env.API_PORT,
-    corsOrigin: env.CORS_ORIGIN ?? true,
+    corsOrigin: env.CORS_ORIGIN || true,
     nodeEnv: env.NODE_ENV,
     database: {
       provider: env.SNIPPETS_DATABASE_PROVIDER,
