@@ -99,16 +99,14 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
       style={{
         border: '1px solid transparent',
         backgroundImage: `
-          radial-gradient(ellipse at 28% 0%, oklch(0.58 0.18 245 / ${isFocused ? '0.32' : '0.16'}) 0%, transparent 52%),
-          radial-gradient(ellipse at 90% 95%, oklch(0.36 0.1 255 / ${isFocused ? '0.2' : '0.1'}) 0%, transparent 44%),
           linear-gradient(var(--color-glass-card), var(--color-glass-card)),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
-            oklch(0.72 0.16 232 / ${isFocused ? '0.72' : isHovered ? '0.52' : '0.32'}),
-            oklch(0.38 0.07 245 / ${isFocused ? '0.48' : isHovered ? '0.36' : '0.22'}) 52%,
-            oklch(0.28 0.04 250 / 0.2) 100%)
+            oklch(0.72 0.16 232 / ${isFocused ? '0.36' : isHovered ? '0.16' : '0.08'}),
+            oklch(0.38 0.07 245 / ${isFocused ? '0.22' : isHovered ? '0.10' : '0.05'}) 52%,
+            oklch(0.28 0.04 250 / 0.04) 100%)
         `,
-        backgroundOrigin: 'padding-box, padding-box, padding-box, border-box',
-        backgroundClip: 'padding-box, padding-box, padding-box, border-box',
+        backgroundOrigin: 'padding-box, border-box',
+        backgroundClip: 'padding-box, border-box',
         boxShadow: isFocused ? focusBoxShadow : isHovered ? hoverBoxShadow : baseBoxShadow,
         transition: 'box-shadow 500ms ease, background 500ms ease',
       }}
@@ -188,7 +186,8 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / 0.055) 0%, transparent 55%)`,
+          background: `radial-gradient(ellipse 90% 80% at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / 0.025) 0%, transparent 70%)`,
+          filter: 'blur(48px)',
           opacity: isHovered ? 1 : 0,
         }}
       />

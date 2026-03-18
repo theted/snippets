@@ -17,8 +17,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
 
     if (backdropRef.current) {
       gsap.to(backdropRef.current, {
-        background: 'oklch(0.1 0.015 258 / 0.82)',
-        backdropFilter: 'blur(16px)',
+        background: 'oklch(0.08 0.012 258 / 0.90)',
         duration: 0.4,
         ease: 'power2.out',
       });
@@ -58,8 +57,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
       out.to(
         backdropRef.current,
         {
-          background: 'oklch(0.1 0.015 258 / 0)',
-          backdropFilter: 'blur(0px)',
+          background: 'oklch(0.08 0.012 258 / 0)',
           duration: 0.3,
           ease: 'power2.in',
         },
@@ -81,7 +79,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
       <div
         ref={backdropRef}
         className="fixed inset-0 z-40"
-        style={{ background: 'oklch(0.1 0.015 258 / 0)', backdropFilter: 'blur(0px)' }}
+        style={{ background: 'oklch(0.08 0.012 258 / 0)' }}
         onClick={dismiss}
       />
 
@@ -95,7 +93,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
-          className="relative w-full max-w-sm overflow-hidden rounded-[2rem] border border-[var(--color-danger)] bg-[oklch(0.18_0.025_258_/_0.96)] p-8 shadow-[0_0_0_1px_oklch(0.65_0.19_25_/_0.18),0_32px_80px_oklch(0.05_0.01_258_/_0.7)] backdrop-blur-2xl"
+          className="relative w-full max-w-sm overflow-hidden rounded-[2rem] border border-[var(--color-danger)] bg-[oklch(0.16_0.022_258_/_0.98)] p-8 shadow-[0_0_0_1px_oklch(0.65_0.19_25_/_0.18),0_32px_80px_oklch(0.05_0.01_258_/_0.7)]"
           style={{ opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >

@@ -42,8 +42,7 @@ export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }: ModalRef
 
   if (backgroundRef.current) {
     gsap.to(backgroundRef.current, {
-      background: 'oklch(0.12 0.012 258 / 0)',
-      backdropFilter: 'blur(0px)',
+      background: 'oklch(0.10 0.012 258 / 0)',
       duration: 0.4,
     });
   }
@@ -67,8 +66,7 @@ const entryAnimation = ({ modalRef, backgroundRef }: Omit<ModalRefs, 'closeModal
 
   if (backgroundRef.current) {
     gsap.to(backgroundRef.current, {
-      background: 'oklch(0.12 0.012 258 / 0.72)',
-      backdropFilter: 'blur(14px)',
+      background: 'oklch(0.10 0.012 258 / 0.88)',
       duration: 0.5,
       ease: 'power2.out',
     });
@@ -127,7 +125,7 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
       <div
         ref={backgroundRef}
         className={classes.bg}
-        style={{ background: 'oklch(0.12 0.012 258 / 0)', backdropFilter: 'blur(0px)' }}
+        style={{ background: 'oklch(0.10 0.012 258 / 0)' }}
       />
     </>,
     document.body,

@@ -5,8 +5,8 @@
   --font-display: 'Manrope', 'Avenir Next', 'Segoe UI Variable', sans-serif;
   --font-body: 'Space Grotesk', 'Avenir Next', 'Segoe UI Variable', sans-serif;
   --font-code: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
-  --color-bg: oklch(0.16 0.018 258);
-  --color-bg-deep: oklch(0.12 0.012 258);
+  --color-bg: oklch(0.13 0.026 256);
+  --color-bg-deep: oklch(0.09 0.018 258);
   --color-surface: oklch(0.23 0.03 254 / 0.76);
   --color-surface-strong: oklch(0.27 0.04 252 / 0.9);
   --color-surface-muted: oklch(0.2 0.024 254 / 0.82);
@@ -41,8 +41,8 @@ html {
   min-height: 100%;
   scrollbar-width: none; /* Firefox */
   background:
-    radial-gradient(circle at top left, oklch(0.46 0.12 245 / 0.18), transparent 34%),
-    radial-gradient(circle at top right, oklch(0.62 0.18 244 / 0.2), transparent 28%),
+    radial-gradient(circle at top left,  oklch(0.44 0.15 242 / 0.22), transparent 34%),
+    radial-gradient(circle at top right, oklch(0.58 0.20 238 / 0.24), transparent 28%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
   background-attachment: fixed;
 }
@@ -58,10 +58,14 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   background:
-    radial-gradient(circle at 14% 18%, oklch(0.52 0.13 240 / 0.14), transparent 26%),
-    radial-gradient(circle at 88% 10%, oklch(0.67 0.17 235 / 0.16), transparent 24%),
-    radial-gradient(circle at 50% 100%, oklch(0.34 0.07 255 / 0.14), transparent 30%),
+    /* Repeating dot texture — very fine, sits on top of the colour field */
+    radial-gradient(circle, oklch(0.68 0.08 248 / 0.09) 1px, transparent 1px),
+    /* Colour radials */
+    radial-gradient(circle at 14% 18%, oklch(0.48 0.16 238 / 0.18), transparent 26%),
+    radial-gradient(circle at 88% 10%, oklch(0.62 0.20 232 / 0.20), transparent 24%),
+    radial-gradient(circle at 50% 100%, oklch(0.32 0.10 258 / 0.16), transparent 30%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
+  background-size: 26px 26px, auto, auto, auto, auto;
   /* Fixed attachment keeps the light field stationary while content scrolls,
      which is essential for the glass-panel effect on the cards above it. */
   background-attachment: fixed;
