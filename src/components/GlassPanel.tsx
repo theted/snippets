@@ -47,11 +47,11 @@ const GlassPanel: React.FC<Props> = ({
         }}
       />
 
-      {/* Top-right ambient glow */}
+      {/* Top-right ambient glow — wide band so blur washes across the full top edge */}
       {topGlow && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-5rem] top-[-4rem] h-80 w-80 rounded-full"
+          className="pointer-events-none absolute right-[-4rem] top-[-10rem] h-[24rem] w-[44rem] rounded-full"
           style={glass.topRightGlow}
         />
       )}

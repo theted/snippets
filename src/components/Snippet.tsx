@@ -132,9 +132,9 @@ const Snippet: React.FC<Props> = ({
                 backgroundImage: `
           linear-gradient(oklch(0.22 0.028 254 / 0.42), oklch(0.22 0.028 254 / 0.42)),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
-            oklch(0.66 0.14 232 / ${isHovered ? '0.16' : '0.10'}),
-            oklch(0.34 0.06 245 / ${isHovered ? '0.10' : '0.07'}) 52%,
-            oklch(0.26 0.04 250 / 0.04) 100%)
+            oklch(0.66 0.14 232 / ${isHovered ? '0.11' : '0.07'}),
+            oklch(0.34 0.06 245 / ${isHovered ? '0.07' : '0.04'}) 52%,
+            oklch(0.26 0.04 250 / 0.02) 100%)
         `,
                 backgroundOrigin: 'padding-box, border-box',
                 backgroundClip: 'padding-box, border-box',
@@ -177,7 +177,7 @@ const Snippet: React.FC<Props> = ({
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 transition-opacity duration-500"
                 style={{
-                    background: `radial-gradient(ellipse 120% 100% at ${mousePos.x}% ${mousePos.y}%, oklch(0.86 0.08 228 / 0.03) 0%, transparent 75%)`,
+                    background: `radial-gradient(ellipse 120% 100% at ${mousePos.x}% ${mousePos.y}%, oklch(0.86 0.08 228 / 0.015) 0%, transparent 75%)`,
                     filter: 'blur(72px)',
                     opacity: isHovered ? 1 : 0,
                 }}
