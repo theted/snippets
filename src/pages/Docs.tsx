@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import GlassPanel from '../components/GlassPanel';
 
 // ── Shortcut row ─────────────────────────────────────────────────────────────
 
@@ -105,18 +106,12 @@ const Docs: React.FC = () => {
           Back to archive
         </Link>
 
-        <div className={`${classes.card} snippet-detail-enter`} style={{ boxShadow: cardShadow }}>
-          {/* Top-edge shimmer */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent" />
-          {/* Corner glow */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-[-5rem] top-[-4rem] h-60 w-60 rounded-full opacity-50"
-            style={{
-              background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.22) 0%, transparent 70%)',
-              filter: 'blur(28px)',
-            }}
-          />
+        <GlassPanel
+          intensity="strong"
+          topGlow
+          rounded="rounded-[2.4rem]"
+          className="snippet-detail-enter p-8 md:p-10 lg:p-12"
+        >
 
           {/* Header */}
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.38em] text-[var(--color-text-subtle)] text-bevel">
@@ -228,7 +223,7 @@ const Docs: React.FC = () => {
               />
             </div>
           </div>
-        </div>
+        </GlassPanel>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE } from '../config';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Dropdown from './Dropdown';
 import Button from './Button';
 import CodeEditor from './CodeEditor';
+import GlassPanel from './GlassPanel';
 import { SnippetFormValues } from '../types';
 
 const languages = AVAILABLE_LANGUAGES.map((lang) => ({ label: lang, value: lang }));
@@ -23,7 +24,6 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const classes = {
-    form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] border border-[oklch(0.44_0.05_248_/_0.45)] bg-[oklch(0.17_0.022_254_/_0.97)] p-8 md:p-12 lg:p-14',
     // Two-column grid: code left (wider), metadata right.
     // On mobile the columns collapse to a single stack.
     grid: 'flex flex-col gap-8 md:grid md:grid-cols-[1.7fr_1fr] md:items-start md:gap-10 lg:gap-14',
@@ -70,7 +70,6 @@ const SnippetForm: React.FC<Props> = ({
         ...EMPTY_FORM_STATE,
         ...defaultValues,
     });
-    const formRef = useRef<HTMLFormElement>(null);
 
     const inputHandler = (event: InputChangeEvent) => {
         const { name, value } = event.target;
@@ -89,35 +88,20 @@ const SnippetForm: React.FC<Props> = ({
     }, [defaultValues]);
 
     return (
-        <form
-            ref={formRef}
-            onSubmit={(event) => {
+        <GlassPanel
+            as="form"
+            onSubmit={(event: React.FormEvent) => {
                 event.preventDefault();
                 onSubmit(formState);
             }}
-            className={classes.form}
+            intensity="strong"
+            topGlow
+            rounded="rounded-[2.4rem]"
+            className="relative z-30 w-full p-8 md:p-12 lg:p-14"
             style={{
-                border: '1px solid var(--color-border)',
                 background: 'linear-gradient(160deg, oklch(0.19 0.024 254 / 0.88), oklch(0.15 0.018 255 / 0.92))',
-                boxShadow: '0 16px 56px oklch(0.05 0.015 250 / 0.36), inset 0 1px 0 oklch(0.8 0.1 230 / 0.12)',
             }}
         >
-            {/* Top-edge glass shimmer */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-px"
-                style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.22), transparent)' }}
-            />
-            {/* Ambient corner glow */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute right-[-4rem] top-[-3rem] h-56 w-56 rounded-full"
-                style={{
-                    background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.22) 0%, transparent 70%)',
-                    filter: 'blur(28px)',
-                    opacity: 0.18,
-                }}
-            />
 
             <div className={classes.grid}>
                 {/* ── LEFT: code ────────────────────────────────────── */}
@@ -207,7 +191,7 @@ const SnippetForm: React.FC<Props> = ({
                     </div>
                 </div>
             </div>
-        </form>
+        </GlassPanel>
     );
 };
 

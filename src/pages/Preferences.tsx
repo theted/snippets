@@ -4,8 +4,13 @@ import { THEMES } from '../config';
 import Dropdown from '../components/Dropdown';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
+import GlassPanel from '../components/GlassPanel';
+import { getGlassStyles } from '../design/glass';
 
 const options = THEMES.map((lang) => ({ label: lang, value: lang }));
+
+// Inner setting rows use 'subtle' intensity — visually nested inside the 'strong' outer panel
+const rowGlass = getGlassStyles('subtle');
 
 const Preferences: React.FC = () => {
   const { showLineNumbers, setLineNumbers, setTheme, theme } = useContext(ThemeContext);
@@ -24,35 +29,12 @@ const Preferences: React.FC = () => {
 
   return (
     <Modal closeModal={closePreferences}>
-      <div
-        className="relative w-full overflow-hidden rounded-[2.4rem] p-8 md:p-12"
-        style={{
-          border: '1px solid transparent',
-          backgroundImage: `
-            linear-gradient(oklch(0.17 0.022 254 / 0.97), oklch(0.17 0.022 254 / 0.97)),
-            linear-gradient(135deg, oklch(0.56 0.12 242 / 0.38), oklch(0.34 0.06 248 / 0.22) 50%, oklch(0.44 0.08 252 / 0.28))
-          `,
-          backgroundOrigin: 'padding-box, border-box',
-          backgroundClip: 'padding-box, border-box',
-          boxShadow: '0 24px 72px oklch(0.05 0.015 250 / 0.5), inset 0 1px 0 oklch(0.8 0.1 230 / 0.16)',
-        }}
+      <GlassPanel
+        intensity="strong"
+        topGlow
+        rounded="rounded-[2.4rem]"
+        className="w-full p-8 md:p-12"
       >
-        {/* Top-edge shimmer */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, oklch(0.88 0.14 226 / 0.55), transparent)' }}
-        />
-        {/* Corner glow */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-[-5rem] top-[-4rem] h-64 w-64 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, oklch(0.72 0.16 240 / 0.22) 0%, transparent 68%)',
-            filter: 'blur(32px)',
-          }}
-        />
-
         {/* Header */}
         <div className="relative z-10 mb-8">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.36em] text-[var(--color-text-subtle)]">
@@ -68,11 +50,7 @@ const Preferences: React.FC = () => {
           {/* Line numbers row */}
           <div
             className="flex flex-col gap-5 overflow-hidden rounded-[1.8rem] p-6 md:flex-row md:items-center md:justify-between"
-            style={{
-              background: 'linear-gradient(135deg, oklch(0.24 0.028 254 / 0.52), oklch(0.20 0.022 256 / 0.48))',
-              border: '1px solid oklch(0.42 0.05 248 / 0.22)',
-              boxShadow: 'inset 0 1px 0 oklch(0.78 0.1 232 / 0.1)',
-            }}
+            style={rowGlass.panel}
           >
             <div className="max-w-lg">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]">
@@ -106,11 +84,7 @@ const Preferences: React.FC = () => {
           {/* Theme row */}
           <div
             className="overflow-hidden rounded-[1.8rem] p-6"
-            style={{
-              background: 'linear-gradient(135deg, oklch(0.24 0.028 254 / 0.52), oklch(0.20 0.022 256 / 0.48))',
-              border: '1px solid oklch(0.42 0.05 248 / 0.22)',
-              boxShadow: 'inset 0 1px 0 oklch(0.78 0.1 232 / 0.1)',
-            }}
+            style={rowGlass.panel}
           >
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]">
               Syntax Theme
@@ -138,7 +112,7 @@ const Preferences: React.FC = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </GlassPanel>
     </Modal>
   );
 };

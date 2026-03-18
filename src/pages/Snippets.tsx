@@ -18,8 +18,11 @@ import {
   invalidateSnippetQueries,
   removeSnippetFromLists,
   restoreSnippetLists,
+  restoreSnippetDetail,
   SnippetListSnapshot,
+  SnippetDetailSnapshot,
   snapshotSnippetLists,
+  snapshotAndPatchSnippet,
 } from '../utils/snippetQueryCache';
 
 const classes = {
@@ -66,11 +69,19 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
     mutate: updateSnippetMutation,
     error: updateError,
     reset: resetUpdate,
-  } = useMutation({
+  } = useMutation<ISnippet, Error, ISnippet, { lists: SnippetListSnapshot; detail: SnippetDetailSnapshot }>({
     mutationFn: updateSnippetCallback,
+    onMutate: async (updated) => {
+      const snapshot = await snapshotAndPatchSnippet(queryClient, updated);
+      setEditingId(null);
+      return snapshot;
+    },
+    onError: (_error, _updated, context) => {
+      restoreSnippetLists(queryClient, context?.lists);
+      if (context?.detail) restoreSnippetDetail(queryClient, context.detail);
+    },
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
-      setEditingId(null);
     },
   });
   const debouncedSearchQuery = useDebounce(search, 600);

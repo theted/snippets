@@ -20,7 +20,7 @@
   right: -16rem;
   width: 40rem;
   height: 40rem;
-  background: radial-gradient(circle, oklch(0.65 0.18 240 / 0.34) 0%, transparent 70%);
+  background: radial-gradient(circle, oklch(0.30 0.08 240 / 0.30) 0%, transparent 70%);
 }
 
 .App::after {
@@ -28,7 +28,7 @@
   bottom: -20rem;
   width: 48rem;
   height: 48rem;
-  background: radial-gradient(circle, oklch(0.48 0.12 242 / 0.26) 0%, transparent 72%);
+  background: radial-gradient(circle, oklch(0.28 0.07 242 / 0.22) 0%, transparent 72%);
 }
 
 .app-shell {

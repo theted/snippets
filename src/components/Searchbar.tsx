@@ -17,7 +17,7 @@ export type SearchbarHandle = { focus: () => void };
 
 const baseBoxShadow = '0 8px 40px oklch(0.05 0.015 250 / 0.42), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)';
 const hoverBoxShadow = '0 0 0 1px oklch(0.65 0.15 240 / 0.14), 0 14px 52px oklch(0.05 0.015 250 / 0.56), inset 0 1px 0 oklch(0.88 0.12 228 / 0.26)';
-const focusBoxShadow = '0 0 0 1px oklch(0.68 0.18 240 / 0.38), 0 20px 72px oklch(0.05 0.015 250 / 0.64), inset 0 1px 0 oklch(0.92 0.14 226 / 0.36)';
+const focusBoxShadow = '0 0 0 1px oklch(0.68 0.18 240 / 0.14), 0 20px 72px oklch(0.05 0.015 250 / 0.52), inset 0 1px 0 oklch(0.88 0.12 226 / 0.18)';
 
 const titleTextShadow = '0 1px 0 oklch(0.98 0.006 255 / 0.26), 0 0 48px oklch(0.72 0.18 244 / 0.12)';
 
@@ -101,8 +101,8 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         backgroundImage: `
           linear-gradient(var(--color-glass-card), var(--color-glass-card)),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
-            oklch(0.72 0.16 232 / ${isFocused ? '0.36' : isHovered ? '0.16' : '0.08'}),
-            oklch(0.38 0.07 245 / ${isFocused ? '0.22' : isHovered ? '0.10' : '0.05'}) 52%,
+            oklch(0.72 0.16 232 / ${isFocused ? '0.14' : isHovered ? '0.16' : '0.08'}),
+            oklch(0.38 0.07 245 / ${isFocused ? '0.08' : isHovered ? '0.10' : '0.05'}) 52%,
             oklch(0.28 0.04 250 / 0.04) 100%)
         `,
         backgroundOrigin: 'padding-box, border-box',
@@ -167,16 +167,17 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: 'radial-gradient(ellipse at 50% 110%, oklch(0.58 0.18 240 / 0.28) 0%, transparent 62%)',
+          background: 'radial-gradient(ellipse at 50% 110%, oklch(0.58 0.18 240 / 0.10) 0%, transparent 62%)',
           opacity: isFocused ? 1 : 0,
         }}
       />
-      {/* Focus lighten — brightens the whole panel when the input is active */}
+      {/* Focus glow — outer ambient when active */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        className="pointer-events-none absolute inset-[-2rem] transition-opacity duration-700"
         style={{
-          background: 'linear-gradient(160deg, oklch(0.92 0.04 240 / 0.07) 0%, oklch(0.88 0.06 238 / 0.05) 100%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.55 0.16 238 / 0.07) 0%, transparent 70%)',
+          filter: 'blur(32px)',
           opacity: isFocused ? 1 : 0,
         }}
       />
@@ -186,9 +187,9 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(ellipse 90% 80% at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / 0.025) 0%, transparent 70%)`,
-          filter: 'blur(48px)',
-          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(ellipse ${isFocused ? '130% 110%' : '90% 80%'} at ${mousePos.x}% ${mousePos.y}%, oklch(0.88 0.1 228 / ${isFocused ? '0.04' : '0.025'}) 0%, transparent ${isFocused ? '80%' : '70%'})`,
+          filter: `blur(${isFocused ? '72px' : '48px'})`,
+          opacity: isHovered || isFocused ? 1 : 0,
         }}
       />
 
