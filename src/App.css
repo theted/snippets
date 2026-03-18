@@ -20,7 +20,7 @@
   right: -16rem;
   width: 40rem;
   height: 40rem;
-  background: radial-gradient(circle, oklch(0.30 0.08 240 / 0.30) 0%, transparent 70%);
+  background: radial-gradient(circle, oklch(0.28 0.11 226 / 0.34) 0%, transparent 70%);
 }
 
 .App::after {
@@ -28,7 +28,7 @@
   bottom: -20rem;
   width: 48rem;
   height: 48rem;
-  background: radial-gradient(circle, oklch(0.28 0.07 242 / 0.22) 0%, transparent 72%);
+  background: radial-gradient(circle, oklch(0.24 0.10 210 / 0.28) 0%, transparent 72%);
 }
 
 .app-shell {
@@ -474,7 +474,7 @@ kbd {
   height: 140vw;
   top: -60vw;
   right: -50vw;
-  background: radial-gradient(circle, oklch(0.28 0.07 238 / 0.50) 0%, transparent 65%);
+  background: radial-gradient(circle, oklch(0.26 0.10 230 / 0.54) 0%, transparent 65%);
   animation: orb-drift-1 85s ease-in-out infinite alternate;
 }
 
@@ -492,7 +492,7 @@ kbd {
   height: 160vw;
   bottom: -80vw;
   left: -60vw;
-  background: radial-gradient(circle, oklch(0.24 0.06 210 / 0.46) 0%, transparent 62%);
+  background: radial-gradient(circle, oklch(0.22 0.12 196 / 0.52) 0%, transparent 62%);
   animation: orb-drift-2 110s ease-in-out infinite alternate;
 }
 
@@ -510,7 +510,7 @@ kbd {
   height: 120vw;
   top: -30vw;
   left: -55vw;
-  background: radial-gradient(circle, oklch(0.22 0.06 272 / 0.42) 0%, transparent 65%);
+  background: radial-gradient(circle, oklch(0.20 0.08 268 / 0.48) 0%, transparent 65%);
   animation: orb-drift-3 130s ease-in-out infinite alternate;
 }
 
@@ -528,7 +528,7 @@ kbd {
   height: 110vw;
   top: 20vw;
   right: -55vw;
-  background: radial-gradient(circle, oklch(0.26 0.06 196 / 0.38) 0%, transparent 62%);
+  background: radial-gradient(circle, oklch(0.24 0.12 186 / 0.46) 0%, transparent 62%);
   animation: orb-drift-4 95s ease-in-out infinite alternate;
 }
 
@@ -546,7 +546,7 @@ kbd {
   height: 130vw;
   top: 30vw;
   left: -15vw;
-  background: radial-gradient(circle, oklch(0.20 0.05 255 / 0.38) 0%, transparent 60%);
+  background: radial-gradient(circle, oklch(0.18 0.08 246 / 0.44) 0%, transparent 60%);
   animation: orb-drift-5 150s ease-in-out infinite alternate;
 }
 
@@ -556,6 +556,36 @@ kbd {
   55%  { transform: translate(-7vw,  6vw);   }
   80%  { transform: translate(10vw,  10vw);  }
   100% { transform: translate(-5vw, -8vw);   }
+}
+
+/* ── Orb 6 — deep navy, bottom-centre anchor ─────────────────── */
+/* Provides the dark end of the dynamic range; sits at the page   */
+/* floor and drifts laterally so the bottom never feels static.  */
+
+.bg-orb-6 {
+  width: 150vw;
+  height: 90vw;
+  bottom: -55vw;
+  left: -25vw;
+  background: radial-gradient(ellipse, oklch(0.10 0.07 252 / 0.90) 0%, transparent 68%);
+  animation: orb-drift-6 120s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift-6 {
+  0%   { transform: translate(0,     0);    }
+  30%  { transform: translate(12vw, -5vw);  }
+  65%  { transform: translate(-8vw, -3vw);  }
+  100% { transform: translate(6vw,  -8vw);  }
+}
+
+/* ── Pause animation while a dialog is open ─────────────────── */
+/* Paused CSS animations produce a static texture — backdrop-filter */
+/* then composites it once and caches the result, making blur free. */
+
+body.dialog-open .bg-orb,
+body.dialog-open .bg-anim-wash,
+body.dialog-open .bg-anim-aurora {
+  animation-play-state: paused;
 }
 
 /* ── Reduced-motion: freeze orbs in place, keep colour ──────── */

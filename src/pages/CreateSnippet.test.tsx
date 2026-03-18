@@ -7,7 +7,10 @@ import CreateSnippet from './CreateSnippet';
 import * as api from '../utils/api.ts';
 
 vi.mock('gsap', () => ({
-  gsap: { to: vi.fn() },
+  gsap: {
+    to: vi.fn(),
+    timeline: vi.fn(() => ({ fromTo: vi.fn(), to: vi.fn(), call: vi.fn(), kill: vi.fn() })),
+  },
 }));
 
 vi.mock('../utils/api.ts', () => ({

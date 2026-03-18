@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getGlassStyles, GlassIntensity } from '../design/glass';
 
 export type { GlassIntensity };
@@ -31,11 +31,24 @@ const GlassPanel: React.FC<Props> = ({
   ...rest
 }) => {
   const glass = getGlassStyles(intensity);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
 
   return (
     <Tag
       className={`relative overflow-hidden ${rounded} ${className}`}
       style={{ ...glass.panel, ...style }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       {...rest}
     >
       {/* Top-edge 1px shimmer — simulates light catching the glass rim */}
@@ -47,11 +60,21 @@ const GlassPanel: React.FC<Props> = ({
         }}
       />
 
+      {/* Mouse-tracking light — follows cursor, fades in/out on hover */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(ellipse 70% 55% at ${mousePos.x}% ${mousePos.y}%, oklch(0.82 0.08 228 / 0.06) 0%, transparent 70%)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+
       {/* Top-right ambient glow — wide band so blur washes across the full top edge */}
       {topGlow && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-4rem] top-[-10rem] h-[24rem] w-[44rem] rounded-full"
+          className="pointer-events-none absolute right-[-4rem] top-[-12rem] h-[28rem] w-[58rem] rounded-full"
           style={glass.topRightGlow}
         />
       )}

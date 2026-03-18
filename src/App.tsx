@@ -35,19 +35,10 @@ const getDefaultGlobalState = (): ThemePreferences => ({
 
 const App: FC = () => {
     const [globalState, setGlobalState] = useState<ThemePreferences>(getDefaultGlobalState);
-    const [heroMousePos, setHeroMousePos] = useState({ x: 50, y: 50 });
-    const [heroHovered, setHeroHovered] = useState(false);
     const createSnippetRef = useRef<CreateSnippetHandle>(null);
     const searchbarRef = useRef<SearchbarHandle>(null);
     const navigate = useNavigate();
 
-    const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setHeroMousePos({
-            x: ((e.clientX - rect.left) / rect.width) * 100,
-            y: ((e.clientY - rect.top) / rect.height) * 100,
-        });
-    };
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,22 +99,7 @@ const App: FC = () => {
                                 element={
                                     <>
                                         <div className="app-shell">
-                                            <header
-                                                className="app-hero"
-                                                onMouseMove={handleHeroMouseMove}
-                                                onMouseEnter={() => setHeroHovered(true)}
-                                                onMouseLeave={() => setHeroHovered(false)}
-                                            >
-                                                {/* Ambient hover glow — very blurred, follows mouse */}
-                                                <div
-                                                    aria-hidden="true"
-                                                    className="pointer-events-none absolute inset-0 transition-opacity duration-700"
-                                                    style={{
-                                                        background: `radial-gradient(ellipse 60% 50% at ${heroMousePos.x}% ${heroMousePos.y}%, oklch(0.62 0.18 240 / 0.05) 0%, transparent 70%)`,
-                                                        filter: 'blur(32px)',
-                                                        opacity: heroHovered ? 1 : 0,
-                                                    }}
-                                                />
+                                            <header className="app-hero">
                                                 <p className="app-kicker">
                                                     Deep-Focus Code Archive
                                                 </p>

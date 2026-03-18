@@ -13,11 +13,13 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
 
   // ── Entry animation ──────────────────────────────────────────────────
   useEffect(() => {
+    document.body.classList.add('dialog-open');
     const tl = gsap.timeline();
 
     if (backdropRef.current) {
       gsap.to(backdropRef.current, {
-        background: 'oklch(0.08 0.012 258 / 0.52)',
+        background: 'oklch(0.08 0.012 258 / 0.60)',
+        backdropFilter: 'blur(10px)',
         duration: 0.4,
         ease: 'power2.out',
       });
@@ -38,7 +40,10 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
       );
     }
 
-    return () => { tl.kill(); };
+    return () => {
+      tl.kill();
+      document.body.classList.remove('dialog-open');
+    };
   }, []);
 
   const dismiss = () => {
@@ -58,6 +63,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
         backdropRef.current,
         {
           background: 'oklch(0.08 0.012 258 / 0)',
+          backdropFilter: 'blur(0px)',
           duration: 0.3,
           ease: 'power2.in',
         },
@@ -79,7 +85,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
       <div
         ref={backdropRef}
         className="fixed inset-0 z-40"
-        style={{ background: 'oklch(0.08 0.012 258 / 0)' }}
+        style={{ background: 'oklch(0.08 0.012 258 / 0)', backdropFilter: 'blur(0px)' }}
         onClick={dismiss}
       />
 

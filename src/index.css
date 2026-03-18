@@ -5,8 +5,8 @@
   --font-display: 'Manrope', 'Avenir Next', 'Segoe UI Variable', sans-serif;
   --font-body: 'Space Grotesk', 'Avenir Next', 'Segoe UI Variable', sans-serif;
   --font-code: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
-  --color-bg: oklch(0.13 0.026 256);
-  --color-bg-deep: oklch(0.09 0.018 258);
+  --color-bg: oklch(0.12 0.030 246);
+  --color-bg-deep: oklch(0.08 0.022 248);
   --color-surface: oklch(0.23 0.03 254 / 0.76);
   --color-surface-strong: oklch(0.27 0.04 252 / 0.9);
   --color-surface-muted: oklch(0.2 0.024 254 / 0.82);
@@ -41,8 +41,8 @@ html {
   min-height: 100%;
   scrollbar-width: none; /* Firefox */
   background:
-    radial-gradient(circle at top left,  oklch(0.44 0.15 242 / 0.22), transparent 34%),
-    radial-gradient(circle at top right, oklch(0.58 0.20 238 / 0.24), transparent 28%),
+    radial-gradient(circle at top left,  oklch(0.40 0.22 222 / 0.30), transparent 34%),
+    radial-gradient(circle at top right, oklch(0.50 0.26 218 / 0.32), transparent 28%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
   background-attachment: fixed;
 }
@@ -58,20 +58,38 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   background:
-    /* Repeating dot texture — very fine, sits on top of the colour field */
-    radial-gradient(circle, oklch(0.68 0.08 248 / 0.09) 1px, transparent 1px),
+    /* Soft fractal noise — decoded once and GPU-cached, never repaints */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E"),
     /* Colour radials */
-    radial-gradient(circle at 14% 18%, oklch(0.48 0.16 238 / 0.18), transparent 26%),
-    radial-gradient(circle at 88% 10%, oklch(0.62 0.20 232 / 0.20), transparent 24%),
-    radial-gradient(circle at 50% 100%, oklch(0.32 0.10 258 / 0.16), transparent 30%),
-    linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
-  background-size: 26px 26px, auto, auto, auto, auto;
+    radial-gradient(circle at 14% 18%, oklch(0.42 0.24 216 / 0.26), transparent 26%),
+    radial-gradient(circle at 88% 10%, oklch(0.50 0.28 206 / 0.28), transparent 24%),
+    /* Deep-bottom anchor */
+    radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.11 0.08 248 / 0.94), transparent 100%),
+    linear-gradient(180deg, var(--color-bg) 0%, oklch(0.07 0.05 250) 100%);
+  background-size: 256px 256px, auto, auto, auto, auto;
   /* Fixed attachment keeps the light field stationary while content scrolls,
      which is essential for the glass-panel effect on the cards above it. */
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* ─── Film-grain overlay ─────────────────────────────────────────────────
+   Inline SVG feTurbulence generates seamless Perlin noise without any
+   external asset. stitchTiles="stitch" makes the 180 px tile loop cleanly.
+   soft-light blend at low opacity adds grit without shifting the palette. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.038;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  background-repeat: repeat;
 }
 
 #root {

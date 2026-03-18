@@ -16,7 +16,7 @@
  * └──────────────────────────────────────────────────────────────────┘
  */
 
-export const GLASS_OPACITY = 1.0;
+export const GLASS_OPACITY = 0.82;
 export const GLASS_BLUR    = 28; // px
 
 export type GlassIntensity = 'subtle' | 'medium' | 'strong';
@@ -28,7 +28,7 @@ const BASE_BORDER:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.3
 const BASE_SHIMMER: Record<GlassIntensity, number> = { subtle: 0.24, medium: 0.38, strong: 0.64 };
 const BASE_SHADOW:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.34, strong: 0.46 };
 const BASE_GLOW:    Record<GlassIntensity, number> = { subtle: 0.10, medium: 0.15, strong: 0.20 };
-const GLOW_BLUR:    Record<GlassIntensity, number> = { subtle: 72,   medium: 96,   strong: 80  };
+const GLOW_BLUR:    Record<GlassIntensity, number> = { subtle: 96,   medium: 120,  strong: 108 };
 
 // ── Colour constants ────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ const BG_L  = '0.20 0.024 254';  // panel background base
 const EDGE  = '0.48 0.06 248';   // border edge
 const LIGHT = '0.82 0.1  230';   // shimmer / inner highlight
 const DEPTH = '0.05 0.015 250';  // shadow depth
-const GLOW_TR = '0.72 0.16 240'; // top-right glow (blue)
+const GLOW_TR = '0.52 0.24 238'; // top-right glow (deep blue)
 const GLOW_BL = '0.58 0.14 210'; // bottom-left glow (teal)
 
 // ── Helper ──────────────────────────────────────────────────────────

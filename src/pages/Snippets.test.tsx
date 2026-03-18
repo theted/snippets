@@ -12,7 +12,7 @@ vi.mock('gsap', () => ({
   gsap: {
     to: vi.fn((_, vars) => { vars?.onComplete?.(); }),
     fromTo: vi.fn(),
-    timeline: vi.fn(() => ({ to: vi.fn(), kill: vi.fn() })),
+    timeline: vi.fn(() => ({ fromTo: vi.fn(), to: vi.fn(), call: vi.fn(), kill: vi.fn() })),
   },
 }));
 
