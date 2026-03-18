@@ -2,12 +2,15 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-snippets}
       POSTGRES_USER: ${POSTGRES_USER:-snippets}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-snippets}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Bind to loopback only — reachable from this machine but not the LAN.
+      # The API connects via localhost; prod postgres lives in its own container.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
@@ -16,5 +19,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  api:
+    profiles: ["database-api"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      SNIPPETS_API_BACKEND: database
+      API_PORT: 3200
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-snippets}
+      POSTGRES_USER: ${POSTGRES_USER:-snippets}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-snippets}
+      POSTGRES_SSL: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3200:3200"
 volumes:
   postgres_data:

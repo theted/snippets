@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {
+  fireEvent, render, screen, waitFor,
+} from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import CreateSnippet from './CreateSnippet';
 import * as api from '../utils/api.ts';
@@ -33,42 +34,48 @@ afterEach(() => {
 });
 
 test('opens the create snippet dialog', async () => {
-  const user = userEvent.setup();
-
   renderCreateSnippet();
 
-  await user.click(screen.getByRole('button', { name: /create snippet/i }));
+  fireEvent.click(screen.getByRole('button', { name: /create snippet/i }));
 
-  expect(screen.getByRole('heading', { name: /create snippet/i })).toBeInTheDocument();
-  expect(screen.getByPlaceholderText('Title')).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: /create snippet/i })).toBeInTheDocument();
+  expect(screen.getByLabelText(/^title$/i)).toBeInTheDocument();
 });
 
 test('closes the modal after a snippet is saved successfully', async () => {
   vi.mocked(api.post).mockResolvedValue({ id: 99, title: 'New snippet', content: 'x = 1' });
-  const user = userEvent.setup();
 
   renderCreateSnippet();
 
-  await user.click(screen.getByRole('button', { name: /create snippet/i }));
-  await user.type(screen.getByPlaceholderText('Title'), 'New snippet');
-  await user.type(screen.getByPlaceholderText('Content'), 'x = 1');
-  await user.click(screen.getByRole('button', { name: /^create$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /create snippet/i }));
+
+  fireEvent.change(await screen.findByLabelText(/^title$/i), {
+    target: { value: 'New snippet' },
+  });
+  fireEvent.change(screen.getByLabelText(/^code$/i), {
+    target: { value: 'x = 1' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /^create$/i }));
 
   await waitFor(() => {
-    expect(screen.queryByRole('heading', { name: /create snippet/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
 test('calls post with the correct snippet data on save', async () => {
   vi.mocked(api.post).mockResolvedValue({ id: 42, title: 'Hello world', content: 'console.log("hi")' });
-  const user = userEvent.setup();
 
   renderCreateSnippet();
 
-  await user.click(screen.getByRole('button', { name: /create snippet/i }));
-  await user.type(screen.getByPlaceholderText('Title'), 'Hello world');
-  await user.type(screen.getByPlaceholderText('Content'), 'console.log("hi")');
-  await user.click(screen.getByRole('button', { name: /^create$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /create snippet/i }));
+
+  fireEvent.change(await screen.findByLabelText(/^title$/i), {
+    target: { value: 'Hello world' },
+  });
+  fireEvent.change(screen.getByLabelText(/^code$/i), {
+    target: { value: 'console.log("hi")' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /^create$/i }));
 
   await waitFor(() => {
     expect(api.post).toHaveBeenCalledWith(

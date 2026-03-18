@@ -27,8 +27,11 @@ const CreateSnippet: React.FC = () => {
 
   const openModal = () => setIsFormVisible(true);
 
-  if (!isFormVisible) {
-    return (
+  // Always render the button so the toolbar layout never shifts when the
+  // modal opens — previously the button was replaced by the modal, causing
+  // the toolbar to reflow (the main "yank" on open/close).
+  return (
+    <>
       <Button
         type="button"
         variant="success"
@@ -38,17 +41,15 @@ const CreateSnippet: React.FC = () => {
         <i className="icon-plus" />
         <span>Create Snippet</span>
       </Button>
-    );
-  }
-
-  return (
-    <Modal closeModal={closeModal}>
-      <SnippetForm
-        onSubmit={onSubmit}
-        closeModal={closeModal}
-      />
-    </Modal>
-
+      {isFormVisible && (
+        <Modal closeModal={closeModal}>
+          <SnippetForm
+            onSubmit={onSubmit}
+            closeModal={closeModal}
+          />
+        </Modal>
+      )}
+    </>
   );
 };
 

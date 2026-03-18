@@ -11,7 +11,7 @@
   border-radius: 9999px;
   pointer-events: none;
   z-index: 0;
-  filter: blur(20px);
+  filter: blur(72px);
 }
 
 .App::before {
@@ -101,6 +101,43 @@
   flex-wrap: wrap;
   gap: 1rem;
   padding-top: 0.5rem;
+}
+
+/* ─── Entrance animations ────────────────────────────── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOnly {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* .app-hero contains position:fixed modal children (CreateSnippet), so we
+   must NOT use a transform here — any active transform would turn .app-hero
+   into a containing block for fixed descendants, clipping the modal overlay.
+   Opacity-only fade avoids that entirely. */
+.app-hero {
+  animation: fadeInOnly 1.1s ease both;
+}
+
+.snippet-stream-item {
+  animation: fadeInUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--item-index, 0) * 80ms + 200ms);
+}
+
+.snippet-detail-enter {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 80ms;
 }
 
 .animated {

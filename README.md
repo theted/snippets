@@ -30,6 +30,9 @@ npm run dev-server
 # → API available at http://localhost:3200
 ```
 
+`json-server` remains the default development path. The new real-database API
+is feature-flagged behind `SNIPPETS_API_BACKEND=database`.
+
 ### 3. Start the frontend
 
 In a second terminal:
@@ -52,33 +55,75 @@ cp .env.example .env
 | Command | Description |
 |---|---|
 | `npm run build` | Production build → `dist/` |
+| `npm run build:api` | Compile the database-backed API server → `server-dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm test` | Run tests once and exit |
 | `npm run test:watch` | Run tests in watch mode (vitest) |
+| `npm run typecheck` | Type-check both the frontend and the database-backed API |
 | `npm run lint` | Lint with ESLint |
 | `npm run analyze` | Bundle size visualiser (requires a prior `build`) |
 
 ---
 
-## Local Postgres (optional)
+## Local Postgres (optional, feature-flagged API)
 
-The project includes a Docker Compose file that spins up a Postgres instance
-matching the AWS RDS schema, useful for integration testing or replacing
-json-server locally.
+The repository now includes a typed backend API that talks to Postgres while
+preserving the current `/snippets` REST contract used by the frontend.
+The default dev flow still uses `json-server`, but you can opt into the real
+database path when needed.
 
 ```bash
-cp .env.example .env              # set POSTGRES_* vars if needed
+cp .env.example .env
 docker compose -f docker-compose.postgres.yml up -d
 ```
 
-The database is automatically initialised from the SQL files in
-`db/migrations/` on first boot.
+The `postgres_data` named volume keeps data across container restarts.
+
+To run the database-backed API locally against that Postgres instance:
+
+```bash
+SNIPPETS_API_BACKEND=database npm run dev-server
+```
+
+Or run both Postgres and the database API in Docker:
+
+```bash
+docker compose -f docker-compose.postgres.yml --profile database-api up -d
+```
+
+The database is initialised from the SQL files in `db/migrations/` on first
+boot. For existing databases, apply migrations explicitly:
+
+```bash
+./scripts/apply-migrations.sh
+```
 
 To tear it down:
 
 ```bash
+docker compose -f docker-compose.postgres.yml down
+```
+
+To intentionally delete the persisted local data as well:
+
+```bash
 docker compose -f docker-compose.postgres.yml down -v
 ```
+
+## Google Auth Preview
+
+Google sign-in is now prepared behind feature flags, but it only works with the
+database-backed API, not with the default `json-server` path.
+
+Setup and deployment notes live in:
+
+- **[deploy/GOOGLE_OAUTH.md](./deploy/GOOGLE_OAUTH.md)**
+
+Current behavior:
+
+- Google users can sign in
+- user records are stored in Postgres
+- snippet posting is still open to everyone
 
 ---
 
@@ -98,9 +143,23 @@ Tests use [Vitest](https://vitest.dev/) and
 
 The application is designed to be deployed as a Docker container behind an
 nginx reverse proxy. The production stack is defined in
-`docker-compose.prod.yml` — it builds the React app into static files and
-serves them with nginx, with json-server running as the API on the internal
-Docker network.
+`docker-compose.prod.yml`.
+
+The frontend container is still a static SPA served by nginx. The API container
+now supports two runtime modes:
+
+- `SNIPPETS_API_BACKEND=json-server` keeps the current JSON file workflow.
+- `SNIPPETS_API_BACKEND=database` runs the typed Postgres-backed API.
+
+When the database backend is enabled, point it at an external Postgres
+instance using `DATABASE_URL` or `POSTGRES_*` variables.
+
+If Postgres runs in another Docker container on the same EC2 host, use a shared
+Docker network. The exact setup is documented in
+**[deploy/POSTGRES_SAME_HOST.md](./deploy/POSTGRES_SAME_HOST.md)**.
+
+If you also want Google sign-in in that deployment, follow
+**[deploy/GOOGLE_OAUTH.md](./deploy/GOOGLE_OAUTH.md)** as well.
 
 See **[DEPLOYING.md](./DEPLOYING.md)** for the full guide covering:
 - One-time EC2 setup
@@ -150,7 +209,7 @@ docker run -p 5566:80 snippets
 
 ---
 
-## AWS RDS migrations
+## Postgres migrations
 
 Database migrations are applied in CI via `.github/workflows/deploy-aws.yml`.
 
@@ -169,6 +228,12 @@ To run migrations locally (requires `psql`):
 ```bash
 ./scripts/apply-migrations.sh
 ```
+
+The script accepts either:
+
+- `DATABASE_URL`
+- `POSTGRES_*`
+- `RDS_*`
 
 ---
 

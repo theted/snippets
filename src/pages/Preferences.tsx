@@ -35,7 +35,7 @@ const Preferences: React.FC = () => {
     <Modal closeModal={closePreferences}>
       <Box title="Reading Preferences">
         <div className="mt-8 space-y-6">
-          <div className="flex flex-col gap-5 rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-5 rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-glass-row)] p-6 md:flex-row md:items-start md:justify-between">
             <div className="max-w-xl">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]">
                 Code Display
@@ -47,7 +47,7 @@ const Preferences: React.FC = () => {
                 Add a quiet line-number gutter when you want more structure while scanning larger snippets.
               </p>
             </div>
-            <label className="inline-flex items-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-medium text-[var(--color-text-muted)]">
+            <label className="inline-flex items-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-glass-field)] px-4 py-3 text-sm font-medium text-[var(--color-text-muted)]">
               <input
                 name="showLineNumbers"
                 type="checkbox"
@@ -59,7 +59,7 @@ const Preferences: React.FC = () => {
             </label>
           </div>
 
-          <div className="rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-6">
+          <div className="rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-glass-row)] p-6">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]">
               Syntax Theme
             </p>

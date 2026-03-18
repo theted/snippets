@@ -1,13 +1,71 @@
-name: Deploy to AWS EC2
+name: CI / CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      # react-query v3 declares peer deps for React ≤18; --legacy-peer-deps
+      # silences the conflict (it works fine at runtime with React 19).
+      - run: npm ci --legacy-peer-deps
+      - run: npm test
+
+  migrate:
+    name: Migrate Database
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      # Exposed as env vars so the step-level `if:` can read them without
+      # triggering a secret-masking false-positive.
+      RDS_HOST: ${{ secrets.RDS_HOST }}
+    steps:
+      - name: Skip — RDS not configured
+        if: env.RDS_HOST == ''
+        run: echo "RDS_HOST secret is not set; skipping database migrations."
+
+      - uses: actions/checkout@v4
+        if: env.RDS_HOST != ''
+
+      - name: Apply migrations
+        if: env.RDS_HOST != ''
+        env:
+          RDS_PORT: ${{ secrets.RDS_PORT }}
+          RDS_DB: ${{ secrets.RDS_DB }}
+          RDS_USER: ${{ secrets.RDS_USER }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+        run: |
+          docker run --rm \
+            -e PGPASSWORD="$RDS_PASSWORD" \
+            -v "${PWD}/db/migrations:/migrations" \
+            postgres:15-alpine \
+            sh -c '
+              set -euo pipefail
+              for migration in $(ls -1 /migrations/*.sql | sort); do
+                echo "Applying ${migration}";
+                psql --host="$RDS_HOST" --port="${RDS_PORT:-5432}" \
+                     --username="$RDS_USER" --dbname="$RDS_DB" \
+                     --file="$migration";
+              done
+            '
+
   deploy:
+    name: Deploy to EC2
+    # Migrations run first so the schema is never behind the running code.
+    needs: [test, migrate]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -18,14 +76,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euo pipefail
-
             cd ~/snippets
-
-            # Pull latest code
             git pull origin main
-
-            # Rebuild and restart containers (--build forces image rebuild)
-            docker compose -f docker-compose.prod.yml up -d --build
-
-            # Remove dangling images left by the rebuild
+            # Include the external-postgres overlay so the API container joins
+            # the shared-services Docker network and picks up POSTGRES_* vars
+            # from ~/snippets/.env on the host.
+            docker compose \
+              -f docker-compose.prod.yml \
+              -f docker-compose.prod.external-postgres.yml \
+              up -d --build
             docker image prune -f

@@ -2,10 +2,32 @@ version: '3.8'
 
 services:
   api:
-    image: vimagick/json-server
-    command: -H 0.0.0.0 -p 3200 -w db.json
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      SNIPPETS_API_BACKEND: ${SNIPPETS_API_BACKEND:-json-server}
+      API_PORT: 3200
+      # Postgres is always an external container in production — never managed
+      # by this process.  POSTGRES_USE_LOCAL=true skips the docker-compose
+      # postgres startup that start-api.mjs would otherwise attempt (which
+      # would fail inside a Docker container with no daemon available).
+      POSTGRES_USE_LOCAL: "true"
+      SNIPPETS_DATABASE_PROVIDER: ${SNIPPETS_DATABASE_PROVIDER:-postgres}
+      DATABASE_URL: ${DATABASE_URL:-}
+      POSTGRES_HOST: ${POSTGRES_HOST:-}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-snippets}
+      POSTGRES_USER: ${POSTGRES_USER:-snippets}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-snippets}
+      POSTGRES_SSL: ${POSTGRES_SSL:-false}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      GOOGLE_AUTH_ENABLED: ${GOOGLE_AUTH_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-snippets_session}
+      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:-}
     volumes:
-      - ./data:/data
+      - ./data:/app/data
     restart: unless-stopped
 
   app:

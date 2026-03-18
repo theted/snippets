@@ -61,7 +61,11 @@ const Snippets: React.FC = () => {
       await invalidateSnippetQueries(queryClient);
     },
   });
-  const { mutate: updateSnippetMutation } = useMutation({
+  const {
+    mutate: updateSnippetMutation,
+    error: updateError,
+    reset: resetUpdate,
+  } = useMutation({
     mutationFn: updateSnippetCallback,
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
@@ -99,7 +103,10 @@ const Snippets: React.FC = () => {
 
   const onSearch = (value: string) => setSearch(value);
 
-  const closeModal = () => setEditingId(null);
+  const closeModal = () => {
+    setEditingId(null);
+    resetUpdate();
+  };
 
   const updateSnippet = (formValues: SnippetFormValues) => {
     if (!editingSnippetData) {
@@ -125,18 +132,23 @@ const Snippets: React.FC = () => {
             </p>
           </div>
         ) : (
-          snippets.map((snippet) => (
-            <Snippet
+          snippets.map((snippet, index) => (
+            <div
               key={snippet.id}
-              id={snippet.id}
-              title={snippet.title}
-              description={snippet.description}
-              content={snippet.content}
-              language={snippet.language}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              theme={theme}
-            />
+              className="snippet-stream-item"
+              style={{ '--item-index': index } as React.CSSProperties}
+            >
+              <Snippet
+                id={snippet.id}
+                title={snippet.title}
+                description={snippet.description}
+                content={snippet.content}
+                language={snippet.language}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                theme={theme}
+              />
+            </div>
           ))
         )}
       </div>
@@ -150,12 +162,19 @@ const Snippets: React.FC = () => {
               {`Unable to load snippet: ${editingSnippetError.message}`}
             </div>
           ) : editingSnippetData ? (
-            <SnippetForm
-              defaultValues={editingSnippetData}
-              isEditing
-              onSubmit={updateSnippet}
-              closeModal={closeModal}
-            />
+            <>
+              {updateError instanceof Error && (
+                <div className="mb-4 rounded-[1.4rem] border border-[var(--color-danger)] bg-[var(--color-surface)] px-5 py-3 text-sm text-[var(--color-danger)]">
+                  {`Save failed: ${updateError.message}`}
+                </div>
+              )}
+              <SnippetForm
+                defaultValues={editingSnippetData}
+                isEditing
+                onSubmit={updateSnippet}
+                closeModal={closeModal}
+              />
+            </>
           ) : (
             <div className="flex min-h-[12rem] items-center justify-center rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
               <SpinFigure />

@@ -22,6 +22,13 @@
   --color-warning: oklch(0.8 0.13 88);
   --color-danger: oklch(0.65 0.19 25);
   --color-ink: oklch(0.2 0.02 255);
+
+  /* ─── Glass surface tokens ──────────────────────────────
+     Shared by every frosted-glass element (cards, modals,
+     form fields). Edit here to retheme all glass at once. */
+  --color-glass-card:  oklch(0.2 0.025 254 / 0.46);
+  --color-glass-row:   oklch(0.2 0.024 254 / 0.42);
+  --color-glass-field: oklch(0.15 0.018 258 / 0.55);
 }
 
 *,
@@ -32,6 +39,9 @@
 
 html {
   min-height: 100%;
+  /* Reserve the scrollbar lane permanently so it never appears/disappears and
+     causes a layout shift when a modal opens or closes. */
+  scrollbar-gutter: stable;
   background:
     radial-gradient(circle at top left, oklch(0.46 0.12 245 / 0.18), transparent 34%),
     radial-gradient(circle at top right, oklch(0.62 0.18 244 / 0.2), transparent 28%),
@@ -49,6 +59,9 @@ body {
     radial-gradient(circle at 88% 10%, oklch(0.67 0.17 235 / 0.16), transparent 24%),
     radial-gradient(circle at 50% 100%, oklch(0.34 0.07 255 / 0.14), transparent 30%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
+  /* Fixed attachment keeps the light field stationary while content scrolls,
+     which is essential for the glass-panel effect on the cards above it. */
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -77,4 +90,26 @@ pre {
 ::selection {
   background: oklch(0.74 0.14 236 / 0.3);
   color: var(--color-text);
+}
+
+/* ─── Form field shadow ──────────────────────────────────────────────────
+   Single shallow inset shadow for smooth depth without a ribbed/heavy look.
+   The transparent field backgrounds let the glass card show through;
+   the shadow just adds a soft inner dimension.                            */
+input:not([type='checkbox']):not([type='radio']),
+textarea,
+select {
+  box-shadow: inset 0 1px 4px oklch(0.04 0.01 258 / 0.6);
+  transition:
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+textarea:focus,
+select:focus {
+  box-shadow:
+    inset 0 1px 3px oklch(0.04 0.01 258 / 0.35),
+    0 0 0 3px oklch(0.71 0.17 244 / 0.16),
+    0 0 18px oklch(0.71 0.17 244 / 0.08);
 }
