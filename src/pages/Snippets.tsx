@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import React, { useContext, useState, RefObject } from 'react';
+import { Link } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
@@ -12,6 +13,7 @@ import { ThemeContext } from '../contexts/themeContext';
 import { useSnippet } from '../hooks/react-query';
 import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
+import { capitalize } from '../utils/helpers';
 import {
   invalidateSnippetQueries,
   removeSnippetFromLists,
@@ -23,9 +25,6 @@ import {
 const classes = {
   container: 'w-full',
   stream: 'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
-  empty: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-14 text-center backdrop-blur-2xl md:px-14 md:py-20',
-  emptyTitle: 'font-[var(--font-display)] text-3xl font-[250] tracking-[-0.05em] text-[var(--color-text)] md:text-5xl',
-  emptyText: 'mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--color-text-muted)] md:text-base',
   error: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-10 text-[var(--color-text)] backdrop-blur-2xl',
 };
 
@@ -75,66 +74,56 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
     },
   });
   const debouncedSearchQuery = useDebounce(search, 600);
-  const { data: snippets = [], isPending, error } = useReactQuery(debouncedSearchQuery);
+  // isLoadingResults: true while debounce is pending OR API is fetching
+  const isLoadingResults = useReactQuery(debouncedSearchQuery).isPending || debouncedSearchQuery !== search;
+  const { data: snippets = [], error } = useReactQuery(debouncedSearchQuery);
 
-  if (isPending) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <SpinFigure />
-      </div>
-    );
-  }
-
-  if (error instanceof Error) {
-    return (
-      <div className={classes.error}>
-        An error has occurred:
-        {' '}
-        {error.message}
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className={classes.error}>An unknown error has occurred.</div>;
-  }
+  const isSearching = Boolean(search);
 
   const onDelete = (id: SnippetId) => removeSnippet(id);
-
   const onEdit = (id: SnippetId) => setEditingId(id);
-
   const onSearch = (value: string) => setSearch(value);
-
-  const closeModal = () => {
-    setEditingId(null);
-    resetUpdate();
-  };
+  const closeModal = () => { setEditingId(null); resetUpdate(); };
 
   const updateSnippet = (formValues: SnippetFormValues) => {
-    if (!editingSnippetData) {
-      return;
-    }
-
-    updateSnippetMutation({
-      ...editingSnippetData,
-      ...formValues,
-    });
+    if (!editingSnippetData) return;
+    updateSnippetMutation({ ...editingSnippetData, ...formValues });
   };
+
+  if (error instanceof Error) {
+    return <div className={classes.error}>An error has occurred: {error.message}</div>;
+  }
 
   return (
     <section className={classes.container}>
       <Searchbar ref={searchbarRef} onSearch={onSearch} />
 
-      <div className={classes.stream}>
-        {snippets.length === 0 ? (
-          <div className={classes.empty}>
-            <h2 className={classes.emptyTitle}>Nothing matches that search.</h2>
-            <p className={classes.emptyText}>
-              Try a broader term, or add a fresh snippet to start shaping the archive.
-            </p>
-          </div>
-        ) : (
-          snippets.map((snippet, index) => (
+      {/* ── Compact search results — slides in/out via grid-template-rows trick ── */}
+      <div className={`search-results-wrap${isSearching ? ' open' : ''}`}>
+        <div>
+          {isLoadingResults ? (
+            <p className="search-results-status">Searching…</p>
+          ) : snippets.length === 0 ? (
+            <p className="search-results-status">No snippets matched &ldquo;{debouncedSearchQuery}&rdquo;</p>
+          ) : (
+            <ul className="search-results-list">
+              {snippets.map((snippet) => (
+                <li key={snippet.id} className="search-result-item">
+                  <Link to={`/snippets/${snippet.id}`} className="search-result-link">
+                    <span className="search-result-title">{capitalize(snippet.title || 'Untitled snippet')}</span>
+                    <span className="search-result-lang">{snippet.language || 'plaintext'}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* ── Full snippet stream — only when not searching ── */}
+      {!isSearching && (
+        <div className={classes.stream}>
+          {snippets.map((snippet, index) => (
             <div
               key={snippet.id}
               className="snippet-stream-item"
@@ -151,9 +140,9 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
                 theme={theme}
               />
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {editingId !== null && (
         <Modal

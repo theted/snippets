@@ -1,8 +1,16 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import { Link } from 'react-router-dom';
 import Textfield from './Textfield';
+import { capitalize } from '../utils/helpers';
+
+type SearchResult = { id: number; title: string; language?: string };
 
 type Props = {
   onSearch: (value: string) => void;
+  results?: SearchResult[];
+  isLoadingResults?: boolean;
+  isSearching?: boolean;
+  debouncedQuery?: string;
 }
 
 export type SearchbarHandle = { focus: () => void };
@@ -13,16 +21,28 @@ const focusBoxShadow = '0 0 0 1px oklch(0.68 0.18 240 / 0.38), 0 20px 72px oklch
 
 const titleTextShadow = '0 1px 0 oklch(0.98 0.006 255 / 0.26), 0 0 48px oklch(0.72 0.18 244 / 0.12)';
 
-const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
+const Searchbar = forwardRef<SearchbarHandle, Props>(({
+  onSearch,
+  results = [],
+  isLoadingResults = false,
+  isSearching = false,
+  debouncedQuery = '',
+}, ref) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resultRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useImperativeHandle(ref, () => ({
     focus: () => inputRef.current?.focus(),
   }));
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    onSearch('');
+  };
 
   const searchCallback = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -30,12 +50,47 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
     onSearch(value);
   };
 
+  // ── Keyboard navigation ────────────────────────────────────────────────────
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' && results.length > 0) {
+      e.preventDefault();
+      resultRefs.current[0]?.focus();
+    } else if (e.key === 'Escape') {
+      clearSearch();
+    }
+  };
+
+  const handleResultKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (index < results.length - 1) resultRefs.current[index + 1]?.focus();
+      else inputRef.current?.focus(); // wrap back to input at end of list
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (index === 0) inputRef.current?.focus();
+      else resultRefs.current[index - 1]?.focus();
+    } else if (e.key === 'Escape') {
+      clearSearch();
+      inputRef.current?.focus();
+    }
+  };
+
+  // ── Panel interaction ──────────────────────────────────────────────────────
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePos({
       x: ((e.clientX - rect.left) / rect.width) * 100,
       y: ((e.clientY - rect.top) / rect.height) * 100,
     });
+  };
+
+  // Keep panel lit while focus is anywhere inside it (input OR result items)
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsFocused(false);
+    }
   };
 
   return (
@@ -54,8 +109,10 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsFocused(true)}
+      onBlur={handleBlur}
     >
-      {/* Top-edge glass shimmer — brightens on focus */}
+      {/* Top-edge glass shimmer */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px transition-opacity duration-500"
@@ -76,7 +133,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
         }}
       />
 
-      {/* Focus flood — large central brightening glow */}
+      {/* Focus flood */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
@@ -99,7 +156,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)]">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel">
             Curate The Archive
           </p>
           <h2
@@ -114,19 +171,52 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({ onSearch }, ref) => {
           The shell stays dark and generous so the snippets themselves keep the attention.
         </p>
       </div>
+
       <div className="relative z-10 mt-8">
         <Textfield
           ref={inputRef}
           name="searchString"
+          value={searchTerm}
           onChange={searchCallback}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onKeyDown={handleInputKeyDown}
           placeholder="Search snippets by title, description, or code"
           className="text-lg md:text-xl"
+          autoComplete="off"
         />
       </div>
-      <p className="relative z-10 mt-5 text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]">
-        {searchTerm ? `Filtering: ${searchTerm}` : 'Showing every saved snippet'}
+
+      {/* ── Inline search results ──────────────────────────────────── */}
+      <div className={`relative z-10 search-results-wrap${isSearching ? ' open' : ''}`}>
+        <div>
+          {isSearching && (
+            isLoadingResults ? (
+              <p className="search-results-status">Searching…</p>
+            ) : results.length === 0 ? (
+              <p className="search-results-status">No snippets matched &ldquo;{debouncedQuery}&rdquo;</p>
+            ) : (
+              <ul className="search-results-list" role="listbox" aria-label="Search results">
+                {results.map((snippet, index) => (
+                  <li key={snippet.id} className="search-result-item" role="option" aria-selected="false">
+                    <Link
+                      to={`/snippets/${snippet.id}`}
+                      ref={(el) => { resultRefs.current[index] = el; }}
+                      className="search-result-link"
+                      onKeyDown={(e) => handleResultKeyDown(e, index)}
+                      tabIndex={0}
+                    >
+                      <span className="search-result-title">{capitalize(snippet.title || 'Untitled snippet')}</span>
+                      <span className="search-result-lang">{snippet.language || 'plaintext'}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </div>
+      </div>
+
+      <p className="relative z-10 mt-5 text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">
+        {isSearching ? `${results.length} result${results.length !== 1 ? 's' : ''} found` : 'Showing every saved snippet'}
       </p>
     </div>
   );

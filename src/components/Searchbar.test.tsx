@@ -13,11 +13,11 @@ test('shows "Showing every saved snippet" status by default', () => {
   expect(screen.getByText(/showing every saved snippet/i)).toBeInTheDocument();
 });
 
-test('shows "Filtering: <term>" status while a search is active', async () => {
+test('shows result count status while a search is active', async () => {
   const user = userEvent.setup();
-  render(<Searchbar onSearch={vi.fn()} />);
+  render(<Searchbar onSearch={vi.fn()} isSearching results={[]} />);
   await user.type(screen.getByPlaceholderText(/search snippets/i), 'react');
-  expect(screen.getByText(/filtering: react/i)).toBeInTheDocument();
+  expect(screen.getByText(/0 results found/i)).toBeInTheDocument();
 });
 
 test('calls onSearch with the typed value on each keystroke', async () => {
