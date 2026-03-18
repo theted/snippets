@@ -43,9 +43,9 @@ const customStyle = {
   padding: '3.5rem',
   borderRadius: '1.8rem',
   fontSize: '1.1rem',
-  background: 'linear-gradient(160deg, oklch(0.19 0.022 254 / 0.88), oklch(0.15 0.018 255 / 0.92))',
-  border: '1px solid oklch(0.39 0.043 248 / 0.28)',
-  boxShadow: 'inset 0 1px 0 oklch(0.77 0.12 235 / 0.08), 0 24px 64px oklch(0.05 0.015 250 / 0.36)',
+  background: 'transparent',
+  border: 'none',
+  boxShadow: 'none',
   transition: 'all 300ms ease',
 };
 
@@ -151,6 +151,7 @@ const Snippet: React.FC<Props> = ({
       <div className={classes.code}>
         {/* Scroll wrapper — caps height and enables inline scrolling */}
         <div
+          data-testid="code-scroll-wrap"
           ref={codeWrapRef}
           onScroll={handleCodeScroll}
           style={{
@@ -172,6 +173,7 @@ const Snippet: React.FC<Props> = ({
         </div>
         {/* Scroll-fade gradient — fades out when scrolled to the bottom */}
         <div
+          data-testid="scroll-fade"
           aria-hidden="true"
           className="pointer-events-none absolute left-0 right-0 transition-opacity duration-300"
           style={{

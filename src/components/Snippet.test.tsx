@@ -1,16 +1,22 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
 import Snippet from './Snippet';
 
-// gsap.to must invoke onComplete so delete callback fires in tests
+// gsap.to must invoke onComplete so delete callback fires in tests.
+// gsap.fromTo must apply the destination opacity so the dialog card is
+// visible — userEvent refuses to click elements with opacity:0.
 vi.mock('gsap', () => ({
   gsap: {
     to: vi.fn((_, vars) => { vars?.onComplete?.(); }),
-    fromTo: vi.fn(),
+    fromTo: vi.fn((el: Element, _from: unknown, to: Record<string, unknown> = {}) => {
+      if (el instanceof HTMLElement && to.opacity != null) {
+        (el as HTMLElement).style.opacity = String(to.opacity);
+      }
+    }),
     timeline: vi.fn(() => ({ to: vi.fn(), kill: vi.fn() })),
   },
 }));
@@ -66,7 +72,7 @@ test('calls onDelete with the snippet id when delete is clicked', async () => {
   // Confirm in the dialog that appears
   const dialog = screen.getByRole('alertdialog');
   await user.click(within(dialog).getByRole('button', { name: /delete/i }));
-  expect(onDelete).toHaveBeenCalledWith(1);
+  await waitFor(() => expect(onDelete).toHaveBeenCalledWith(1));
 });
 
 test('calls onEdit with the snippet id when edit is clicked', async () => {
@@ -85,4 +91,43 @@ test('shows "Untitled snippet" when title is empty', () => {
 test('does not render description when omitted', () => {
   renderSnippet({ description: undefined });
   expect(screen.queryByText('A test snippet')).not.toBeInTheDocument();
+});
+
+// ── Scroll cap + fade ────────────────────────────────────────────────────────
+
+test('code scroll wrapper has an 800px max-height cap', () => {
+  renderSnippet();
+  expect(screen.getByTestId('code-scroll-wrap')).toHaveStyle('max-height: min(800px, 90vh)');
+});
+
+test('scroll fade is hidden when content fits within the cap', () => {
+  // jsdom reports scrollHeight = clientHeight = 0 — content "fits"
+  renderSnippet();
+  expect(screen.getByTestId('scroll-fade')).toHaveStyle('opacity: 0');
+});
+
+test('scroll fade appears when the code block overflows the cap', () => {
+  renderSnippet();
+  const wrap = screen.getByTestId('code-scroll-wrap');
+  // Simulate a tall code block that exceeds the visible area
+  Object.defineProperty(wrap, 'scrollHeight', { configurable: true, value: 1200 });
+  Object.defineProperty(wrap, 'clientHeight', { configurable: true, value: 800 });
+  Object.defineProperty(wrap, 'scrollTop', { configurable: true, value: 0 });
+  fireEvent.scroll(wrap);
+  expect(screen.getByTestId('scroll-fade')).toHaveStyle('opacity: 1');
+});
+
+test('scroll fade disappears once the user scrolls to the bottom', () => {
+  renderSnippet();
+  const wrap = screen.getByTestId('code-scroll-wrap');
+  Object.defineProperty(wrap, 'scrollHeight', { configurable: true, value: 1200 });
+  Object.defineProperty(wrap, 'clientHeight', { configurable: true, value: 800 });
+  // First scroll — mid-way through, fade should still be visible
+  Object.defineProperty(wrap, 'scrollTop', { configurable: true, value: 200 });
+  fireEvent.scroll(wrap);
+  expect(screen.getByTestId('scroll-fade')).toHaveStyle('opacity: 1');
+  // Second scroll — reach the bottom (scrollHeight - scrollTop === clientHeight)
+  Object.defineProperty(wrap, 'scrollTop', { configurable: true, value: 400 });
+  fireEvent.scroll(wrap);
+  expect(screen.getByTestId('scroll-fade')).toHaveStyle('opacity: 0');
 });
