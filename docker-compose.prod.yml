@@ -14,8 +14,7 @@ services:
       # would fail inside a Docker container with no daemon available).
       POSTGRES_USE_LOCAL: "true"
       SNIPPETS_DATABASE_PROVIDER: ${SNIPPETS_DATABASE_PROVIDER:-postgres}
-      DATABASE_URL: ${DATABASE_URL:-}
-      POSTGRES_HOST: ${POSTGRES_HOST:-}
+      POSTGRES_HOST: ${POSTGRES_HOST:-shared-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB:-snippets}
       POSTGRES_USER: ${POSTGRES_USER:-snippets}
