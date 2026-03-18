@@ -10,12 +10,12 @@ import Snippet from '../components/Snippet';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
+import Toast from '../components/Toast';
 
 const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
   back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
   content: 'mt-10',
-  error: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-10 text-[var(--color-text)] backdrop-blur-2xl',
 };
 
 const SnippetPage: React.FC = () => {
@@ -28,7 +28,7 @@ const SnippetPage: React.FC = () => {
 
   const { data: snippet, isPending, error } = useSnippet(snippetId || null);
 
-  const { mutate: updateSnippet } = useMutation({
+  const { mutate: updateSnippet, error: updateError, reset: resetUpdate } = useMutation({
     mutationFn: (formValues: SnippetFormValues) => update(
       `snippets/${snippetId}`,
       { ...snippet, ...formValues },
@@ -39,7 +39,7 @@ const SnippetPage: React.FC = () => {
     },
   });
 
-  const { mutate: deleteSnippet } = useMutation({
+  const { mutate: deleteSnippet, error: deleteError, reset: resetDelete } = useMutation({
     mutationFn: () => remove('snippets', snippetId),
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
@@ -71,12 +71,6 @@ const SnippetPage: React.FC = () => {
             </div>
           )}
 
-          {error instanceof Error && (
-            <div className={classes.error}>
-              {`Unable to load snippet: ${error.message}`}
-            </div>
-          )}
-
           {snippet && (
             <Snippet
               id={snippet.id}
@@ -101,6 +95,29 @@ const SnippetPage: React.FC = () => {
             closeModal={() => setIsEditing(false)}
           />
         </Modal>
+      )}
+
+      {/* ── Error toasts ── */}
+      {error instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Could not load snippet: ${error.message}`}
+          onDismiss={() => { /* query manages its own error state */ }}
+        />
+      )}
+      {updateError instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Save failed: ${updateError.message}`}
+          onDismiss={resetUpdate}
+        />
+      )}
+      {deleteError instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Delete failed: ${deleteError.message}`}
+          onDismiss={resetDelete}
+        />
       )}
     </div>
   );

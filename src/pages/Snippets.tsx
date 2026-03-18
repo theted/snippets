@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useContext, useState, useRef, useLayoutEffect, RefObject } from 'react';
+import React, { useContext, useState, useRef, useLayoutEffect, useEffect, RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
@@ -14,6 +14,7 @@ import { useSnippet, snippetKeys } from '../hooks/react-query';
 import { useDebounce } from '../utils/utils';
 import useReactQuery from '../hooks/useReactQuery';
 import { capitalize } from '../utils/helpers';
+import Toast from '../components/Toast';
 import {
   invalidateSnippetQueries,
   removeSnippetFromLists,
@@ -28,7 +29,6 @@ import {
 const classes = {
   container: 'w-full',
   stream: 'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
-  error: 'rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-8 py-10 text-[var(--color-text)] backdrop-blur-2xl',
 };
 
 async function removeSnippetCallback(id: SnippetId) {
@@ -50,12 +50,15 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
     data: editingSnippetData,
     error: editingSnippetError,
   } = useSnippet(editingId);
-  const { mutate: removeSnippet } = useMutation<void, Error, SnippetId, { previousSnippets: SnippetListSnapshot }>({
+  const {
+    mutate: removeSnippet,
+    error: deleteError,
+    reset: resetDelete,
+  } = useMutation<void, Error, SnippetId, { previousSnippets: SnippetListSnapshot }>({
     mutationFn: removeSnippetCallback,
     onMutate: async (id) => {
       const previousSnippets = await snapshotSnippetLists(queryClient);
       removeSnippetFromLists(queryClient, id);
-
       return { previousSnippets };
     },
     onError: (_error, _id, context) => {
@@ -84,6 +87,15 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       await invalidateSnippetQueries(queryClient);
     },
   });
+  // Capture edit-load error before editingId → null disables the query and clears it
+  const [capturedEditError, setCapturedEditError] = useState<string | null>(null);
+  useEffect(() => {
+    if (editingSnippetError instanceof Error) {
+      setCapturedEditError(editingSnippetError.message);
+      setEditingId(null);
+    }
+  }, [editingSnippetError]);
+
   const debouncedSearchQuery = useDebounce(search, 600);
   // isLoadingResults: true while debounce is pending OR API is fetching
   const isLoadingResults = useReactQuery(debouncedSearchQuery).isPending || debouncedSearchQuery !== search;
@@ -106,16 +118,12 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   const onDelete = (id: SnippetId) => removeSnippet(id);
   const onEdit = (id: SnippetId) => setEditingId(id);
   const onSearch = (value: string) => setSearch(value);
-  const closeModal = () => { setEditingId(null); resetUpdate(); };
+  const closeModal = () => { setEditingId(null); resetUpdate(); setCapturedEditError(null); };
 
   const updateSnippet = (formValues: SnippetFormValues) => {
     if (!editingSnippetData) return;
     updateSnippetMutation({ ...editingSnippetData, ...formValues });
   };
-
-  if (error instanceof Error) {
-    return <div className={classes.error}>An error has occurred: {error.message}</div>;
-  }
 
   return (
     <section
@@ -168,33 +176,50 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       )}
 
       {editingId !== null && (
-        <Modal
-          closeModal={closeModal}
-        >
-          {editingSnippetError instanceof Error ? (
-            <div className={classes.error}>
-              {`Unable to load snippet: ${editingSnippetError.message}`}
-            </div>
-          ) : editingSnippetData ? (
-            <>
-              {updateError instanceof Error && (
-                <div className="mb-4 rounded-[1.4rem] border border-[var(--color-danger)] bg-[var(--color-surface)] px-5 py-3 text-sm text-[var(--color-danger)]">
-                  {`Save failed: ${updateError.message}`}
-                </div>
-              )}
-              <SnippetForm
-                defaultValues={editingSnippetData}
-                isEditing
-                onSubmit={updateSnippet}
-                closeModal={closeModal}
-              />
-            </>
+        <Modal closeModal={closeModal}>
+          {editingSnippetData ? (
+            <SnippetForm
+              defaultValues={editingSnippetData}
+              isEditing
+              onSubmit={updateSnippet}
+              closeModal={closeModal}
+            />
           ) : (
             <div className="flex min-h-[12rem] items-center justify-center rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
               <SpinFigure />
             </div>
           )}
         </Modal>
+      )}
+
+      {/* ── Error toasts ── */}
+      {error instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Could not load snippets: ${error.message}`}
+          onDismiss={() => { /* query manages its own error state */ }}
+        />
+      )}
+      {deleteError instanceof Error && (
+        <Toast
+          variant="error"
+          message="Delete failed — snippet was restored"
+          onDismiss={resetDelete}
+        />
+      )}
+      {capturedEditError && (
+        <Toast
+          variant="error"
+          message={`Could not load snippet: ${capturedEditError}`}
+          onDismiss={() => setCapturedEditError(null)}
+        />
+      )}
+      {updateError instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Save failed: ${updateError.message}`}
+          onDismiss={resetUpdate}
+        />
       )}
 
     </section>

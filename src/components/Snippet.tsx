@@ -204,13 +204,13 @@ const Snippet: React.FC<Props> = ({
                 <div
                     data-testid="code-scroll-wrap"
                     ref={codeWrapRef}
-                    // onScroll={handleCodeScroll}
-                    // className="no-scrollbar"
-                    // style={{
-                    //     maxHeight: 'min(800px, 90vh)',
-                    //     overflowY: 'auto',
-                    //     overflowX: 'auto',
-                    // }}
+                    onScroll={handleCodeScroll}
+                    className="no-scrollbar"
+                    style={{
+                        maxHeight: 'min(800px, 90vh)',
+                        overflowY: 'auto',
+                        overflowX: 'auto',
+                    }}
                 >
                     <SyntaxHighlighter
                         language={language || 'javascript'}
@@ -227,12 +227,12 @@ const Snippet: React.FC<Props> = ({
             <div
                 data-testid="scroll-fade"
                 aria-hidden="true"
-                // className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
-                // style={{
-                //   background: 'linear-gradient(to bottom, transparent 45%, oklch(0.11 0.016 255 / 0.97))',
-                //   opacity: showScrollFade ? 1 : 0,
-                //   borderRadius: 'inherit',
-                // }}
+                className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+                style={{
+                    background: 'linear-gradient(to bottom, transparent 45%, oklch(0.11 0.016 255 / 0.97))',
+                    opacity: showScrollFade ? 1 : 0,
+                    borderRadius: 'inherit',
+                }}
             />
             <div className={classes.controls}>
                 <button

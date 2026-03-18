@@ -7,13 +7,18 @@ import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { CreateSnippet as CreateSnippetInput, Snippet, SnippetFormValues } from '../types';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
+import Toast from '../components/Toast';
 
 export type CreateSnippetHandle = { open: () => void };
 
 const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
   const queryClient = useQueryClient();
   const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
-  const createSnippetMutation = useMutation({
+  const {
+    mutate: createSnippet,
+    error: createError,
+    reset: resetCreate,
+  } = useMutation({
     mutationFn: (data: CreateSnippetInput) => post<Snippet, CreateSnippetInput>('snippets', data),
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
@@ -24,7 +29,7 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
   const closeModal = () => setIsFormVisible(false);
 
   const onSubmit = (formValues: SnippetFormValues) => {
-    createSnippetMutation.mutate(formValues);
+    createSnippet(formValues);
   };
 
   const openModal = () => setIsFormVisible(true);
@@ -53,6 +58,13 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
             focusContent
           />
         </Modal>
+      )}
+      {createError instanceof Error && (
+        <Toast
+          variant="error"
+          message={`Could not save snippet: ${createError.message}`}
+          onDismiss={resetCreate}
+        />
       )}
     </>
   );
