@@ -11,9 +11,10 @@ import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
+import BackgroundAnimation from './components/BackgroundAnimation';
 import { AuthProvider } from './contexts/authContext';
 import { ThemeContext, ThemeContextValue } from './contexts/themeContext';
-import { DEFAULT_THEME, ENVIRONMENT } from './config';
+import { DEFAULT_THEME, ENVIRONMENT, EXPERIMENTAL_BACKGROUND } from './config';
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App: FC = () => {
         <ThemeContext.Provider value={value}>
           <Spinner />
           <div className="App">
+            {EXPERIMENTAL_BACKGROUND && <BackgroundAnimation />}
             <Routes>
               <Route
                 path="/"

@@ -1,5 +1,7 @@
 export const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT ?? 'development';
 
+export const EXPERIMENTAL_BACKGROUND = import.meta.env.VITE_EXPERIMENTAL_BACKGROUND === 'true';
+
 export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3200';
 
 export const GOOGLE_AUTH_ENABLED = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === 'true';
