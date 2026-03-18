@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useContext, useState, RefObject } from 'react';
+import React, { useContext, useState, useRef, useLayoutEffect, RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
@@ -80,6 +80,18 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
 
   const isSearching = Boolean(search);
 
+  // Lock the section height before search hides the snippet stream so the
+  // page never collapses/jumps when the user starts typing. useLayoutEffect
+  // (no deps) re-captures on every non-searching render so the value is
+  // always fresh. In jsdom the ref is null so tests are unaffected.
+  const sectionRef = useRef<HTMLElement>(null);
+  const lockedHeightRef = useRef<number>(0);
+  useLayoutEffect(() => {
+    if (!isSearching && sectionRef.current) {
+      lockedHeightRef.current = sectionRef.current.scrollHeight;
+    }
+  });
+
   const onDelete = (id: SnippetId) => removeSnippet(id);
   const onEdit = (id: SnippetId) => setEditingId(id);
   const onSearch = (value: string) => setSearch(value);
@@ -95,52 +107,47 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   }
 
   return (
-    <section className={classes.container}>
-      <Searchbar ref={searchbarRef} onSearch={onSearch} />
-
-      {/* ── Compact search results — slides in/out via grid-template-rows trick ── */}
-      <div className={`search-results-wrap${isSearching ? ' open' : ''}`}>
-        <div>
-          {isLoadingResults ? (
-            <p className="search-results-status">Searching…</p>
-          ) : snippets.length === 0 ? (
-            <p className="search-results-status">No snippets matched &ldquo;{debouncedSearchQuery}&rdquo;</p>
-          ) : (
-            <ul className="search-results-list">
-              {snippets.map((snippet) => (
-                <li key={snippet.id} className="search-result-item">
-                  <Link to={`/snippets/${snippet.id}`} className="search-result-link">
-                    <span className="search-result-title">{capitalize(snippet.title || 'Untitled snippet')}</span>
-                    <span className="search-result-lang">{snippet.language || 'plaintext'}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+    <section
+      ref={sectionRef}
+      className={classes.container}
+      style={isSearching && lockedHeightRef.current ? { minHeight: lockedHeightRef.current } : undefined}
+    >
+      <Searchbar
+        ref={searchbarRef}
+        onSearch={onSearch}
+        results={snippets}
+        isLoadingResults={isLoadingResults}
+        isSearching={isSearching}
+        debouncedQuery={debouncedSearchQuery}
+      />
 
       {/* ── Full snippet stream — only when not searching ── */}
       {!isSearching && (
         <div className={classes.stream}>
-          {snippets.map((snippet, index) => (
-            <div
-              key={snippet.id}
-              className="snippet-stream-item"
-              style={{ '--item-index': index } as React.CSSProperties}
-            >
-              <Snippet
-                id={snippet.id}
-                title={snippet.title}
-                description={snippet.description}
-                content={snippet.content}
-                language={snippet.language}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                theme={theme}
-              />
-            </div>
-          ))}
+          {snippets.length === 0 ? (
+            <p className="search-results-status" style={{ paddingTop: '1rem' }}>
+              No snippets yet — create one to get started.
+            </p>
+          ) : (
+            snippets.map((snippet, index) => (
+              <div
+                key={snippet.id}
+                className="snippet-stream-item"
+                style={{ '--item-index': index } as React.CSSProperties}
+              >
+                <Snippet
+                  id={snippet.id}
+                  title={snippet.title}
+                  description={snippet.description}
+                  content={snippet.content}
+                  language={snippet.language}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  theme={theme}
+                />
+              </div>
+            ))
+          )}
         </div>
       )}
 

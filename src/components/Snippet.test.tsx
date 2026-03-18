@@ -1,10 +1,19 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
 import Snippet from './Snippet';
+
+// gsap.to must invoke onComplete so delete callback fires in tests
+vi.mock('gsap', () => ({
+  gsap: {
+    to: vi.fn((_, vars) => { vars?.onComplete?.(); }),
+    fromTo: vi.fn(),
+    timeline: vi.fn(() => ({ to: vi.fn(), kill: vi.fn() })),
+  },
+}));
 
 const defaultProps = {
   id: 1,
@@ -54,6 +63,9 @@ test('calls onDelete with the snippet id when delete is clicked', async () => {
   const user = userEvent.setup();
   renderSnippet({ onDelete });
   await user.click(screen.getByRole('button', { name: /delete/i }));
+  // Confirm in the dialog that appears
+  const dialog = screen.getByRole('alertdialog');
+  await user.click(within(dialog).getByRole('button', { name: /delete/i }));
   expect(onDelete).toHaveBeenCalledWith(1);
 });
 

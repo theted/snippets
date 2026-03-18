@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,8 +8,13 @@ import themeDefaults from '../contexts/themeContext';
 import Snippets from './Snippets';
 import * as api from '../utils/api.ts';
 
-// Suppress GSAP animations in the edit modal
-vi.mock('gsap', () => ({ gsap: { to: vi.fn() } }));
+vi.mock('gsap', () => ({
+  gsap: {
+    to: vi.fn((_, vars) => { vars?.onComplete?.(); }),
+    fromTo: vi.fn(),
+    timeline: vi.fn(() => ({ to: vi.fn(), kill: vi.fn() })),
+  },
+}));
 
 // Mock the debounce hook so searches fire immediately without a 600ms wait
 vi.mock('../utils/utils', () => ({
@@ -65,7 +70,7 @@ test('shows empty state when no snippets are returned', async () => {
   vi.mocked(api.get).mockResolvedValue([]);
   renderSnippets();
   await waitFor(() => {
-    expect(screen.getByText(/nothing matches that search/i)).toBeInTheDocument();
+    expect(screen.getByText(/no snippets yet/i)).toBeInTheDocument();
   });
 });
 
@@ -123,6 +128,10 @@ test('calls remove with the correct id when delete is clicked', async () => {
 
   const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
   await user.click(deleteButtons[0]);
+
+  // Confirm in the dialog
+  const dialog = screen.getByRole('alertdialog');
+  await user.click(within(dialog).getByRole('button', { name: /delete/i }));
 
   await waitFor(() => {
     expect(api.remove).toHaveBeenCalledWith('snippets', 1);

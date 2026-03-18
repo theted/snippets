@@ -4,6 +4,7 @@ import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Dropdown from './Dropdown';
 import Button from './Button';
+import CodeEditor from './CodeEditor';
 import { SnippetFormValues } from '../types';
 
 const languages = AVAILABLE_LANGUAGES.map((lang) => ({ label: lang, value: lang }));
@@ -21,7 +22,7 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
 
 const classes = {
   // Card — frosted glass: low-opacity fill lets backdrop-blur-2xl show through
-  form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] border border-[oklch(0.44_0.05_248_/_0.45)] bg-[var(--color-glass-card)] p-7 backdrop-blur-2xl md:p-10 lg:p-12',
+  form: 'relative z-30 w-full overflow-hidden rounded-[2.4rem] border border-[oklch(0.44_0.05_248_/_0.45)] bg-[var(--color-glass-card)] p-8 backdrop-blur-2xl md:p-12 lg:p-14',
   // Two-column grid: code left (wider), metadata right.
   // On mobile the columns collapse to a single stack.
   grid: 'flex flex-col gap-8 md:grid md:grid-cols-[1.7fr_1fr] md:items-start md:gap-10 lg:gap-14',
@@ -35,13 +36,13 @@ const classes = {
 
   // Form header (visible in right col on desktop, top of stack on mobile)
   header: 'pb-1',
-  kicker: 'text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)]',
-  title: 'mt-2 font-[var(--font-display)] text-3xl font-[200] tracking-[-0.055em] text-[var(--color-text)] md:text-4xl',
+  kicker: 'text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
+  title: 'mt-2 font-[var(--font-display)] text-3xl font-[200] tracking-[-0.055em] text-[var(--color-text)] md:text-4xl [text-shadow:0_1px_0_oklch(1_0_0_/_0.14),0_2px_12px_oklch(0_0_0_/_0.28)]',
   intro: 'mt-3 max-w-sm text-sm leading-7 text-[var(--color-text-muted)]',
 
   // Individual field groups
   fieldGroup: 'flex flex-col gap-2.5',
-  label: 'text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]',
+  label: 'text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel',
 
   // Actions — pushed to the bottom of the right column on desktop
   actions: 'flex flex-wrap gap-3 md:pt-1',
@@ -68,6 +69,10 @@ const SnippetForm: React.FC<Props> = ({
   const inputHandler = (event: InputChangeEvent) => {
     const { name, value } = event.target;
     setFormState((currentState) => ({ ...currentState, [name]: value }));
+  };
+
+  const handleCodeChange = (value: string) => {
+    setFormState((currentState) => ({ ...currentState, content: value }));
   };
 
   useEffect(() => {
@@ -99,16 +104,12 @@ const SnippetForm: React.FC<Props> = ({
         {/* ── LEFT: code ────────────────────────────────────── */}
         <div className={classes.codeCol}>
           <label className={classes.label} htmlFor="snippet-content">Code</label>
-          <Textarea
-            id="snippet-content"
-            autoFocus={focusContent}
-            name="content"
-            placeholder="Paste or type your code here…"
-            onChange={inputHandler}
+          <CodeEditor
             value={formState.content}
-            className={classes.codeTextarea}
-            // rows is a hint; actual height comes from the CSS min-h class
-            rows={22}
+            onChange={handleCodeChange}
+            language={formState.language}
+            autoFocus={focusContent}
+            minHeight="32rem"
           />
         </div>
 

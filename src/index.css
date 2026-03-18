@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@200;300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -85,6 +85,19 @@ button {
 code,
 pre {
   font-family: var(--font-code);
+  font-feature-settings: 'liga' 1, 'calt' 1;
+  font-variant-ligatures: contextual;
+}
+
+/* ─── Typography utilities ───────────────────────────────────────────────
+   text-bevel:     subtle raised letterform for light text on dark surfaces
+   text-bevel-ink: raised letterform for dark (ink) text on light surfaces  */
+@utility text-bevel {
+  text-shadow: 0 1px 1px oklch(0 0 0 / 0.48), 0 -1px 0 oklch(1 0 0 / 0.07);
+}
+
+@utility text-bevel-ink {
+  text-shadow: 0 1px 0 oklch(1 0 0 / 0.32), 0 -1px 0 oklch(0 0 0 / 0.1);
 }
 
 ::selection {
