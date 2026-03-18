@@ -159,5 +159,6 @@ export const TRANSITION_TIME = 300;
 // 'stream'  — full-width cards stacked vertically (original, editorial feel)
 // 'grid'    — 2–3 column CSS grid, compact cards, more snippets per screen
 // 'masonry' — CSS multi-column, compact cards, natural per-item height
-export type SnippetLayout = 'stream' | 'grid' | 'masonry';
+// 'cascade' — repeating 1 → 2 → 3 column rows, editorial rhythm
+export type SnippetLayout = 'stream' | 'grid' | 'masonry' | 'cascade';
 export const DEFAULT_SNIPPET_LAYOUT: SnippetLayout = 'grid';

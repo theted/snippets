@@ -52,10 +52,86 @@ const LayoutStreamIcon = () => (
   </svg>
 );
 
-const LAYOUT_CLASSES: Record<SnippetLayout, string> = {
+const LayoutCascadeIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+    <rect x="0" y="0" width="11" height="2.4" rx="1" />
+    <rect x="0" y="4.1" width="5.1" height="2.4" rx="1" />
+    <rect x="5.9" y="4.1" width="5.1" height="2.4" rx="1" />
+    <rect x="0" y="8.2" width="2.8" height="2.4" rx="1" />
+    <rect x="4.1" y="8.2" width="2.8" height="2.4" rx="1" />
+    <rect x="8.2" y="8.2" width="2.8" height="2.4" rx="1" />
+  </svg>
+);
+
+const LAYOUT_CLASSES: Record<Exclude<SnippetLayout, 'cascade'>, string> = {
   stream:  'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
   grid:    'mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:mt-16 md:gap-10',
   masonry: 'mt-12 sm:columns-2 xl:columns-3 gap-8 md:mt-16 md:gap-10',
+};
+
+const CASCADE_PATTERN = [1, 2, 3];
+const CASCADE_ROW_COLS = ['grid-cols-1', 'grid-cols-1 sm:grid-cols-2', 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'];
+
+function groupByCascade<T>(items: T[]): T[][] {
+  const groups: T[][] = [];
+  let i = 0;
+  let p = 0;
+  while (i < items.length) {
+    const size = CASCADE_PATTERN[p % CASCADE_PATTERN.length];
+    groups.push(items.slice(i, i + size));
+    i += size;
+    p++;
+  }
+  return groups;
+}
+
+type CascadeGridProps = {
+  snippets: ISnippet[];
+  onDelete: (id: SnippetId) => void;
+  onEdit: (id: SnippetId) => void;
+  theme: string;
+  prefetch: (id: SnippetId) => void;
+};
+
+const CascadeGrid: React.FC<CascadeGridProps> = ({ snippets, onDelete, onEdit, theme, prefetch }) => {
+  const rows = groupByCascade(snippets);
+  let absoluteIndex = 0;
+
+  return (
+    <div className="mt-12 flex flex-col gap-8 md:mt-16 md:gap-10">
+      {rows.map((row, rowIndex) => {
+        const patternIdx = rowIndex % CASCADE_PATTERN.length;
+        const colClass = CASCADE_ROW_COLS[patternIdx];
+        const rowStart = absoluteIndex;
+        absoluteIndex += row.length;
+
+        return (
+          <div key={rowIndex} className={`grid gap-8 md:gap-10 ${colClass}`}>
+            {row.map((snippet, colIndex) => (
+              <div
+                key={snippet.id}
+                className="snippet-stream-item"
+                style={{ '--item-index': rowStart + colIndex } as React.CSSProperties}
+                onMouseEnter={() => prefetch(snippet.id)}
+              >
+                <Snippet
+                  id={snippet.id}
+                  title={snippet.title}
+                  description={snippet.description}
+                  content={snippet.content}
+                  language={snippet.language}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  theme={theme}
+                  compact={patternIdx > 0}
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 async function removeSnippetCallback(id: SnippetId) {
@@ -164,7 +240,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       {/* ── Layout toggle ── */}
       {!isSearching && (
         <div className="mt-6 flex justify-end gap-1.5">
-          {(['grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
+          {(['cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
             <button
               key={l}
               type="button"
@@ -178,20 +254,33 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
               {l === 'grid' && <LayoutGridIcon />}
               {l === 'masonry' && <LayoutMasonryIcon />}
               {l === 'stream' && <LayoutStreamIcon />}
+              {l === 'cascade' && <LayoutCascadeIcon />}
               {l}
             </button>
           ))}
         </div>
       )}
 
-      {/* ── Snippet grid / stream / masonry ── */}
-      <div className={LAYOUT_CLASSES[layout]}>
-        {snippets.length === 0 ? (
-          <p className="search-results-status" style={{ paddingTop: '1rem' }}>
-            {isSearching ? `No snippets matched "${debouncedSearchQuery}"` : 'No snippets yet — create one to get started.'}
-          </p>
-        ) : (
-          snippets.map((snippet, index) => (
+      {/* ── Snippet grid / stream / masonry / cascade ── */}
+      {snippets.length === 0 ? (
+        <p className="search-results-status mt-12" style={{ paddingTop: '1rem' }}>
+          {isSearching ? `No snippets matched "${debouncedSearchQuery}"` : 'No snippets yet — create one to get started.'}
+        </p>
+      ) : layout === 'cascade' ? (
+        <CascadeGrid
+          snippets={snippets}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          theme={theme}
+          prefetch={(id) => queryClient.prefetchQuery({
+            queryKey: snippetKeys.detail(id),
+            queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
+            staleTime: 60_000,
+          })}
+        />
+      ) : (
+        <div className={LAYOUT_CLASSES[layout as Exclude<SnippetLayout, 'cascade'>]}>
+          {snippets.map((snippet, index) => (
             <div
               key={snippet.id}
               className={layout === 'masonry' ? 'break-inside-avoid mb-8 md:mb-10' : 'snippet-stream-item'}
@@ -214,9 +303,9 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
                 compact={layout !== 'stream'}
               />
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {editingId !== null && (
         <Modal closeModal={closeModal}>
