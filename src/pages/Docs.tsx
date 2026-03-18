@@ -156,6 +156,16 @@ const Docs: React.FC = () => {
               description="Focus the search field"
               detail="Jumps focus directly into the search input so you can start filtering immediately."
             />
+            <ShortcutRow
+              chord={[['Ctrl', ']']]}
+              description="Next syntax theme"
+              detail="Cycles forward through all available syntax highlighting themes. Your choice is saved automatically."
+            />
+            <ShortcutRow
+              chord={[['Ctrl', '[']]}
+              description="Previous syntax theme"
+              detail="Cycles backward through all available syntax highlighting themes."
+            />
           </Section>
 
           {/* Shortcuts ── Search */}

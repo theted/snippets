@@ -66,7 +66,7 @@ const entryAnimation = ({ modalRef, backgroundRef }: Omit<ModalRefs, 'closeModal
 
   if (backgroundRef.current) {
     gsap.to(backgroundRef.current, {
-      background: 'oklch(0.10 0.012 258 / 0.88)',
+      background: 'oklch(0.10 0.012 258 / 0.52)',
       duration: 0.5,
       ease: 'power2.out',
     });

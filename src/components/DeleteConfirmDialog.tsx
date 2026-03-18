@@ -17,7 +17,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
 
     if (backdropRef.current) {
       gsap.to(backdropRef.current, {
-        background: 'oklch(0.08 0.012 258 / 0.90)',
+        background: 'oklch(0.08 0.012 258 / 0.52)',
         duration: 0.4,
         ease: 'power2.out',
       });
