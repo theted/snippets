@@ -105,6 +105,7 @@ const SnippetForm: React.FC<Props> = ({
         <div className={classes.codeCol}>
           <label className={classes.label} htmlFor="snippet-content">Code</label>
           <CodeEditor
+            id="snippet-content"
             value={formState.content}
             onChange={handleCodeChange}
             language={formState.language}

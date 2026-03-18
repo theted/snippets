@@ -89,19 +89,21 @@ const Snippet: React.FC<Props> = ({
 
   const handleDeleteConfirm = () => {
     setConfirmingDelete(false);
+    // Animate the card out (cosmetic). Delete fires via setTimeout so it is
+    // never blocked by GSAP completion — the card's own CSS `transition`
+    // declaration can interfere with onComplete on some browsers.
+    const ANIM_MS = 360;
     if (cardRef.current) {
       gsap.to(cardRef.current, {
         opacity: 0,
         scale: 0.94,
         y: 18,
         filter: 'blur(4px)',
-        duration: 0.42,
+        duration: ANIM_MS / 1000,
         ease: 'power3.in',
-        onComplete: () => onDelete(id),
       });
-    } else {
-      onDelete(id);
     }
+    setTimeout(() => onDelete(id), ANIM_MS);
   };
 
   return (

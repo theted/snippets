@@ -131,6 +131,7 @@ const appOverlay = EditorView.theme({
 // ── Component ────────────────────────────────────────────────────────────────
 
 type Props = {
+  id?: string;
   value: string;
   onChange: (value: string) => void;
   language: string;
@@ -140,6 +141,7 @@ type Props = {
 };
 
 const CodeEditor: React.FC<Props> = ({
+  id,
   value,
   onChange,
   language,
@@ -160,6 +162,7 @@ const CodeEditor: React.FC<Props> = ({
       }}
     >
       <CodeMirror
+        id={id}
         value={value}
         onChange={onChange}
         theme={oneDark}

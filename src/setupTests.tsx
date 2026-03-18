@@ -3,6 +3,7 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import React from 'react';
 
 // react-syntax-highlighter pulls in the entire highlight.js bundle (~2 MB of
 // language grammars + themes). Replacing it with a lightweight stub cuts the
@@ -17,3 +18,27 @@ vi.mock('react-syntax-highlighter', () => ({
 // named access on a mock namespace, so we need to list the themes explicitly.
 // Tests always use the default theme (vs2015), so that's all we need here.
 vi.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({ vs2015: {} }));
+
+// @uiw/react-codemirror initialises the CodeMirror DOM engine and calls layout
+// APIs (getClientRects, measureText) that jsdom does not implement. Replace it
+// with a plain <textarea> so form tests can find the code field via its label
+// and interact with it normally via userEvent.
+vi.mock('@uiw/react-codemirror', () => ({
+  default: ({
+    id,
+    value,
+    onChange,
+    placeholder,
+  }: {
+    id?: string;
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+  }) =>
+    React.createElement('textarea', {
+      id,
+      value,
+      placeholder,
+      onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value),
+    }),
+}));
