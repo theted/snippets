@@ -32,7 +32,7 @@ const classes = {
   kicker: 'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
   title: 'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl [text-shadow:0_1px_0_oklch(1_0_0_/_0.14),0_2px_12px_oklch(0_0_0_/_0.32)]',
   description: 'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg',
-  code: 'relative z-10 text-base',
+  code: 'relative z-10 overflow-hidden rounded-[1.8rem] text-base',
   language: 'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel',
   controls: 'mt-8 flex flex-wrap gap-3 opacity-100 transition duration-300 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
   controlButton: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
@@ -40,7 +40,7 @@ const classes = {
 
 const customStyle = {
   margin: 0,
-  padding: '3.5rem',
+  padding: '0.5rem 0',
   borderRadius: '1.8rem',
   fontSize: '1.1rem',
   background: 'transparent',
@@ -149,16 +149,17 @@ const Snippet: React.FC<Props> = ({
         </div>
       </div>
       <div className={classes.code}>
-        {/* Scroll wrapper — caps height and enables inline scrolling */}
+        {/* Scroll wrapper — caps height and enables inline scrolling.
+            overflowX:auto lets wide code scroll right instead of wrapping. */}
         <div
           data-testid="code-scroll-wrap"
           ref={codeWrapRef}
           onScroll={handleCodeScroll}
+          className="no-scrollbar"
           style={{
             maxHeight: 'min(800px, 90vh)',
             overflowY: 'auto',
-            overflowX: 'hidden',
-            borderRadius: '1.8rem',
+            overflowX: 'auto',
           }}
         >
           <SyntaxHighlighter
@@ -166,12 +167,12 @@ const Snippet: React.FC<Props> = ({
             style={syntaxTheme}
             customStyle={{ ...customStyle, borderRadius: 0, marginBottom: 0 }}
             showLineNumbers={showLineNumbers}
-            wrapLongLines
           >
             {content}
           </SyntaxHighlighter>
         </div>
-        {/* Scroll-fade gradient — fades out when scrolled to the bottom */}
+        {/* Scroll-fade gradient — the parent .code div has overflow:hidden +
+            border-radius so this clips flush to the bottom corners. */}
         <div
           data-testid="scroll-fade"
           aria-hidden="true"
@@ -179,7 +180,6 @@ const Snippet: React.FC<Props> = ({
           style={{
             bottom: 0,
             height: '6rem',
-            borderRadius: '0 0 1.8rem 1.8rem',
             background: 'linear-gradient(to bottom, transparent, oklch(0.14 0.016 255 / 0.97))',
             opacity: showScrollFade ? 1 : 0,
           }}

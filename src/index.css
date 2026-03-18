@@ -39,15 +39,18 @@
 
 html {
   min-height: 100%;
-  /* Reserve the scrollbar lane permanently so it never appears/disappears and
-     causes a layout shift when a modal opens or closes. */
-  scrollbar-gutter: stable;
+  scrollbar-width: none; /* Firefox */
   background:
     radial-gradient(circle at top left, oklch(0.46 0.12 245 / 0.18), transparent 34%),
     radial-gradient(circle at top right, oklch(0.62 0.18 244 / 0.2), transparent 28%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-deep) 100%);
   background-attachment: fixed;
 }
+
+html::-webkit-scrollbar { display: none; } /* Chrome / Safari */
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 body {
   margin: 0;
