@@ -24,6 +24,7 @@ type Props = ISnippet & {
     forceAutoSize?: boolean;
     isFavorite?: boolean;
     onToggleFavorite?: (id: SnippetId) => void;
+    onFilterLanguage?: (language: string) => void;
 };
 
 type SyntaxTheme = Record<string, React.CSSProperties>;
@@ -99,6 +100,7 @@ const Snippet: React.FC<Props> = ({
     forceAutoSize = false,
     isFavorite = false,
     onToggleFavorite,
+    onFilterLanguage,
 }) => {
     const navigate = useNavigate();
     const { showLineNumbers, autoSize: autoSizePreference } = useContext(ThemeContext);
@@ -228,9 +230,20 @@ const Snippet: React.FC<Props> = ({
                             {description && <p className={c.description}>{description}</p>}
                         </Link>
                     </div>
-                    <span className={c.language}>
-                        {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
-                    </span>
+                    {onFilterLanguage ? (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFilterLanguage(language ?? 'plaintext'); }}
+                            className={`${c.language} cursor-pointer transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]`}
+                            title={`Filter by ${LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}`}
+                        >
+                            {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
+                        </button>
+                    ) : (
+                        <span className={c.language}>
+                            {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
+                        </span>
+                    )}
                 </div>
             </div>
             <div className={c.code}>
