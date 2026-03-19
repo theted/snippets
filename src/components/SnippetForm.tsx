@@ -5,7 +5,7 @@ import Textarea from './Textarea';
 import Dropdown from './Dropdown';
 import Button from './Button';
 import CodeEditor from './CodeEditor';
-import GlassPanel from './GlassPanel';
+import { GlassPanel } from 'glass-design-system';
 import { SnippetFormValues } from '../types';
 
 const languages = AVAILABLE_LANGUAGES.map((lang) => ({

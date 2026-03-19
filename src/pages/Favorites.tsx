@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import React, { useContext, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import GlassPill from '../components/GlassPill';
+import { GlassPill } from 'glass-design-system';
 import Kicker from '../components/Kicker';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';

@@ -16,8 +16,7 @@ import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
 import Toast from '../components/Toast';
-import GlassPanel from '../components/GlassPanel';
-import GlassPill from '../components/GlassPill';
+import { GlassPanel, GlassPill } from 'glass-design-system';
 
 // ── Direction bridging across navigation ──────────────────────────────────────
 // sessionStorage survives the React unmount/remount that happens on navigation,

@@ -1,5 +1,4 @@
-/* Design tokens, typography utilities, and font imports live in the glass-design-system package */
-@import '../packages/glass-design-system/src/glass.css';
+@import '../glass.css';
 @import "tailwindcss";
 
 *,
@@ -10,7 +9,7 @@
 
 html {
   min-height: 100%;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
   background:
     radial-gradient(circle at top left,  oklch(0.40 0.22 222 / 0.30), transparent 34%),
     radial-gradient(circle at top right, oklch(0.50 0.26 218 / 0.32), transparent 28%),
@@ -18,7 +17,7 @@ html {
   background-attachment: fixed;
 }
 
-html::-webkit-scrollbar { display: none; } /* Chrome / Safari */
+html::-webkit-scrollbar { display: none; }
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -29,27 +28,17 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   background:
-    /* Soft fractal noise — decoded once and GPU-cached, never repaints */
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E"),
-    /* Colour radials */
     radial-gradient(circle at 14% 18%, oklch(0.42 0.24 216 / 0.26), transparent 26%),
     radial-gradient(circle at 88% 10%, oklch(0.50 0.28 206 / 0.28), transparent 24%),
-    /* Deep-bottom anchor */
     radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.11 0.08 248 / 0.94), transparent 100%),
     linear-gradient(180deg, var(--color-bg) 0%, oklch(0.07 0.05 250) 100%);
   background-size: 256px 256px, auto, auto, auto, auto;
-  /* Fixed attachment keeps the light field stationary while content scrolls,
-     which is essential for the glass-panel effect on the cards above it. */
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
-/* ─── Film-grain overlay ─────────────────────────────────────────────────
-   Inline SVG feTurbulence generates seamless Perlin noise without any
-   external asset. stitchTiles="stitch" makes the 180 px tile loop cleanly.
-   soft-light blend at low opacity adds grit without shifting the palette. */
 body::before {
   content: '';
   position: fixed;
@@ -72,9 +61,6 @@ input,
 textarea,
 select {
   font: inherit;
-}
-
-button {
   cursor: pointer;
 }
 
@@ -83,26 +69,4 @@ pre {
   font-family: var(--font-code);
   font-feature-settings: 'liga' 1, 'calt' 1;
   font-variant-ligatures: contextual;
-}
-
-/* ─── Form field shadow ──────────────────────────────────────────────────
-   Single shallow inset shadow for smooth depth without a ribbed/heavy look.
-   The transparent field backgrounds let the glass card show through;
-   the shadow just adds a soft inner dimension.                            */
-input:not([type='checkbox']):not([type='radio']),
-textarea,
-select {
-  box-shadow: inset 0 1px 4px oklch(0.04 0.01 258 / 0.6);
-  transition:
-    box-shadow 300ms ease,
-    border-color 300ms ease;
-}
-
-input:not([type='checkbox']):not([type='radio']):focus,
-textarea:focus,
-select:focus {
-  box-shadow:
-    inset 0 1px 3px oklch(0.04 0.01 258 / 0.35),
-    0 0 0 3px oklch(0.71 0.17 244 / 0.16),
-    0 0 18px oklch(0.71 0.17 244 / 0.08);
 }

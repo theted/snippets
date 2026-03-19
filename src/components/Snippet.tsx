@@ -6,7 +6,7 @@ import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
 
 import { ThemeContext } from '../contexts/themeContext';
-import { CARD_BG_ALPHA, GLOW_TR, GLOW_BL } from '../design/glass';
+import { CARD_BG_ALPHA, GLOW_TR, GLOW_BL } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
 import { LANGUAGE_MAP } from '../config';

@@ -5,7 +5,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
-import GlassPill from './GlassPill';
+import { GlassPill } from 'glass-design-system';
 
 type Props = PropsWithChildren<{
   closeModal?: () => void;

@@ -19,14 +19,18 @@
  * └──────────────────────────────────────────────────────────────────┘
  */
 
-export const GLASS_OPACITY      = 0.66; // 0.82 → 0.66 (~20% more transparent)
-export const GLASS_BLUR         = 40;   // px
-export const GLASS_LIGHT_ALPHA  = 0.22; // screen-blend specular wash on hover
-export const GLASS_SHADOW_ALPHA = 0.20; // darkening on the side away from cursor
+import type { GlassConfig } from './context/GlassContext';
+import { GLASS_DEFAULTS } from './context/GlassContext';
+
+// Re-export defaults as named constants for backwards compatibility
+export const GLASS_OPACITY      = GLASS_DEFAULTS.opacity;
+export const GLASS_BLUR         = GLASS_DEFAULTS.blur;
+export const GLASS_LIGHT_ALPHA  = GLASS_DEFAULTS.lightAlpha;
+export const GLASS_SHADOW_ALPHA = GLASS_DEFAULTS.shadowAlpha;
 
 export type GlassIntensity = 'subtle' | 'medium' | 'strong';
 
-// ── Per-intensity base alphas (scaled by GLASS_OPACITY at runtime) ─
+// ── Per-intensity base alphas (scaled by config.opacity at runtime) ─
 
 const BASE_BG:      Record<GlassIntensity, number> = { subtle: 0.17, medium: 0.30, strong: 0.64 };
 const BASE_BORDER:  Record<GlassIntensity, number> = { subtle: 0.20, medium: 0.32, strong: 0.44 };
@@ -48,14 +52,7 @@ export const GLOW_BL = '0.58 0.14 210';   // bottom-left glow (teal)
 // (they render their own background outside GlassPanel — this keeps
 //  them in sync with GLASS_OPACITY so all surfaces scale together).
 const CARD_BG_BASE = 0.512; // = 0.42 / 0.82 — preserves original ratio
-export const CARD_BG_ALPHA = Math.round(CARD_BG_BASE * GLASS_OPACITY * 1000) / 1000;
-
-// ── Helper ──────────────────────────────────────────────────────────
-
-/** Scale base alpha against the global GLASS_OPACITY master. */
-function a(base: number): string {
-  return (Math.round(base * GLASS_OPACITY * 1000) / 1000).toFixed(3);
-}
+export const CARD_BG_ALPHA = Math.round(CARD_BG_BASE * GLASS_DEFAULTS.opacity * 1000) / 1000;
 
 // ── Public types ────────────────────────────────────────────────────
 
@@ -83,9 +80,29 @@ export interface GlassStyles {
 
 // ── Main export ─────────────────────────────────────────────────────
 
-export function getGlassStyles(intensity: GlassIntensity = 'medium'): GlassStyles {
-  const blur     = GLASS_BLUR;
+/**
+ * Compute glass surface styles for the given intensity tier.
+ *
+ * When used inside a React component, prefer calling `useGlass()` and
+ * passing the result as the second argument so the component inherits
+ * configuration from the nearest `<GlassProvider>`.
+ *
+ * ```tsx
+ * const config = useGlass();
+ * const glass  = getGlassStyles('medium', config);
+ * ```
+ */
+export function getGlassStyles(
+  intensity: GlassIntensity = 'medium',
+  config: GlassConfig = GLASS_DEFAULTS,
+): GlassStyles {
+  const { blur, opacity } = config;
   const glowBlur = GLOW_BLUR[intensity];
+
+  /** Scale base alpha against the provider's opacity master. */
+  function a(base: number): string {
+    return (Math.round(base * opacity * 1000) / 1000).toFixed(3);
+  }
 
   return {
     panel: {

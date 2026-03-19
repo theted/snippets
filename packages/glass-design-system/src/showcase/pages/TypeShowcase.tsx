@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import GlassPanel from '../components/GlassPanel';
+import { GlassPanel } from 'glass-design-system';
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
 

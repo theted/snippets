@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { getGlassStyles, GlassIntensity, GLASS_LIGHT_ALPHA, GLASS_SHADOW_ALPHA } from '../design/glass';
+import { getGlassStyles } from '../glass';
+import { useGlass } from '../context/GlassContext';
 
-export type { GlassIntensity };
+export type { GlassIntensity } from '../glass';
+import type { GlassIntensity } from '../glass';
 
 type Props = React.PropsWithChildren<{
-  /** Controls opacity/blur/shadow depth. Scales against global GLASS_OPACITY + GLASS_BLUR. */
+  /** Controls opacity/blur/shadow depth. Scales against GlassProvider config. */
   intensity?: GlassIntensity;
   /** Show top-right ambient corner glow. Default true. */
   topGlow?: boolean;
@@ -30,7 +32,8 @@ const GlassPanel: React.FC<Props> = ({
   as: Tag = 'div',
   ...rest
 }) => {
-  const glass = getGlassStyles(intensity);
+  const config = useGlass();
+  const glass = getGlassStyles(intensity, config);
   const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
   const [isHovered, setIsHovered] = useState(false);
 
@@ -65,25 +68,23 @@ const GlassPanel: React.FC<Props> = ({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(ellipse 160% 130% at ${100 - mousePos.x}% ${100 - mousePos.y}%, oklch(0.04 0.01 255 / ${GLASS_SHADOW_ALPHA}) 0%, transparent 58%)`,
+          background: `radial-gradient(ellipse 160% 130% at ${100 - mousePos.x}% ${100 - mousePos.y}%, oklch(0.04 0.01 255 / ${config.shadowAlpha}) 0%, transparent 58%)`,
           opacity: isHovered ? 1 : 0,
         }}
       />
 
-      {/* Light wash — very large, screen-blended coloured light that follows the cursor.
-          screen() merges the light's hue into the panel background rather than just
-          whitening it, so the panel shifts in colour temperature as the light moves. */}
+      {/* Light wash — very large, screen-blended coloured light that follows the cursor. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(ellipse 190% 150% at ${mousePos.x}% ${mousePos.y}%, oklch(0.28 0.05 215 / ${GLASS_LIGHT_ALPHA}) 0%, transparent 55%)`,
+          background: `radial-gradient(ellipse 190% 150% at ${mousePos.x}% ${mousePos.y}%, oklch(0.28 0.05 215 / ${config.lightAlpha}) 0%, transparent 55%)`,
           mixBlendMode: 'screen',
           opacity: isHovered ? 1 : 0,
         }}
       />
 
-      {/* Top-right ambient glow — wide band so blur washes across the full top edge */}
+      {/* Top-right ambient glow */}
       {topGlow && (
         <div
           aria-hidden="true"

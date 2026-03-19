@@ -1,0 +1,41 @@
+{
+    "name": "glass-design-system",
+    "version": "0.1.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./styles": "./dist/glass.css"
+    },
+    "files": [
+        "dist"
+    ],
+    "sideEffects": [
+        "./dist/glass.css"
+    ],
+    "scripts": {
+        "build": "vite build",
+        "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
+        "showcase": "vite --config vite.showcase.config.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "peerDependencies": {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "postcss": "^8.5.8",
+        "@tailwindcss/postcss": "^4.0.0",
+        "tailwindcss": "^4.0.0",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.0"
+    }
+}

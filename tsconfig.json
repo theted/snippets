@@ -23,7 +23,12 @@
     "types": [
       "vite/client",
       "vitest/globals"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "glass-design-system": ["./packages/glass-design-system/src/index.ts"],
+      "glass-design-system/*": ["./packages/glass-design-system/src/*"]
+    }
   },
   "include": [
     "src"

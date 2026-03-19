@@ -6,16 +6,12 @@ import './App.css';
 import CreateSnippet, { CreateSnippetHandle } from './pages/CreateSnippet';
 import Snippets from './pages/Snippets';
 import { SearchbarHandle } from './components/Searchbar';
-import GlassPill from './components/GlassPill';
+import { GlassPill, GlassProvider } from 'glass-design-system';
 import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
 import Favorites from './pages/Favorites';
 import NotFound from './pages/NotFound';
-import GlassShowcase from './pages/GlassShowcase';
-import Philosophy from './pages/Philosophy';
-import TypeShowcase from './pages/TypeShowcase';
-import ColorShowcase from './pages/ColorShowcase';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
 import BackgroundAnimation from './components/BackgroundAnimation';
@@ -104,6 +100,7 @@ const App: FC = () => {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
+                <GlassProvider>
                 <ThemeContext.Provider value={value}>
                     <Spinner />
                     <div className={`App${navType === 'POP' ? ' app--restore' : ''}`}>
@@ -138,18 +135,6 @@ const App: FC = () => {
                                                         <i className="icon-info" />
                                                         <span>Shortcuts</span>
                                                     </GlassPill>
-                                                    <GlassPill as={Link} to="/philosophy" size="lg">
-                                                        Philosophy
-                                                    </GlassPill>
-                                                    <GlassPill as={Link} to="/glass" size="lg">
-                                                        Glass
-                                                    </GlassPill>
-                                                    <GlassPill as={Link} to="/type" size="lg">
-                                                        Type
-                                                    </GlassPill>
-                                                    <GlassPill as={Link} to="/colors" size="lg">
-                                                        Colors
-                                                    </GlassPill>
                                                 </div>
                                                 <div className="mt-8 flex justify-end">
                                                     <GoogleAuth />
@@ -169,14 +154,11 @@ const App: FC = () => {
                             <Route path="/snippets/:id" element={<SnippetPageRoute />} />
                             <Route path="/favorites" element={<Favorites />} />
                             <Route path="/docs" element={<Docs />} />
-                            <Route path="/philosophy" element={<Philosophy />} />
-                            <Route path="/glass" element={<GlassShowcase />} />
-                            <Route path="/type" element={<TypeShowcase />} />
-                            <Route path="/colors" element={<ColorShowcase />} />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </div>
                 </ThemeContext.Provider>
+                </GlassProvider>
             </AuthProvider>
             {ENVIRONMENT === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>

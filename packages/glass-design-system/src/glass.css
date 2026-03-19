@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@200;300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+
+:root {
+  --font-display: 'Manrope', 'Avenir Next', 'Segoe UI Variable', sans-serif;
+  --font-body: 'Space Grotesk', 'Avenir Next', 'Segoe UI Variable', sans-serif;
+  --font-code: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
+  --color-bg: oklch(0.12 0.030 246);
+  --color-bg-deep: oklch(0.08 0.022 248);
+  --color-surface: oklch(0.23 0.03 254 / 0.76);
+  --color-surface-strong: oklch(0.27 0.04 252 / 0.9);
+  --color-surface-muted: oklch(0.2 0.024 254 / 0.82);
+  --color-border: oklch(0.4 0.044 248 / 0.38);
+  --color-border-strong: oklch(0.69 0.13 240 / 0.42);
+  --color-accent: oklch(0.71 0.17 244);
+  --color-accent-bright: oklch(0.79 0.14 226);
+  --color-accent-soft: oklch(0.72 0.14 236 / 0.18);
+  --color-text: oklch(0.98 0.006 255);
+  --color-text-muted: oklch(0.82 0.025 255);
+  --color-text-subtle: oklch(0.65 0.04 252);
+  --color-success: oklch(0.76 0.16 160);
+  --color-warning: oklch(0.8 0.13 88);
+  --color-danger: oklch(0.65 0.19 25);
+  --color-ink: oklch(0.2 0.02 255);
+
+  /* ─── Glass surface tokens ──────────────────────────────
+     Shared by every frosted-glass element (cards, modals,
+     form fields). Edit here to retheme all glass at once. */
+  --color-glass-card:  oklch(0.2 0.025 254 / 0.46);
+  --color-glass-row:   oklch(0.2 0.024 254 / 0.42);
+  --color-glass-field: oklch(0.15 0.018 258 / 0.55);
+}
+
+/* ─── Typography utilities ───────────────────────────────────────────────
+   text-bevel:     subtle raised letterform for light text on dark surfaces
+   text-bevel-ink: raised letterform for dark (ink) text on light surfaces  */
+@utility text-bevel {
+  text-shadow: 0 1px 1px oklch(0 0 0 / 0.48), 0 -1px 0 oklch(1 0 0 / 0.07);
+}
+
+@utility text-bevel-strong {
+  text-shadow:
+    0 1px 2px oklch(0 0 0 / 0.62),
+    0 -1px 0 oklch(1 0 0 / 0.20),
+    0 2px 16px oklch(0 0 0 / 0.36);
+}
+
+@utility text-bevel-ink {
+  text-shadow: 0 1px 0 oklch(1 0 0 / 0.32), 0 -1px 0 oklch(0 0 0 / 0.1);
+}
+
+::selection {
+  background: oklch(0.74 0.14 236 / 0.3);
+  color: var(--color-text);
+}

@@ -4,16 +4,15 @@ import { THEMES } from '../config';
 import Dropdown from '../components/Dropdown';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
-import GlassPanel from '../components/GlassPanel';
-import { getGlassStyles } from '../design/glass';
+import { GlassPanel, getGlassStyles, useGlass } from 'glass-design-system';
 
 const options = THEMES.map((lang) => ({ label: lang, value: lang }));
 
-// Inner setting rows use 'subtle' intensity — visually nested inside the 'strong' outer panel
-const rowGlass = getGlassStyles('subtle');
-
 const Preferences: React.FC = () => {
   const { showLineNumbers, setLineNumbers, setTheme, theme, autoSize, setAutoSize } = useContext(ThemeContext);
+  // Inner setting rows use 'subtle' intensity — visually nested inside the 'strong' outer panel
+  const glassConfig = useGlass();
+  const rowGlass = getGlassStyles('subtle', glassConfig);
   const [showPreferences, setShowPreferences] = useState(false);
 
   const closePreferences = () => setShowPreferences(false);

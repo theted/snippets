@@ -3,7 +3,7 @@ import React, { useContext, useState, useRef, useEffect, useCallback, RefObject 
 import { useQueryClient } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import Snippet from '../components/Snippet';
-import GlassPanel from '../components/GlassPanel';
+import { GlassPanel, GlassPill } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import Searchbar, { SearchbarHandle } from '../components/Searchbar';
 import { SpinFigure } from '../components/Spinner';
@@ -16,7 +16,6 @@ import useReactQuery from '../hooks/useReactQuery';
 import { capitalize } from '../utils/helpers';
 import Toast from '../components/Toast';
 import { DEFAULT_SNIPPET_LAYOUT, LANGUAGE_MAP, SnippetLayout } from '../config';
-import GlassPill from '../components/GlassPill';
 import Chip from '../components/Chip';
 import { useFavorites } from '../hooks/useFavorites';
 import { computeCardWidth } from '../utils/snippetLayout';

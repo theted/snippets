@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import GlassPanel from '../components/GlassPanel';
-import { GLASS_BLUR } from '../design/glass';
+import { GlassPanel, GLASS_BLUR } from 'glass-design-system';
 
 // ── Layout helpers ────────────────────────────────────────────────────────────
 

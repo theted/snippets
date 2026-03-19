@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import GlassPill from '../components/GlassPill';
+import { GlassPill } from 'glass-design-system';
 import Kicker from '../components/Kicker';
 
 const NotFound: React.FC = () => (

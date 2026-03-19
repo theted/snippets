@@ -84,8 +84,6 @@ const GlassPill: React.FC<Props> = ({
   children,
   ...rest
 }) => {
-  // Default `type="button"` when rendering as a native <button> to prevent
-  // accidental form submission. Skipped for Link/a and other non-button tags.
   const typeDefault = Tag === 'button' && !rest.type ? { type: 'button' } : {};
 
   return (

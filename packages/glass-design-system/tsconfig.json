@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "strict": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "baseUrl": ".",
+        "paths": {
+            "glass-design-system": ["./src/index.ts"],
+            "glass-design-system/*": ["./src/*"]
+        }
+    },
+    "include": ["src"]
+}

@@ -4,8 +4,7 @@ import React, {
 } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
-import GlassPanel from '../components/GlassPanel';
-import { GLASS_OPACITY, GLASS_BLUR } from '../design/glass';
+import { GlassPanel, GLASS_OPACITY, GLASS_BLUR } from 'glass-design-system';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // § Illustrations

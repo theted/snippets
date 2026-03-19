@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import GlassPanel from '../components/GlassPanel';
-import GlassPill from '../components/GlassPill';
+import { GlassPanel, GlassPill } from 'glass-design-system';
 import Kicker from '../components/Kicker';
 
 // ── Shortcut row ─────────────────────────────────────────────────────────────

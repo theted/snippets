@@ -1,5 +1,5 @@
 import React from 'react';
-import GlassPanel from './GlassPanel';
+import { GlassPanel } from 'glass-design-system';
 
 type Props = React.PropsWithChildren<{
   title?: string;
