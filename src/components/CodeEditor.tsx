@@ -106,6 +106,10 @@ const appOverlay = EditorView.theme({
     '.cm-scroller': {
         fontFamily: 'var(--font-code) !important',
         lineHeight: '1.85 !important',
+        scrollbarWidth: 'none',
+    },
+    '.cm-scroller::-webkit-scrollbar': {
+        display: 'none',
     },
     '.cm-content': {
         padding: '1.75rem 0',
@@ -153,6 +157,7 @@ type Props = {
     placeholder?: string;
     autoFocus?: boolean;
     minHeight?: string;
+    maxHeight?: string;
 };
 
 const CodeEditor: React.FC<Props> = ({
@@ -163,6 +168,7 @@ const CodeEditor: React.FC<Props> = ({
     placeholder = 'Paste or type your code here…',
     autoFocus = false,
     minHeight = '30rem',
+    maxHeight = '800px',
 }) => {
     const { showLineNumbers } = useContext(ThemeContext);
     const langExts = useMemo(() => getLanguageExtension(language), [language]);
@@ -187,6 +193,7 @@ const CodeEditor: React.FC<Props> = ({
                 extensions={[...langExts, appOverlay, EditorView.lineWrapping]}
                 autoFocus={autoFocus}
                 minHeight={minHeight}
+                maxHeight={maxHeight}
                 placeholder={placeholder}
                 basicSetup={{
                     lineNumbers: showLineNumbers,
