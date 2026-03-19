@@ -6,5 +6,5 @@
  */
 export function computeCardWidth(content: string): number {
     const longestLine = content.split('\n').reduce((max, line) => Math.max(max, line.length), 0);
-    return Math.max(480, Math.min(1400, longestLine * 10.5 + 160));
+    return Math.max(160, Math.min(1400, longestLine * 9 + 100));
 }

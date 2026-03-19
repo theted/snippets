@@ -194,37 +194,43 @@ const CascadeGrid: React.FC<CascadeGridProps> = ({ snippets, onDelete, onEdit, t
 };
 
 // ── Variable-width masonry (Auto layout) ─────────────────────────────────────
-// Cards are classified as 1-column or 2-column wide based on content length.
-// A greedy shortest-column packing algorithm places them with absolute positions,
-// so both column-span and card height drive the final layout.
+// Cards span 1–3 columns based on content length, always stretching to fill their
+// span. A greedy shortest-column packing algorithm places them with absolute
+// positions, so both column-span and card height drive the final layout.
 
-const AUTO_GUTTER = 32;    // px — matches gap-8
-const AUTO_BASE_COL = 420; // px — minimum column width
-// Snippets whose ideal width exceeds this threshold get a 2-column span.
-const WIDE_THRESHOLD = 620;
+const AUTO_GUTTER = 20;     // px — gap between columns
+const COL_MIN_WIDTH = 260;  // px — below this per-column width, add more columns
+const MIN_COLS = 4;         // always at least 4 columns
+const MAX_COLS = 4;         // cap at 4 columns on very wide screens
 // Set to true to animate card positions on reflow (resize / data changes).
 // Currently disabled: position transitions cause a yank on initial layout pass.
 const AUTO_REFLOW_ANIMATIONS = false;
 
-function colSpanForSnippet(content: string): 1 | 2 {
-  return computeCardWidth(content) >= WIDE_THRESHOLD ? 2 : 1;
+/** Returns the minimum number of columns a snippet needs so its width is never
+ *  squeezed below its natural content width. Cards are stretched to fill their
+ *  exact column span — never smaller, but possibly wider than the natural size. */
+function colSpanForSnippet(content: string, colCount: number, colWidth: number): 1 | 2 | 3 {
+  const naturalWidth = computeCardWidth(content);
+  const span = Math.ceil((naturalWidth + AUTO_GUTTER) / (colWidth + AUTO_GUTTER));
+  return Math.max(1, Math.min(span, colCount, 3)) as 1 | 2 | 3;
 }
 
-/** Greedy shortest-column packing that supports 1- and 2-column spans. */
+/** Greedy shortest-column packing that supports 1-, 2-, and 3-column spans. */
 function packVariableWidth(
-  spans: (1 | 2)[],
+  spans: (1 | 2 | 3)[],
   heights: number[],
   colCount: number,
   colWidth: number,
 ): Array<{ left: number; top: number; width: number }> {
   const colHeights = new Array<number>(colCount).fill(0);
   return spans.map((rawSpan, i) => {
-    const span = Math.min(rawSpan, colCount) as 1 | 2;
+    const span = Math.min(rawSpan, colCount) as 1 | 2 | 3;
     // Find the starting column that minimises the max height of occupied slots.
     let bestCol = 0;
     let bestH = Infinity;
     for (let c = 0; c <= colCount - span; c++) {
-      const h = span === 1 ? colHeights[c] : Math.max(colHeights[c], colHeights[c + 1]);
+      let h = colHeights[c];
+      for (let s = 1; s < span; s++) h = Math.max(h, colHeights[c + s]);
       if (h < bestH) { bestH = h; bestCol = c; }
     }
     const left = bestCol * (colWidth + AUTO_GUTTER);
@@ -277,12 +283,14 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snippets]);
 
-  const colCount = Math.max(1, Math.floor((containerWidth + AUTO_GUTTER) / (AUTO_BASE_COL + AUTO_GUTTER)));
+  const colCount = containerWidth > 0
+    ? Math.min(MAX_COLS, Math.max(MIN_COLS, Math.floor((containerWidth + AUTO_GUTTER) / (COL_MIN_WIDTH + AUTO_GUTTER))))
+    : MIN_COLS;
   const colWidth = containerWidth > 0
     ? (containerWidth - (colCount - 1) * AUTO_GUTTER) / colCount
-    : AUTO_BASE_COL;
+    : COL_MIN_WIDTH;
 
-  const spans = snippets.map((s) => colSpanForSnippet(s.content));
+  const spans = snippets.map((s) => colSpanForSnippet(s.content, colCount, colWidth));
   const isPositioned = itemHeights.length === snippets.length && itemHeights.every((h) => h > 0);
   const positions = isPositioned ? packVariableWidth(spans, itemHeights, colCount, colWidth) : null;
   const totalHeight = positions
