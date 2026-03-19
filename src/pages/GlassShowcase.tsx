@@ -811,9 +811,240 @@ const GlassShowcase: React.FC = () => {
       </Section>
 
       {/* ══════════════════════════════════════════════════════════════
-          § 9 — Tips & Tricks
+          § 9 — Form & Input patterns
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="09 — Tips & Tricks" sub="Interactive demonstrations of the techniques that make glass feel alive." light={bgId === 'dawn'}>
+      <Section
+        label="09 — Forms & Inputs"
+        sub="Form controls are glass surfaces too. Fields, toggles, and sliders should feel like they belong in the same light field as the panels behind them — not imported from a different design language."
+        light={bgId === 'dawn'}
+      >
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+          {/* Left: annotated field anatomy */}
+          <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="p-7 flex flex-col gap-6">
+            <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Field anatomy</p>
+
+            {/* Text input */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel">Title</label>
+              <div className="relative">
+                <input
+                  readOnly
+                  value="Glass Design System"
+                  className="w-full rounded-[0.9rem] px-4 py-3 text-sm text-[var(--color-text)] outline-none"
+                  style={{
+                    background: 'oklch(0.16 0.020 256 / 0.55)',
+                    border: '1px solid oklch(0.48 0.06 248 / 0.32)',
+                    boxShadow: 'inset 0 1px 0 oklch(0.82 0.1 230 / 0.07)',
+                  }}
+                />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-[0.9rem]"
+                  style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.18), transparent)' }} />
+              </div>
+              <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel">Same background base as panels — slightly darker, no blur needed inside a glass surface.</p>
+            </div>
+
+            {/* Textarea */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel">Description</label>
+              <textarea
+                readOnly
+                value={"A system built around a single\nlight source. Every surface\nresponds to the same field."}
+                rows={3}
+                className="w-full resize-none rounded-[0.9rem] px-4 py-3 text-sm leading-6 text-[var(--color-text)] outline-none"
+                style={{
+                  background: 'oklch(0.16 0.020 256 / 0.55)',
+                  border: '1px solid oklch(0.48 0.06 248 / 0.32)',
+                  boxShadow: 'inset 0 1px 0 oklch(0.82 0.1 230 / 0.07)',
+                }}
+              />
+            </div>
+
+            {/* Select / dropdown */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel">Language</label>
+              <div className="relative">
+                <select
+                  className="w-full appearance-none rounded-[0.9rem] px-4 py-3 text-sm text-[var(--color-text)] outline-none"
+                  style={{
+                    background: 'oklch(0.16 0.020 256 / 0.55)',
+                    border: '1px solid oklch(0.48 0.06 248 / 0.32)',
+                    boxShadow: 'inset 0 1px 0 oklch(0.82 0.1 230 / 0.07)',
+                  }}
+                  defaultValue="typescript"
+                >
+                  <option value="typescript">TypeScript</option>
+                  <option value="python">Python</option>
+                  <option value="go">Go</option>
+                </select>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[0.60rem] text-[var(--color-text-subtle)]">▾</span>
+              </div>
+            </div>
+          </GlassPanel>
+
+          {/* Right: toggles, sliders, a complete form */}
+          <div className="flex flex-col gap-6">
+
+            {/* Toggle switches */}
+            <GlassPanel intensity="subtle" rounded="rounded-[2rem]" className="p-6 flex flex-col gap-5">
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Toggles &amp; controls</p>
+              {([
+                { label: 'Line numbers', on: true },
+                { label: 'Auto-size cards', on: false },
+                { label: 'Background animation', on: true },
+              ] as { label: string; on: boolean }[]).map(({ label, on }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--color-text-muted)] text-bevel">{label}</span>
+                  <div className="relative h-5 w-9 rounded-full transition duration-300 cursor-pointer"
+                    style={{
+                      background: on ? 'oklch(0.62 0.17 240 / 0.55)' : 'oklch(0.22 0.025 254 / 0.6)',
+                      border: `1px solid ${on ? 'oklch(0.62 0.17 240 / 0.6)' : 'oklch(0.40 0.044 248 / 0.38)'}`,
+                    }}>
+                    <div className="absolute top-0.5 h-4 w-4 rounded-full transition-all duration-300 shadow-sm"
+                      style={{
+                        left: on ? '18px' : '2px',
+                        background: on ? 'oklch(0.88 0.08 230)' : 'oklch(0.50 0.06 248)',
+                        boxShadow: on ? '0 1px 4px oklch(0.62 0.17 240 / 0.5)' : 'none',
+                      }} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel mt-1">Track uses the accent hue at low opacity — the thumb brightens when active to simulate light catching it.</p>
+            </GlassPanel>
+
+            {/* Range sliders */}
+            <GlassPanel intensity="subtle" rounded="rounded-[2rem]" className="p-6 flex flex-col gap-5">
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Range sliders</p>
+              {([
+                { label: 'Opacity', value: 66, unit: '%', color: 'oklch(0.62 0.17 240)' },
+                { label: 'Blur',    value: 40, unit: 'px', color: 'oklch(0.65 0.14 210)' },
+              ] as { label: string; value: number; unit: string; color: string }[]).map(({ label, value, unit, color }) => (
+                <div key={label} className="flex flex-col gap-2">
+                  <div className="flex justify-between">
+                    <span className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">{label}</span>
+                    <span className="font-[var(--font-code)] text-[0.62rem]" style={{ color }}>{value}{unit}</span>
+                  </div>
+                  <div className="relative h-1.5 w-full rounded-full" style={{ background: 'oklch(0.22 0.025 254 / 0.7)' }}>
+                    <div className="absolute left-0 top-0 h-1.5 rounded-full" style={{ width: `${value}%`, background: `${color.replace(')', ' / 0.7)')}` }} />
+                    <div className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full shadow"
+                      style={{ left: `calc(${value}% - 7px)`, background: 'oklch(0.84 0.08 228)', boxShadow: `0 1px 6px ${color.replace(')', ' / 0.55)')}` }} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel mt-1">Track fill and thumb glow use the same hue as the value it controls — opacity knob is blue, blur knob is teal. Colour carries meaning.</p>
+            </GlassPanel>
+
+          </div>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 10 — Code & Terminal
+      ══════════════════════════════════════════════════════════════ */}
+      <Section
+        label="10 — Code & Terminal"
+        sub="Code blocks are the reason glass exists in this system. The frosted surface puts distance between the syntax-highlighted content and the ambient background, letting colour and contrast carry meaning without competing with the environment."
+        light={bgId === 'dawn'}
+      >
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+          {/* Terminal window */}
+          <GlassPanel intensity="strong" topGlow bottomGlow rounded="rounded-[2rem]" className="overflow-hidden">
+            {/* Title bar */}
+            <div className="flex items-center gap-3 border-b px-5 py-3.5"
+              style={{ borderColor: 'oklch(0.48 0.06 248 / 0.22)' }}>
+              <div className="flex gap-1.5">
+                {['oklch(0.65 0.19 25)', 'oklch(0.80 0.13 88)', 'oklch(0.72 0.18 160)'].map((c) => (
+                  <div key={c} className="h-2.5 w-2.5 rounded-full" style={{ background: c, opacity: 0.7 }} />
+                ))}
+              </div>
+              <span className="flex-1 text-center font-[var(--font-code)] text-[0.60rem] text-[var(--color-text-subtle)]">~/snippets</span>
+            </div>
+            {/* Content */}
+            <div className="p-6 font-[var(--font-code)] text-[0.72rem] leading-6 space-y-1.5">
+              {[
+                { prompt: true,  text: 'npm run build',                                   color: 'var(--color-text)' },
+                { prompt: false, text: '  vite v5.4.2 building for production…',          color: 'var(--color-text-muted)' },
+                { prompt: false, text: '  ✓  1,847 modules transformed.',                 color: 'oklch(0.72 0.18 160)' },
+                { prompt: false, text: '  dist/index.html         0.48 kB',               color: 'var(--color-text-muted)' },
+                { prompt: false, text: '  dist/assets/index.js  284.20 kB │ gz: 89 kB',  color: 'var(--color-text-muted)' },
+                { prompt: false, text: '  ✓  built in 2.34s',                             color: 'oklch(0.72 0.18 160)' },
+                { prompt: true,  text: 'git push origin main',                            color: 'var(--color-text)' },
+                { prompt: false, text: '  → Deployed to production.',                     color: 'oklch(0.62 0.17 240)' },
+              ].map(({ prompt, text, color }, i) => (
+                <div key={i} className="flex gap-2">
+                  {prompt
+                    ? <span style={{ color: 'oklch(0.72 0.18 160)' }}>❯</span>
+                    : <span className="w-3 shrink-0" />
+                  }
+                  <span style={{ color }}>{text}</span>
+                </div>
+              ))}
+              <div className="flex gap-2 opacity-70">
+                <span style={{ color: 'oklch(0.72 0.18 160)' }}>❯</span>
+                <span className="w-2 h-4 inline-block rounded-sm animate-pulse" style={{ background: 'var(--color-text-muted)' }} />
+              </div>
+            </div>
+          </GlassPanel>
+
+          {/* Code block patterns */}
+          <div className="flex flex-col gap-6">
+
+            {/* Inline code block */}
+            <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Code block</p>
+                <span className="rounded-full px-2.5 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.16em]"
+                  style={{ background: 'oklch(0.62 0.17 240 / 0.14)', border: '1px solid oklch(0.62 0.17 240 / 0.30)', color: 'oklch(0.71 0.14 232)' }}>
+                  TypeScript
+                </span>
+              </div>
+              <div className="rounded-[1.2rem] p-4 font-[var(--font-code)] text-[0.72rem] leading-6 overflow-hidden"
+                style={{ background: 'oklch(0.12 0.018 255 / 0.7)', border: '1px solid oklch(0.36 0.044 250 / 0.28)' }}>
+                <div><span style={{ color: 'oklch(0.74 0.14 290)' }}>export function </span><span style={{ color: 'oklch(0.78 0.16 200)' }}>getGlassStyles</span><span style={{ color: 'var(--color-text-muted)' }}>(</span></div>
+                <div><span style={{ color: 'oklch(0.80 0.10 60)' }}>  intensity</span><span style={{ color: 'var(--color-text-muted)' }}>: </span><span style={{ color: 'oklch(0.72 0.16 38)' }}>GlassIntensity </span><span style={{ color: 'var(--color-text-muted)' }}>= </span><span style={{ color: 'oklch(0.72 0.18 160)' }}>'medium'</span></div>
+                <div><span style={{ color: 'var(--color-text-muted)' }}>): </span><span style={{ color: 'oklch(0.72 0.16 38)' }}>GlassStyles </span><span style={{ color: 'var(--color-text-muted)' }}>{'{'}</span></div>
+                <div><span style={{ color: 'var(--color-text-muted)' }}>  return {'{'}</span></div>
+                <div><span style={{ color: 'oklch(0.80 0.10 60)' }}>    panel</span><span style={{ color: 'var(--color-text-muted)' }}>: getPanel(intensity),</span></div>
+                <div><span style={{ color: 'oklch(0.80 0.10 60)' }}>    shimmerColor</span><span style={{ color: 'var(--color-text-muted)' }}>: getShimmer(intensity),</span></div>
+                <div><span style={{ color: 'var(--color-text-muted)' }}>  {'}'};</span></div>
+                <div><span style={{ color: 'var(--color-text-muted)' }}>{'}'}</span></div>
+              </div>
+              <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel">The code panel sits on a darker base than the card behind it — two glass layers, each with its own depth. The gap between them reads as distance.</p>
+            </GlassPanel>
+
+            {/* Diff / patch view */}
+            <GlassPanel intensity="subtle" rounded="rounded-[2rem]" className="p-6 flex flex-col gap-3">
+              <p className="text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Diff view — coloured glass rows</p>
+              <div className="rounded-[1.2rem] overflow-hidden font-[var(--font-code)] text-[0.72rem] leading-6"
+                style={{ border: '1px solid oklch(0.36 0.044 250 / 0.28)' }}>
+                {([
+                  { type: 'ctx', text: '  const blur  = GLASS_BLUR;' },
+                  { type: 'del', text: '- const alpha = 0.42;' },
+                  { type: 'add', text: '+ const alpha = GLASS_OPACITY * 0.64;' },
+                  { type: 'ctx', text: '  return { backdropFilter: `blur(${blur}px)` };' },
+                ] as { type: 'ctx' | 'del' | 'add'; text: string }[]).map(({ type, text }, i) => (
+                  <div key={i} className="px-4 py-1.5"
+                    style={{
+                      background: type === 'add' ? 'oklch(0.72 0.18 160 / 0.10)' : type === 'del' ? 'oklch(0.65 0.19 25 / 0.10)' : 'transparent',
+                      borderLeft: `2px solid ${type === 'add' ? 'oklch(0.72 0.18 160 / 0.6)' : type === 'del' ? 'oklch(0.65 0.19 25 / 0.6)' : 'transparent'}`,
+                      color: type === 'add' ? 'oklch(0.80 0.16 160)' : type === 'del' ? 'oklch(0.72 0.16 25)' : 'var(--color-text-muted)',
+                    }}>
+                    {text}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[0.60rem] text-[var(--color-text-subtle)] text-bevel">Diff rows use very low-opacity colour fills — green/red at ~10% — with a 2px left accent. The glass surface beneath shows through, keeping context rows readable.</p>
+            </GlassPanel>
+
+          </div>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 11 — Tips & Tricks
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="11 — Tips & Tricks" sub="Interactive demonstrations of the techniques that make glass feel alive." light={bgId === 'dawn'}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
 
           <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
@@ -888,7 +1119,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 10 — Do's & Don'ts
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="10 — Do's & Don'ts" sub="Side-by-side comparisons of correct and incorrect usage patterns." light={bgId === 'dawn'}>
+      <Section label="12 — Do's & Don'ts" sub="Side-by-side comparisons of correct and incorrect usage patterns." light={bgId === 'dawn'}>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
 
           {/* 1 — Background */}
@@ -1033,7 +1264,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 11 — Quick reference
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="11 — Quick reference" sub="The values, utilities, and rules you reach for most often." light={bgId === 'dawn'}>
+      <Section label="13 — Quick reference" sub="The values, utilities, and rules you reach for most often." light={bgId === 'dawn'}>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
           {/* Master knobs */}
