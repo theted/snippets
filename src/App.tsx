@@ -16,6 +16,7 @@ import NotFound from './pages/NotFound';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
 import BackgroundAnimation from './components/BackgroundAnimation';
+import Icon from './components/Icon';
 import { AuthProvider } from './contexts/authContext';
 import { ThemeContext, ThemeContextValue } from './contexts/themeContext';
 import { DEFAULT_THEME, ENVIRONMENT, EXPERIMENTAL_BACKGROUND, THEMES } from './config';
@@ -45,6 +46,13 @@ const getDefaultGlobalState = (): ThemePreferences => ({
 
 const App: FC = () => {
     const [globalState, setGlobalState] = useState<ThemePreferences>(getDefaultGlobalState);
+    // Consume the flag synchronously before first paint so app--restore is set
+    // from the start, not swapped in after an effect (same technique as SnippetPage's enterClass).
+    const [homeRestore] = useState(() => {
+        const flag = sessionStorage.getItem('homeRestore');
+        if (flag) sessionStorage.removeItem('homeRestore');
+        return !!flag;
+    });
     const createSnippetRef = useRef<CreateSnippetHandle>(null);
     const searchbarRef = useRef<SearchbarHandle>(null);
     const navigate = useNavigate();
@@ -109,7 +117,7 @@ const App: FC = () => {
                 <GlassProvider>
                 <ThemeContext.Provider value={value}>
                     <Spinner />
-                    <div className={`App${navType === 'POP' && appHasNavigated ? ' app--restore' : ''}`}>
+                    <div className={`App${homeRestore || (navType === 'POP' && appHasNavigated) ? ' app--restore' : ''}`}>
                         {EXPERIMENTAL_BACKGROUND && <BackgroundAnimation />}
                         <Routes>
                             <Route
@@ -134,11 +142,11 @@ const App: FC = () => {
                                                     <CreateSnippet ref={createSnippetRef} />
                                                     <Preferences />
                                                     <GlassPill as={Link} to="/favorites" size="lg">
-                                                        <i className="icon-star-empty" />
+                                                        <Icon name="star-empty" />
                                                         <span>Favorites</span>
                                                     </GlassPill>
                                                     <GlassPill as={Link} to="/docs" size="lg">
-                                                        <i className="icon-info" />
+                                                        <Icon name="info" />
                                                         <span>Shortcuts</span>
                                                     </GlassPill>
                                                 </div>

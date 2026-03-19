@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GlassPanel, GlassPill } from 'glass-design-system';
+import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
 
 // ── Shortcut row ─────────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ const Docs: React.FC = () => {
     <div className="App">
       <div className={classes.shell}>
         <GlassPill as={Link} to="/" size="md">
-          <i className="icon-home" style={{ fontSize: '0.85em' }} />
+          <Icon name="home" style={{ fontSize: '0.85em' }} />
           Back to archive
         </GlassPill>
 

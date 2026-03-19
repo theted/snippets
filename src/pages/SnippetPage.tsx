@@ -17,6 +17,7 @@ import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
 import Toast from '../components/Toast';
 import { GlassPanel, GlassPill } from 'glass-design-system';
+import Icon from '../components/Icon';
 
 // ── Direction bridging across navigation ──────────────────────────────────────
 // sessionStorage survives the React unmount/remount that happens on navigation,
@@ -117,7 +118,10 @@ const SnippetPage: React.FC = () => {
       y: 20,
       duration: 0.1,
       ease: 'power2.in',
-      onComplete: () => startTransition(() => { navigate('/'); }),
+      onComplete: () => startTransition(() => {
+        sessionStorage.setItem('homeRestore', '1');
+        navigate('/');
+      }),
     });
   }, [isEditing, navigate, startTransition]);
 
@@ -168,6 +172,7 @@ const SnippetPage: React.FC = () => {
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
       if (exitTweenRef.current) await exitTweenRef.current;
+      sessionStorage.setItem('homeRestore', '1');
       navigate('/');
     },
   });
@@ -181,10 +186,10 @@ const SnippetPage: React.FC = () => {
         <GlassPanel
           intensity="subtle"
           rounded="rounded-[1.6rem]"
-          className="flex items-center justify-between gap-4 px-4 py-3"
+          className="sticky top-4 z-10 flex items-center justify-between gap-4 px-4 py-3"
         >
           <GlassPill size="sm" onClick={navigateBack}>
-            <i className="icon-home" style={{ fontSize: '0.85em' }} />
+            <Icon name="home" style={{ fontSize: '0.85em' }} />
             Back to archive
           </GlassPill>
 
@@ -216,7 +221,7 @@ const SnippetPage: React.FC = () => {
           )}
 
           {snippet && (
-            <div style={{ width: `min(${computeCardWidth(snippet.content)}px, 100%)` }}>
+            <div style={{ width: `clamp(50%, ${computeCardWidth(snippet.content)}px, 100%)` }}>
               <Snippet
                 id={snippet.id}
                 title={snippet.title}

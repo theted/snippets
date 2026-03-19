@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
+import Icon from '../components/Icon';
 import Snippets from './Snippets';
 import { LANGUAGE_MAP } from '../config';
 
@@ -21,7 +22,7 @@ const LanguagePage: React.FC = () => {
           </p>
           <div className="app-toolbar">
             <GlassPill as={Link} to="/" size="lg">
-              <i className="icon-home" />
+              <Icon name="home" />
               <span>All snippets</span>
             </GlassPill>
           </div>

@@ -11,6 +11,7 @@ import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
 import { LANGUAGE_MAP } from '../config';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
+import Icon from './Icon';
 import Toast from './Toast';
 import Chip from './Chip';
 
@@ -302,7 +303,7 @@ const Snippet: React.FC<Props> = ({
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(true); }}
                     className={c.controlButton}
                 >
-                    <i className="icon-trash" />
+                    <Icon name="trash" />
                     Delete
                 </button>
                 <button
@@ -310,7 +311,7 @@ const Snippet: React.FC<Props> = ({
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(id); }}
                     className={c.controlButton}
                 >
-                    <i className="icon-pencil" />
+                    <Icon name="pencil" />
                     Edit
                 </button>
                 <button
@@ -318,7 +319,7 @@ const Snippet: React.FC<Props> = ({
                     onClick={handleCopy}
                     className={c.controlButton}
                 >
-                    <i className="icon-code" />
+                    <Icon name="code" />
                     Copy
                 </button>
                 {onToggleFavorite && (
@@ -327,7 +328,7 @@ const Snippet: React.FC<Props> = ({
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(id); }}
                         className={`${c.controlButton} ${isFavorite ? '!border-[oklch(0.78_0.16_88_/_0.45)] !text-[oklch(0.82_0.18_88)]' : ''}`}
                     >
-                        <i className={isFavorite ? 'icon-star' : 'icon-star-empty'} />
+                        <Icon name={isFavorite ? 'star' : 'star-empty'} />
                         {isFavorite ? 'Saved' : 'Save'}
                     </button>
                 )}

@@ -5,6 +5,7 @@ import Dropdown from '../components/Dropdown';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
 import { GlassPanel, getGlassStyles, useGlass } from 'glass-design-system';
+import Icon from '../components/Icon';
 
 const options = THEMES.map((lang) => ({ label: lang, value: lang }));
 
@@ -20,7 +21,7 @@ const Preferences: React.FC = () => {
   if (!showPreferences) {
     return (
       <Button type="button" variant="info" onClick={() => setShowPreferences(true)}>
-        <i className="icon-cog" />
+        <Icon name="cog" />
         <span>Preferences</span>
       </Button>
     );

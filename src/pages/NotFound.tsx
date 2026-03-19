@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
+import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
 
 const NotFound: React.FC = () => (
@@ -14,7 +15,7 @@ const NotFound: React.FC = () => (
         This page doesn't exist — or it may have been moved.
       </p>
       <GlassPill as={Link} to="/" size="lg">
-        <i className="icon-home" style={{ fontSize: '0.85em' }} />
+        <Icon name="home" style={{ fontSize: '0.85em' }} />
         Back to archive
       </GlassPill>
     </div>

@@ -2,6 +2,7 @@
 import React, { useContext, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
+import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
@@ -54,7 +55,7 @@ const Favorites: React.FC = () => {
     <div className="App">
       <div className={classes.shell}>
         <GlassPill as={Link} to="/" size="md">
-          <i className="icon-home" style={{ fontSize: '0.85em' }} />
+          <Icon name="home" style={{ fontSize: '0.85em' }} />
           Back to archive
         </GlassPill>
 
@@ -77,7 +78,7 @@ const Favorites: React.FC = () => {
             </div>
           ) : favoriteSnippets.length === 0 ? (
             <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-center">
-              <i className="icon-star-empty text-4xl text-[var(--color-text-subtle)]" />
+              <Icon name="star-empty" className="text-4xl text-[var(--color-text-subtle)]" />
               <p className="text-[var(--color-text-muted)]">No favorites yet.</p>
               <p className="text-sm text-[var(--color-text-subtle)]">
                 Save snippets from the archive using the{' '}

@@ -6,6 +6,7 @@ import React, {
 import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
 import { GlassPill } from 'glass-design-system';
+import Icon from './Icon';
 
 type Props = PropsWithChildren<{
   closeModal?: () => void;
@@ -91,6 +92,10 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // If the event originated inside a CodeMirror editor, let CM handle it
+        // (blur/focus-next) — don't close the dialog on the first Escape.
+        const target = e.target as Element | null;
+        if (target?.closest('.cm-editor')) return;
         closeModalCallback();
       }
     };
@@ -119,7 +124,7 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
               onClick={closeModalCallback}
               aria-label="Close modal"
             >
-              <i className="icon-cancel" style={{ fontSize: '0.8em' }} />
+              <Icon name="cancel" style={{ fontSize: '0.8em' }} />
               Close
             </GlassPill>
             {children}

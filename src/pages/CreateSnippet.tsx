@@ -8,6 +8,7 @@ import Modal from '../components/Modal';
 import { CreateSnippet as CreateSnippetInput, Snippet, SnippetFormValues } from '../types';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 import Toast from '../components/Toast';
+import Icon from '../components/Icon';
 
 export type CreateSnippetHandle = { open: () => void };
 
@@ -47,7 +48,7 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
         onClick={openModal}
         className="min-w-[14rem] justify-center md:justify-start"
       >
-        <i className="icon-plus" />
+        <Icon name="plus" />
         <span>Create Snippet</span>
       </Button>
       {isFormVisible && (

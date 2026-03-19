@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
+import Icon from './Icon';
 
 type Props = {
   onConfirm: () => void;
@@ -123,7 +124,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
 
           {/* Icon */}
           <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-danger)] bg-[oklch(0.65_0.19_25_/_0.12)]">
-            <i className="icon-trash" style={{ color: 'var(--color-danger)', fontSize: '1rem' }} />
+            <Icon name="trash" style={{ color: 'var(--color-danger)', fontSize: '1rem' }} />
           </div>
 
           {/* Copy */}
@@ -144,7 +145,7 @@ const DeleteConfirmDialog: React.FC<Props> = ({ onConfirm, onCancel }) => {
               onClick={onConfirm}
               className="inline-flex items-center gap-2 rounded-full border border-transparent bg-[var(--color-danger)] px-6 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-white text-bevel transition duration-300 hover:-translate-y-0.5 hover:bg-[oklch(0.7_0.19_25)] focus:outline-none focus:ring-4 focus:ring-[oklch(0.65_0.19_25_/_0.3)]"
             >
-              <i className="icon-trash" style={{ fontSize: '0.9em' }} />
+              <Icon name="trash" style={{ fontSize: '0.9em' }} />
               Delete
             </button>
             <button
