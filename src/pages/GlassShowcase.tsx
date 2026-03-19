@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import GlassPanel from '../components/GlassPanel';
 import { GLASS_BLUR, GLASS_OPACITY, getGlassStyles } from '../design/glass';
@@ -135,6 +135,192 @@ const SampleContent: React.FC<{ title: string; body: string }> = ({ title, body 
     </p>
     <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)] text-bevel">{body}</p>
   </>
+);
+
+// ── § 09 — Tips & Tricks components ──────────────────────────────────────────
+
+// Tip: the 1 px shimmer line that simulates a glass rim catching light
+const TipShimmer: React.FC = () => {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="space-y-3">
+      <div className="relative overflow-hidden rounded-[1.4rem] p-6"
+        style={{ background: 'oklch(0.20 0.024 254 / 0.50)', backdropFilter: 'blur(24px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)', boxShadow: 'inset 0 1px 0 oklch(0.82 0.1 230 / 0.10)' }}>
+        {on && (
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.50), transparent)' }} />
+        )}
+        <p className="text-xs font-semibold text-[var(--color-text)] text-bevel-strong">Glass panel</p>
+        <p className="mt-1 text-[0.62rem] text-[var(--color-text-muted)] text-bevel">
+          {on ? 'Shimmer line visible — glass rim catches the light' : 'No shimmer — panel looks flat, like painted metal'}
+        </p>
+      </div>
+      <button onClick={() => setOn(!on)}
+        className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] py-2 text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] transition duration-200 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]">
+        {on ? 'Remove shimmer' : 'Restore shimmer'}
+      </button>
+    </div>
+  );
+};
+
+// Tip: screen-blend tint opacity sweet spot (0.14–0.22)
+const TipTintRange: React.FC = () => {
+  const [alpha, setAlpha] = useState(0.18);
+  const isSweet = alpha >= 0.13 && alpha <= 0.23;
+  const isPainted = alpha > 0.30;
+  return (
+    <div className="space-y-3">
+      <div className="relative overflow-hidden rounded-[1.4rem] p-6"
+        style={{ background: 'oklch(0.20 0.024 254 / 0.50)', backdropFilter: 'blur(24px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)' }}>
+        <div aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] transition-all duration-150"
+          style={{ background: 'oklch(0.58 0.26 290)', mixBlendMode: 'screen', opacity: alpha }} />
+        <div className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.40), transparent)' }} />
+        <p className="relative z-10 text-xs font-semibold text-[var(--color-text)] text-bevel-strong">Violet tint</p>
+        <p className="relative z-10 mt-1 text-[0.62rem] text-[var(--color-text-muted)] text-bevel">
+          opacity {alpha.toFixed(2)} ·{' '}
+          <span style={{ color: isPainted ? 'var(--color-danger)' : isSweet ? 'var(--color-success)' : 'var(--color-warning)' }}>
+            {isPainted ? 'painted — texture lost' : isSweet ? 'sweet spot — tinted, not painted' : 'noticeable but acceptable'}
+          </span>
+        </p>
+      </div>
+      <div>
+        <div className="mb-1.5 flex justify-between text-[0.58rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-text-subtle)]">
+          <span>Tint opacity</span>
+          <span style={{ color: isPainted ? 'var(--color-danger)' : 'var(--color-accent-bright)' }}>{alpha.toFixed(2)}</span>
+        </div>
+        {/* Custom track with sweet-spot band */}
+        <div className="relative h-2 overflow-hidden rounded-full" style={{ background: 'oklch(0.28 0.02 254 / 0.6)' }}>
+          <div className="absolute inset-y-0 rounded-full" style={{ left: '33%', width: '22%', background: 'oklch(0.76 0.16 160 / 0.35)' }} />
+          <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-100"
+            style={{ width: `${(alpha / 0.45) * 100}%`, background: isPainted ? 'var(--color-danger)' : 'var(--color-accent-bright)' }} />
+        </div>
+        <input type="range" min={0} max={0.45} step={0.01} value={alpha}
+          onChange={e => setAlpha(Number(e.target.value))}
+          className="relative mt-[-0.55rem] w-full cursor-pointer opacity-0" style={{ height: '0.5rem' }} />
+        <div className="mt-1 flex justify-between text-[0.52rem] text-[var(--color-text-subtle)]">
+          <span>0</span><span className="text-[var(--color-success)]">sweet spot ↑</span><span>0.45</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Tip: text-bevel makes text legible against frosted backgrounds
+const TipTextBevel: React.FC = () => {
+  const [bevel, setBevel] = useState(true);
+  return (
+    <div className="space-y-3">
+      <div className="relative overflow-hidden rounded-[1.4rem] p-6"
+        style={{ background: 'oklch(0.20 0.024 254 / 0.50)', backdropFilter: 'blur(28px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)' }}>
+        <div className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.42), transparent)' }} />
+        <p className={`text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] ${bevel ? 'text-bevel' : ''}`}>
+          Metadata label
+        </p>
+        <p className={`mt-1 font-[var(--font-display)] text-2xl font-[200] tracking-[-0.04em] text-[var(--color-text)] ${bevel ? 'text-bevel-strong' : ''}`}>
+          Snippet title
+        </p>
+        <p className={`mt-1.5 text-xs leading-5 text-[var(--color-text-muted)] ${bevel ? 'text-bevel' : ''}`}>
+          Body copy on a frosted surface — readability matters here.
+        </p>
+      </div>
+      <button onClick={() => setBevel(!bevel)}
+        className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] py-2 text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] transition duration-200 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]">
+        {bevel ? 'Remove text-bevel' : 'Restore text-bevel'}
+      </button>
+    </div>
+  );
+};
+
+// Tip: overflow:hidden required — glow divs are oversized by design
+const TipOverflow: React.FC = () => {
+  const [clipped, setClipped] = useState(true);
+  return (
+    <div className="space-y-3">
+      <div className="relative rounded-[1.4rem] p-6" style={{ overflow: clipped ? 'hidden' : 'visible',
+        background: 'oklch(0.20 0.024 254 / 0.50)', backdropFilter: 'blur(24px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)' }}>
+        <div className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.42), transparent)' }} />
+        {/* Corner glow — intentionally oversized */}
+        <div aria-hidden className="pointer-events-none absolute right-[-4rem] top-[-12rem] h-[28rem] w-[58rem] rounded-full"
+          style={{ background: 'radial-gradient(circle, oklch(0.52 0.24 238 / 0.14) 0%, transparent 70%)', filter: 'blur(120px)' }} />
+        <p className="relative z-10 text-xs font-semibold text-[var(--color-text)] text-bevel-strong">Panel</p>
+        <p className="relative z-10 mt-1 text-[0.62rem] text-[var(--color-text-muted)] text-bevel">
+          {clipped ? 'Glow clipped — contained within border-radius' : 'Glow bleeding — spills into surrounding layout'}
+        </p>
+      </div>
+      <button onClick={() => setClipped(!clipped)}
+        className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] py-2 text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] transition duration-200 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]">
+        {clipped ? 'Remove overflow:hidden' : 'Restore overflow:hidden'}
+      </button>
+    </div>
+  );
+};
+
+// Tip: backdrop-filter only works with something behind it
+const TipBackdropBg: React.FC = () => {
+  const [hasBg, setHasBg] = useState(true);
+  return (
+    <div className="space-y-3">
+      <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-[1.4rem] transition-all duration-700"
+        style={{ background: hasBg
+          ? `radial-gradient(circle at 18% 28%, oklch(0.42 0.24 216 / 0.50), transparent 38%), linear-gradient(135deg, oklch(0.12 0.04 248), oklch(0.08 0.03 260))`
+          : 'oklch(0.22 0 0)' }}>
+        <div className="relative overflow-hidden rounded-[1rem] px-5 py-3 transition-all duration-700"
+          style={{ background: 'oklch(0.20 0.024 254 / 0.45)', backdropFilter: 'blur(24px)', border: `1px solid oklch(0.48 0.06 248 / ${hasBg ? '0.30' : '0.12'})` }}>
+          <p className="text-[0.62rem] font-semibold text-[var(--color-text)] text-bevel-strong">{hasBg ? 'backdrop-filter works' : 'Nothing to blur'}</p>
+          <p className="mt-0.5 text-[0.58rem] text-[var(--color-text-subtle)] text-bevel">{hasBg ? 'Gradient behind provides texture' : 'Flat background — effect is invisible'}</p>
+        </div>
+      </div>
+      <button onClick={() => setHasBg(!hasBg)}
+        className="w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] py-2 text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] transition duration-200 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]">
+        {hasBg ? 'Remove gradient backdrop' : 'Restore gradient backdrop'}
+      </button>
+    </div>
+  );
+};
+
+// Tip: cursor tracking — light follows the mouse
+const TipCursorLight: React.FC = () => {
+  const [pos, setPos] = useState({ x: 70, y: 30 });
+  const ref = useRef<HTMLDivElement>(null);
+  const onMove = (e: React.MouseEvent) => {
+    const r = ref.current!.getBoundingClientRect();
+    setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+  };
+  return (
+    <div ref={ref} className="relative cursor-crosshair overflow-hidden rounded-[1.4rem] p-6 select-none" onMouseMove={onMove}
+      style={{ background: 'oklch(0.20 0.024 254 / 0.50)', backdropFilter: 'blur(24px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)' }}>
+      <div className="absolute inset-x-0 top-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.42), transparent)' }} />
+      {/* Light wash */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(ellipse 200% 180% at ${pos.x}% ${pos.y}%, oklch(0.28 0.06 215 / 0.22) 0%, transparent 52%)`, mixBlendMode: 'screen' }} />
+      {/* Shadow */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(ellipse 160% 130% at ${100 - pos.x}% ${100 - pos.y}%, oklch(0.04 0.01 255 / 0.20) 0%, transparent 55%)` }} />
+      <p className="relative z-10 text-xs font-semibold text-[var(--color-text)] text-bevel-strong">Specular reflection</p>
+      <p className="relative z-10 mt-1 text-[0.62rem] leading-5 text-[var(--color-text-muted)] text-bevel">
+        Light follows cursor via a screen-blended radial gradient. Shadow appears on the opposite side. Both use opacity transitions — instant on hover, no jank.
+      </p>
+      <p className="relative z-10 mt-3 text-[0.56rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">Move cursor over this panel ↑</p>
+    </div>
+  );
+};
+
+// ── § 10 — Do's & Don'ts helpers ──────────────────────────────────────────────
+
+type DoDontCardProps = { ok: boolean; label: string; children: React.ReactNode };
+const DoDontCard: React.FC<DoDontCardProps> = ({ ok, label, children }) => (
+  <div className="relative pt-4">
+    <div className={`absolute left-3 top-0 z-10 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.52rem] font-bold uppercase tracking-[0.20em] ${
+      ok
+        ? 'border border-[oklch(0.76_0.16_160_/_0.45)] bg-[oklch(0.76_0.16_160_/_0.12)] text-[oklch(0.76_0.16_160)]'
+        : 'border border-[oklch(0.65_0.19_25_/_0.45)] bg-[oklch(0.65_0.19_25_/_0.12)] text-[oklch(0.65_0.19_25)]'
+    }`}>
+      {ok ? '✓' : '✗'} {label}
+    </div>
+    {children}
+  </div>
 );
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -621,6 +807,302 @@ const GlassShowcase: React.FC = () => {
               </div>
             </GlassPanel>
           </div>
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 9 — Tips & Tricks
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="09 — Tips & Tricks" sub="Interactive demonstrations of the techniques that make glass feel alive." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 01</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              The 1 px shimmer line
+            </p>
+            <TipShimmer />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              A single-pixel gradient at <code className="text-[var(--color-accent-bright)]">top: 0</code> simulates light catching the glass rim. Without it, the panel reads as a flat rectangle. Always use <code className="text-[var(--color-accent-bright)]">linear-gradient(90deg, transparent, shimmerColor, transparent)</code> so the ends fade away naturally.
+            </p>
+          </GlassPanel>
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 02</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              Tint opacity sweet spot
+            </p>
+            <TipTintRange />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              Keep screen-blend tints between <code className="text-[var(--color-accent-bright)]">0.14–0.22</code>. The green band on the track marks the range. Below it the tint is invisible; above it the texture is lost and the panel looks painted.
+            </p>
+          </GlassPanel>
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 03</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              text-bevel on all glass text
+            </p>
+            <TipTextBevel />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              <code className="text-[var(--color-accent-bright)]">text-bevel</code> adds a 1 px drop-shadow below and a subtle white counter-shadow above. On frosted surfaces the difference is significant — especially for small labels. Use <code className="text-[var(--color-accent-bright)]">text-bevel-strong</code> on headings.
+            </p>
+          </GlassPanel>
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 04</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              overflow:hidden is not optional
+            </p>
+            <TipOverflow />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              Corner glow divs are intentionally oversized — the top-right glow is <code className="text-[var(--color-accent-bright)]">28rem × 58rem</code>. Without <code className="text-[var(--color-accent-bright)]">overflow:hidden</code> they bleed into surrounding layout. GlassPanel adds it automatically; the manual pattern requires it explicitly.
+            </p>
+          </GlassPanel>
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 05</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              backdrop-filter needs a backdrop
+            </p>
+            <TipBackdropBg />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              <code className="text-[var(--color-accent-bright)]">backdrop-filter: blur()</code> blurs what exists <em>behind</em> the element. On a flat solid background there is nothing to blur. The effect requires a rich gradient or image behind it — this is why <code className="text-[var(--color-accent-bright)]">background-attachment: fixed</code> on the body is essential.
+            </p>
+          </GlassPanel>
+
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-1 font-[var(--font-code)] text-[0.58rem] text-[var(--color-accent-bright)]">tip 06</p>
+            <p className="mb-4 font-[var(--font-display)] text-sm font-[300] tracking-[-0.02em] text-[var(--color-text)] text-bevel-strong">
+              Specular reflection via cursor tracking
+            </p>
+            <TipCursorLight />
+            <p className="mt-4 text-[0.60rem] leading-5 text-[var(--color-text-subtle)] text-bevel">
+              Track cursor position as a percentage of the panel's bounding rect. Feed it into a <code className="text-[var(--color-accent-bright)]">radial-gradient(at X% Y%)</code> with <code className="text-[var(--color-accent-bright)]">mix-blend-mode: screen</code>. Invert the coordinates for the shadow. Both are <code className="text-[var(--color-accent-bright)]">opacity: 0</code> at rest, fading in on hover — no jump when the cursor first enters.
+            </p>
+          </GlassPanel>
+
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 10 — Do's & Don'ts
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="10 — Do's & Don'ts" sub="Side-by-side comparisons of correct and incorrect usage patterns." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+
+          {/* 1 — Background */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Background</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="Rich gradient">
+                <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-[1.4rem]"
+                  style={{ background: 'radial-gradient(circle at 20% 30%, oklch(0.42 0.24 216 / 0.5), transparent 40%), linear-gradient(135deg, oklch(0.12 0.04 248), oklch(0.08 0.03 260))' }}>
+                  <div className="relative overflow-hidden rounded-[0.8rem] px-3 py-2"
+                    style={{ background: 'oklch(0.20 0.024 254 / 0.45)', backdropFilter: 'blur(20px)', border: '1px solid oklch(0.48 0.06 248 / 0.28)' }}>
+                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, oklch(0.82 0.1 230 / 0.45), transparent)' }} />
+                    <p className="text-[0.58rem] text-[var(--color-text)] text-bevel-strong">Glass panel</p>
+                  </div>
+                </div>
+              </DoDontCard>
+              <DoDontCard ok={false} label="Flat colour">
+                <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-[1.4rem]" style={{ background: 'oklch(0.24 0 0)' }}>
+                  <div className="relative overflow-hidden rounded-[0.8rem] px-3 py-2"
+                    style={{ background: 'oklch(0.20 0.024 254 / 0.45)', backdropFilter: 'blur(20px)', border: '1px solid oklch(0.48 0.06 248 / 0.10)' }}>
+                    <p className="text-[0.58rem] text-[var(--color-text-subtle)] text-bevel">Invisible effect</p>
+                  </div>
+                </div>
+              </DoDontCard>
+            </div>
+          </div>
+
+          {/* 2 — Tint opacity */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Tint opacity</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="0.18 screen blend">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="relative h-28 overflow-hidden">
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'oklch(0.58 0.26 290)', mixBlendMode: 'screen', opacity: 0.18 }} />
+                  <div className="flex h-full flex-col justify-end p-4">
+                    <p className="text-[0.60rem] font-semibold text-[var(--color-text)] text-bevel-strong">Tinted glass</p>
+                    <p className="text-[0.55rem] text-[var(--color-text-subtle)] text-bevel">Texture intact</p>
+                  </div>
+                </GlassPanel>
+              </DoDontCard>
+              <DoDontCard ok={false} label="0.55 — painted">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="relative h-28 overflow-hidden">
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'oklch(0.58 0.26 290)', mixBlendMode: 'screen', opacity: 0.55 }} />
+                  <div className="flex h-full flex-col justify-end p-4">
+                    <p className="text-[0.60rem] font-semibold text-[var(--color-text)] text-bevel-strong">Over-tinted</p>
+                    <p className="text-[0.55rem] text-[var(--color-text-subtle)] text-bevel">Texture is gone</p>
+                  </div>
+                </GlassPanel>
+              </DoDontCard>
+            </div>
+          </div>
+
+          {/* 3 — Nesting order */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Nesting intensity</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="Step up: subtle→strong">
+                <GlassPanel intensity="subtle" rounded="rounded-[1.4rem]" className="h-28 p-3">
+                  <GlassPanel intensity="medium" rounded="rounded-[1rem]" className="h-full p-2.5">
+                    <GlassPanel intensity="strong" rounded="rounded-[0.7rem]" className="h-full flex items-center justify-center">
+                      <p className="text-[0.55rem] text-[var(--color-text-subtle)] text-bevel">Deepest</p>
+                    </GlassPanel>
+                  </GlassPanel>
+                </GlassPanel>
+              </DoDontCard>
+              <DoDontCard ok={false} label="Same intensity">
+                <GlassPanel intensity="strong" rounded="rounded-[1.4rem]" className="h-28 p-3">
+                  <GlassPanel intensity="strong" rounded="rounded-[1rem]" className="h-full p-2.5">
+                    <GlassPanel intensity="strong" rounded="rounded-[0.7rem]" className="h-full flex items-center justify-center">
+                      <p className="text-[0.55rem] text-[var(--color-text-subtle)] text-bevel">No depth</p>
+                    </GlassPanel>
+                  </GlassPanel>
+                </GlassPanel>
+              </DoDontCard>
+            </div>
+          </div>
+
+          {/* 4 — text-bevel */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Text legibility</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="text-bevel applied">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="h-28 p-4 flex flex-col justify-center gap-1">
+                  <p className="text-[0.55rem] uppercase tracking-[0.24em] text-[var(--color-text-subtle)] text-bevel">Label</p>
+                  <p className="font-[var(--font-display)] text-lg font-[200] text-[var(--color-text)] text-bevel-strong">Heading</p>
+                  <p className="text-[0.62rem] text-[var(--color-text-muted)] text-bevel">Body copy here</p>
+                </GlassPanel>
+              </DoDontCard>
+              <DoDontCard ok={false} label="No bevel — flat text">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="h-28 p-4 flex flex-col justify-center gap-1">
+                  <p className="text-[0.55rem] uppercase tracking-[0.24em] text-[var(--color-text-subtle)]">Label</p>
+                  <p className="font-[var(--font-display)] text-lg font-[200] text-[var(--color-text)]">Heading</p>
+                  <p className="text-[0.62rem] text-[var(--color-text-muted)]">Body copy here</p>
+                </GlassPanel>
+              </DoDontCard>
+            </div>
+          </div>
+
+          {/* 5 — Border-radius consistency */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Nested border-radius</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="Smaller radius inward">
+                <GlassPanel intensity="subtle" rounded="rounded-[1.6rem]" className="h-28 p-3">
+                  <GlassPanel intensity="medium" rounded="rounded-[1.1rem]" className="h-full flex items-center justify-center">
+                    <p className="text-[0.58rem] text-[var(--color-text-subtle)] text-bevel">Inner panel</p>
+                  </GlassPanel>
+                </GlassPanel>
+              </DoDontCard>
+              <DoDontCard ok={false} label="Same or larger radius">
+                <GlassPanel intensity="subtle" rounded="rounded-[1.6rem]" className="h-28 p-3">
+                  <GlassPanel intensity="medium" rounded="rounded-[1.8rem]" className="h-full flex items-center justify-center">
+                    <p className="text-[0.58rem] text-[var(--color-text-subtle)] text-bevel">Corners escape</p>
+                  </GlassPanel>
+                </GlassPanel>
+              </DoDontCard>
+            </div>
+          </div>
+
+          {/* 6 — Tint blend mode */}
+          <div>
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)] text-bevel">Colour blend mode</p>
+            <div className="grid grid-cols-2 gap-3">
+              <DoDontCard ok label="screen — tinted glass">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="relative h-28 overflow-hidden flex items-center justify-center">
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'oklch(0.65 0.22 160)', mixBlendMode: 'screen', opacity: 0.18 }} />
+                  <p className="relative z-10 text-[0.60rem] font-semibold text-[var(--color-text)] text-bevel-strong">Translucent tint</p>
+                </GlassPanel>
+              </DoDontCard>
+              <DoDontCard ok={false} label="normal — painted">
+                <GlassPanel intensity="medium" rounded="rounded-[1.4rem]" className="relative h-28 overflow-hidden flex items-center justify-center">
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: 'oklch(0.65 0.22 160 / 0.55)' }} />
+                  <p className="relative z-10 text-[0.60rem] font-semibold text-[var(--color-text)] text-bevel-strong">Opaque fill</p>
+                </GlassPanel>
+              </DoDontCard>
+            </div>
+          </div>
+
+        </div>
+      </Section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          § 11 — Quick reference
+      ══════════════════════════════════════════════════════════════ */}
+      <Section label="11 — Quick reference" sub="The values, utilities, and rules you reach for most often." light={bgId === 'dawn'}>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+
+          {/* Master knobs */}
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Master knobs · glass.ts</p>
+            <div className="space-y-2.5">
+              {[
+                { k: 'GLASS_OPACITY', v: '0.66', note: 'background alpha multiplier' },
+                { k: 'GLASS_BLUR', v: '40px', note: 'backdrop-filter amount' },
+                { k: 'GLASS_LIGHT_ALPHA', v: '0.22', note: 'specular wash on hover' },
+                { k: 'GLASS_SHADOW_ALPHA', v: '0.20', note: 'far-side shadow on hover' },
+              ].map(({ k, v, note }) => (
+                <div key={k} className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] pb-2.5 last:border-0 last:pb-0">
+                  <div>
+                    <p className="font-[var(--font-code)] text-[0.68rem] text-[var(--color-accent-bright)]">{k}</p>
+                    <p className="text-[0.58rem] text-[var(--color-text-subtle)] text-bevel">{note}</p>
+                  </div>
+                  <span className="shrink-0 font-[var(--font-code)] text-[0.68rem] text-[var(--color-text-muted)]">{v}</span>
+                </div>
+              ))}
+            </div>
+          </GlassPanel>
+
+          {/* Intensity alphas */}
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Intensity base alphas</p>
+            <div className="space-y-2">
+              {[
+                { label: 'subtle',  bg: '0.17', border: '0.20', shimmer: '0.24' },
+                { label: 'medium',  bg: '0.30', border: '0.32', shimmer: '0.38' },
+                { label: 'strong',  bg: '0.64', border: '0.44', shimmer: '0.64' },
+              ].map(({ label, bg, border, shimmer }) => (
+                <div key={label} className="rounded-[0.8rem] border border-[var(--color-border)] px-3.5 py-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] text-bevel">{label}</span>
+                  </div>
+                  <div className="mt-1.5 flex gap-3 text-[0.56rem] text-[var(--color-text-subtle)] text-bevel">
+                    <span>bg <code className="font-[var(--font-code)] text-[var(--color-accent-bright)]">{bg}</code></span>
+                    <span>border <code className="font-[var(--font-code)] text-[var(--color-accent-bright)]">{border}</code></span>
+                    <span>shimmer <code className="font-[var(--font-code)] text-[var(--color-accent-bright)]">{shimmer}</code></span>
+                  </div>
+                </div>
+              ))}
+              <p className="pt-1 text-[0.56rem] leading-4 text-[var(--color-text-subtle)] text-bevel">
+                All multiplied by <code className="font-[var(--font-code)] text-[var(--color-accent-bright)]">GLASS_OPACITY</code> at runtime.
+              </p>
+            </div>
+          </GlassPanel>
+
+          {/* Rules & colour tokens */}
+          <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
+            <p className="mb-4 text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">Rules to live by</p>
+            <ul className="space-y-2.5">
+              {[
+                { rule: 'overflow:hidden on every panel', why: 'Glow divs are oversized by design' },
+                { rule: 'background-attachment: fixed on body', why: 'Light field must stay stationary' },
+                { rule: 'text-bevel / text-bevel-strong on text', why: 'Microcontrast aids legibility' },
+                { rule: 'Tint at 0.14–0.22 with screen blend', why: 'Above 0.22 texture is lost' },
+                { rule: 'Step intensity up when nesting', why: 'Depth needs progressive contrast' },
+                { rule: 'backdrop-filter + background together', why: 'BD-filter needs something behind it' },
+              ].map(({ rule, why }) => (
+                <li key={rule} className="border-b border-[var(--color-border)] pb-2.5 last:border-0 last:pb-0">
+                  <p className="text-[0.62rem] font-semibold text-[var(--color-text)] text-bevel">{rule}</p>
+                  <p className="mt-0.5 text-[0.56rem] text-[var(--color-text-subtle)] text-bevel">{why}</p>
+                </li>
+              ))}
+            </ul>
+          </GlassPanel>
+
         </div>
       </Section>
 

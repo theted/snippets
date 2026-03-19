@@ -43,7 +43,8 @@ const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
   back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
   navBtn: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:opacity-30 disabled:pointer-events-none',
-  content: 'mt-10',
+  content: 'mt-10 flex flex-col justify-center',
+  contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col justify-center',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -190,7 +191,7 @@ const SnippetPage: React.FC = () => {
           </div>
         </div>
 
-        <div ref={contentRef} className={`${classes.content} ${enterClass}`}>
+        <div ref={contentRef} className={`${classes.contentWrap} ${enterClass}`}>
           {isPending && (
             <div className="flex min-h-[40vh] items-center justify-center">
               <SpinFigure />
@@ -207,6 +208,7 @@ const SnippetPage: React.FC = () => {
               onDelete={() => deleteSnippet()}
               onEdit={() => setIsEditing(true)}
               theme={theme}
+              forceAutoSize
               isFavorite={isFavorite(snippet.id)}
               onToggleFavorite={toggleFavorite}
             />

@@ -12,6 +12,7 @@ import Docs from './pages/Docs';
 import Favorites from './pages/Favorites';
 import NotFound from './pages/NotFound';
 import GlassShowcase from './pages/GlassShowcase';
+import Philosophy from './pages/Philosophy';
 import TypeShowcase from './pages/TypeShowcase';
 import ColorShowcase from './pages/ColorShowcase';
 import GoogleAuth from './components/GoogleAuth';
@@ -142,6 +143,12 @@ const App: FC = () => {
                                                         <span>Shortcuts</span>
                                                     </Link>
                                                     <Link
+                                                        to="/philosophy"
+                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                    >
+                                                        <span>Philosophy</span>
+                                                    </Link>
+                                                    <Link
                                                         to="/glass"
                                                         className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
                                                     >
@@ -178,6 +185,7 @@ const App: FC = () => {
                             <Route path="/snippets/:id" element={<SnippetPageRoute />} />
                             <Route path="/favorites" element={<Favorites />} />
                             <Route path="/docs" element={<Docs />} />
+                            <Route path="/philosophy" element={<Philosophy />} />
                             <Route path="/glass" element={<GlassShowcase />} />
                             <Route path="/type" element={<TypeShowcase />} />
                             <Route path="/colors" element={<ColorShowcase />} />

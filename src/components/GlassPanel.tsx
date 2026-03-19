@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getGlassStyles, GlassIntensity } from '../design/glass';
+import { getGlassStyles, GlassIntensity, GLASS_LIGHT_ALPHA, GLASS_SHADOW_ALPHA } from '../design/glass';
 
 export type { GlassIntensity };
 
@@ -65,7 +65,7 @@ const GlassPanel: React.FC<Props> = ({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(ellipse 160% 130% at ${100 - mousePos.x}% ${100 - mousePos.y}%, oklch(0.04 0.01 255 / 0.20) 0%, transparent 58%)`,
+          background: `radial-gradient(ellipse 160% 130% at ${100 - mousePos.x}% ${100 - mousePos.y}%, oklch(0.04 0.01 255 / ${GLASS_SHADOW_ALPHA}) 0%, transparent 58%)`,
           opacity: isHovered ? 1 : 0,
         }}
       />
@@ -77,7 +77,7 @@ const GlassPanel: React.FC<Props> = ({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
         style={{
-          background: `radial-gradient(ellipse 190% 150% at ${mousePos.x}% ${mousePos.y}%, oklch(0.28 0.05 215 / 0.22) 0%, transparent 55%)`,
+          background: `radial-gradient(ellipse 190% 150% at ${mousePos.x}% ${mousePos.y}%, oklch(0.28 0.05 215 / ${GLASS_LIGHT_ALPHA}) 0%, transparent 55%)`,
           mixBlendMode: 'screen',
           opacity: isHovered ? 1 : 0,
         }}

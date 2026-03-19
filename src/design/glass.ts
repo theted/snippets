@@ -2,22 +2,27 @@
  * ┌──────────────────────────────────────────────────────────────────┐
  * │  Glass Design System                                              │
  * │                                                                   │
- * │  Two master knobs control the entire system:                      │
+ * │  Master knobs — edit these to retheme every glass surface at once │
  * │                                                                   │
- * │  GLASS_OPACITY  0 → 1   background alpha multiplier              │
- * │                 lower = more transparent / more glass-like        │
+ * │  GLASS_OPACITY      0 → 1   background alpha multiplier          │
+ * │                     lower = more transparent / more glass-like   │
  * │                                                                   │
- * │  GLASS_BLUR     px      backdrop-filter blur amount               │
- * │                 higher = blurrier / more frosted                  │
+ * │  GLASS_BLUR         px      backdrop-filter blur amount          │
+ * │                     higher = blurrier / more frosted             │
  * │                                                                   │
- * │  Each panel picks an intensity ('subtle' | 'medium' | 'strong')  │
- * │  that scales against the master values — so proportional          │
- * │  relationships are preserved when you tune globally.              │
+ * │  GLASS_LIGHT_ALPHA  0 → 1   specular wash intensity on hover     │
+ * │  GLASS_SHADOW_ALPHA 0 → 1   opposite-side shadow intensity       │
+ * │                                                                   │
+ * │  Each panel picks an intensity ('subtle' | 'medium' | 'strong') │
+ * │  that scales against the master values — proportional            │
+ * │  relationships are preserved when you tune globally.             │
  * └──────────────────────────────────────────────────────────────────┘
  */
 
-export const GLASS_OPACITY = 0.82;
-export const GLASS_BLUR    = 40; // px
+export const GLASS_OPACITY      = 0.66; // 0.82 → 0.66 (~20% more transparent)
+export const GLASS_BLUR         = 40;   // px
+export const GLASS_LIGHT_ALPHA  = 0.22; // screen-blend specular wash on hover
+export const GLASS_SHADOW_ALPHA = 0.20; // darkening on the side away from cursor
 
 export type GlassIntensity = 'subtle' | 'medium' | 'strong';
 
@@ -32,12 +37,18 @@ const GLOW_BLUR:    Record<GlassIntensity, number> = { subtle: 96,   medium: 120
 
 // ── Colour constants ────────────────────────────────────────────────
 
-const BG_L  = '0.20 0.024 254';  // panel background base
-const EDGE  = '0.48 0.06 248';   // border edge
-const LIGHT = '0.82 0.1  230';   // shimmer / inner highlight
-const DEPTH = '0.05 0.015 250';  // shadow depth
-const GLOW_TR = '0.52 0.24 238'; // top-right glow (deep blue)
-const GLOW_BL = '0.58 0.14 210'; // bottom-left glow (teal)
+const BG_L    = '0.20 0.024 254';  // panel background base
+const EDGE    = '0.48 0.06 248';   // border edge
+const LIGHT   = '0.82 0.1  230';   // shimmer / inner highlight
+const DEPTH   = '0.05 0.015 250';  // shadow depth
+const GLOW_TR = '0.52 0.24 238';   // top-right glow (deep blue)
+const GLOW_BL = '0.58 0.14 210';   // bottom-left glow (teal)
+
+// Base alpha for the flat background layer used by Snippet cards
+// (they render their own background outside GlassPanel — this keeps
+//  them in sync with GLASS_OPACITY so all surfaces scale together).
+const CARD_BG_BASE = 0.512; // = 0.42 / 0.82 — preserves original ratio
+export const CARD_BG_ALPHA = Math.round(CARD_BG_BASE * GLASS_OPACITY * 1000) / 1000;
 
 // ── Helper ──────────────────────────────────────────────────────────
 
@@ -73,8 +84,8 @@ export interface GlassStyles {
 // ── Main export ─────────────────────────────────────────────────────
 
 export function getGlassStyles(intensity: GlassIntensity = 'medium'): GlassStyles {
-  const blur      = GLASS_BLUR;
-  const glowBlur  = GLOW_BLUR[intensity];
+  const blur     = GLASS_BLUR;
+  const glowBlur = GLOW_BLUR[intensity];
 
   return {
     panel: {

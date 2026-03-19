@@ -20,6 +20,8 @@ type Props = ISnippet & {
     /** Compact mode — smaller padding, smaller title, capped code height.
      *  Used by grid and masonry layouts. Stream layout uses full size. */
     compact?: boolean;
+    /** Force auto-size regardless of the global preference (used on detail page). */
+    forceAutoSize?: boolean;
     isFavorite?: boolean;
     onToggleFavorite?: (id: SnippetId) => void;
 };
@@ -94,11 +96,13 @@ const Snippet: React.FC<Props> = ({
     onEdit,
     theme,
     compact = false,
+    forceAutoSize = false,
     isFavorite = false,
     onToggleFavorite,
 }) => {
     const navigate = useNavigate();
-    const { showLineNumbers, autoSize } = useContext(ThemeContext);
+    const { showLineNumbers, autoSize: autoSizePreference } = useContext(ThemeContext);
+    const autoSize = forceAutoSize || autoSizePreference;
     const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
     const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
     const [isHovered, setIsHovered] = useState(false);
