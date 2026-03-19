@@ -1,6 +1,7 @@
 import React, { useContext, useMemo } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
+import { Prec } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
@@ -158,6 +159,7 @@ type Props = {
     autoFocus?: boolean;
     minHeight?: string;
     maxHeight?: string;
+    onSubmit?: () => void;
 };
 
 const CodeEditor: React.FC<Props> = ({
@@ -169,9 +171,18 @@ const CodeEditor: React.FC<Props> = ({
     autoFocus = false,
     minHeight = '30rem',
     maxHeight = '800px',
+    onSubmit,
 }) => {
     const { showLineNumbers } = useContext(ThemeContext);
     const langExts = useMemo(() => getLanguageExtension(language), [language]);
+
+    // Prec.highest ensures these run before CodeMirror's built-in keybindings.
+    // Ctrl-Enter submits the enclosing form; Escape blurs the editor so the
+    // user can Tab to other fields without being trapped.
+    const shortcutKeymap = useMemo(() => Prec.highest(keymap.of([
+        { key: 'Ctrl-Enter', run: () => { onSubmit?.(); return true; } },
+        { key: 'Escape',     run: (view) => { view.contentDOM.blur(); return true; } },
+    ])), [onSubmit]);
 
     return (
         <div
@@ -190,7 +201,7 @@ const CodeEditor: React.FC<Props> = ({
                 value={value}
                 onChange={onChange}
                 theme={oneDark}
-                extensions={[...langExts, appOverlay, EditorView.lineWrapping]}
+                extensions={[...langExts, appOverlay, EditorView.lineWrapping, shortcutKeymap]}
                 autoFocus={autoFocus}
                 minHeight={minHeight}
                 maxHeight={maxHeight}
