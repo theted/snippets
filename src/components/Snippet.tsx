@@ -12,6 +12,7 @@ import { capitalize } from '../utils/helpers';
 import { LANGUAGE_MAP } from '../config';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import Toast from './Toast';
+import Chip from './Chip';
 
 type Props = ISnippet & {
     onDelete: (id: SnippetId) => void;
@@ -34,23 +35,22 @@ const allStyles = syntaxStyles as Record<string, SyntaxTheme>;
 // ── Full (stream) class set ────────────────────────────────────────────────────
 
 const fullClasses = {
-    container:     'group relative overflow-hidden rounded-[2.2rem] p-6 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 md:p-10 lg:p-12 cursor-pointer',
+    container:     'group relative overflow-hidden rounded-[2.2rem] p-5 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 md:p-8 lg:p-10 cursor-pointer',
     glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
     glow:          'pointer-events-none absolute right-[-8rem] top-[-6rem] h-96 w-96 rounded-full',
-    heading:       'relative z-10 pb-10',
-    meta:          'flex flex-col gap-6 md:flex-row md:items-start md:justify-between',
+    heading:       'relative z-10 pb-6',
+    meta:          'flex flex-col gap-4 md:flex-row md:items-start md:justify-between',
     titleBlock:    'max-w-4xl group/link',
     titleLink:     'block outline-none',
-    kicker:        'text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel',
-    title:         'mt-4 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl lg:text-6xl text-bevel-strong',
-    description:   'mt-5 max-w-3xl text-sm leading-8 text-[var(--color-text-muted)] md:text-lg text-bevel',
-    code:          'relative z-10 overflow-hidden rounded-[1.8rem] text-base',
-    language:      'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel',
-    controls:      'relative z-30 mt-8 flex flex-wrap gap-3 opacity-100 transition duration-300 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
-    controlButton: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
+    kicker:        'text-[0.68rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel',
+    title:         'mt-3 font-[var(--font-display)] text-2xl font-[250] tracking-[-0.05em] text-[var(--color-text)] md:text-3xl lg:text-4xl text-bevel-strong',
+    description:   'mt-3 max-w-3xl text-sm leading-7 text-[var(--color-text-muted)] text-bevel',
+    code:          'relative z-10 overflow-hidden rounded-[1.6rem] text-sm',
+    controls:      'relative z-30 mt-5 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
+    controlButton: 'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3.5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
     codeMaxHeight: 'min(800px, 90vh)',
-    codeFontSize:  '1.18rem',
-    codeLineHeight: '1.75',
+    codeFontSize:  '0.95rem',
+    codeLineHeight: '1.7',
 };
 
 // ── Compact (grid / masonry) class set ────────────────────────────────────────
@@ -67,7 +67,6 @@ const compactClasses = {
     title:         'mt-1 font-[var(--font-display)] text-lg font-[300] tracking-[-0.04em] text-[var(--color-text)] md:text-xl text-bevel-strong',
     description:   'mt-1.5 text-xs leading-5 text-[var(--color-text-muted)] line-clamp-2 text-bevel',
     code:          'relative z-10 overflow-hidden rounded-[1.2rem] text-sm',
-    language:      'inline-flex shrink-0 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-2.5 py-1 text-[0.60rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-text-muted)] text-bevel',
     controls:      'relative z-30 mt-3 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
     controlButton: 'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
     codeMaxHeight: '220px',
@@ -230,20 +229,18 @@ const Snippet: React.FC<Props> = ({
                             {description && <p className={c.description}>{description}</p>}
                         </Link>
                     </div>
-                    {onFilterLanguage ? (
-                        <button
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFilterLanguage(language ?? 'plaintext'); }}
-                            className={`${c.language} cursor-pointer transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]`}
-                            title={`Filter by ${LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}`}
-                        >
-                            {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
-                        </button>
-                    ) : (
-                        <span className={c.language}>
-                            {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
-                        </span>
-                    )}
+                    <Chip
+                        size={compact ? 'sm' : 'md'}
+                        onClick={onFilterLanguage
+                            ? (e) => { e.preventDefault(); e.stopPropagation(); onFilterLanguage(language ?? 'plaintext'); }
+                            : undefined}
+                        title={onFilterLanguage
+                            ? `Filter by ${LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}`
+                            : undefined}
+                        className={compact ? 'shrink-0' : ''}
+                    >
+                        {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
+                    </Chip>
                 </div>
             </div>
             <div className={c.code}>

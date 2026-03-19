@@ -5,6 +5,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import { gsap } from 'gsap';
+import GlassPill from './GlassPill';
 
 type Props = PropsWithChildren<{
   closeModal?: () => void;
@@ -27,7 +28,6 @@ const classes = {
   inner: 'flex min-h-full items-center justify-center p-4 md:p-8',
   content: 'relative w-full max-w-7xl',
   bg: 'fixed inset-0 z-20',
-  close: 'absolute right-4 top-4 z-40 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };
 
 export const closeModalFunc = ({ modalRef, backgroundRef, closeModal }: ModalRefs) => {
@@ -113,15 +113,15 @@ const Modal: React.FC<Props> = ({ closeModal, children }) => {
         {/* Click-outside target — stopPropagation on the card prevents bubbling */}
         <div className={classes.inner} onClick={closeModalCallback}>
           <div className={classes.content} onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className={classes.close}
+            <GlassPill
+              size="sm"
+              className="absolute right-4 top-4 z-40"
               onClick={closeModalCallback}
               aria-label="Close modal"
             >
               <i className="icon-cancel" style={{ fontSize: '0.8em' }} />
               Close
-            </button>
+            </GlassPill>
             {children}
           </div>
         </div>

@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import GlassPanel from '../components/GlassPanel';
+import GlassPill from '../components/GlassPill';
+import Kicker from '../components/Kicker';
 
 // ── Shortcut row ─────────────────────────────────────────────────────────────
 
@@ -53,9 +55,7 @@ const ShortcutRow: React.FC<ShortcutProps> = ({ chord, description, detail }) =>
 
 const Section: React.FC<React.PropsWithChildren<{ label: string }>> = ({ label, children }) => (
   <div className="mt-10 first:mt-0">
-    <p className="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.36em] text-[var(--color-text-subtle)] text-bevel">
-      {label}
-    </p>
+    <Kicker className="mb-1 text-[0.65rem] tracking-[0.36em]">{label}</Kicker>
     <div className="rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-glass-row)] px-6 backdrop-blur-xl">
       {children}
     </div>
@@ -66,9 +66,7 @@ const Section: React.FC<React.PropsWithChildren<{ label: string }>> = ({ label, 
 
 const Tip: React.FC<{ title: string; body: string }> = ({ title, body }) => (
   <div className="rounded-[1.4rem] border border-[var(--color-border)] bg-[var(--color-glass-card)] p-5 backdrop-blur-xl">
-    <p className="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">
-      {title}
-    </p>
+    <Kicker className="text-[0.7rem] tracking-[0.28em]">{title}</Kicker>
     <p className="mt-2 text-sm leading-7 text-[var(--color-text-muted)]">{body}</p>
   </div>
 );
@@ -77,8 +75,6 @@ const Tip: React.FC<{ title: string; body: string }> = ({ title, body }) => (
 
 const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[72rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
-  back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
-  card: 'mt-10 overflow-hidden rounded-[2.4rem] border border-[var(--color-border)] bg-[var(--color-glass-card)] p-8 backdrop-blur-2xl md:p-10 lg:p-12',
 };
 
 const cardShadow = '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)';
@@ -101,10 +97,10 @@ const Docs: React.FC = () => {
   return (
     <div className="App">
       <div className={classes.shell}>
-        <Link to="/" className={classes.back}>
+        <GlassPill as={Link} to="/" size="md">
           <i className="icon-home" style={{ fontSize: '0.85em' }} />
           Back to archive
-        </Link>
+        </GlassPill>
 
         <GlassPanel
           intensity="strong"
@@ -114,9 +110,7 @@ const Docs: React.FC = () => {
         >
 
           {/* Header */}
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.38em] text-[var(--color-text-subtle)] text-bevel">
-            Reference
-          </p>
+          <Kicker className="text-[0.7rem] tracking-[0.38em]">Reference</Kicker>
           <h1 className="mt-3 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl [text-shadow:0_1px_0_oklch(1_0_0_/_0.14),0_2px_16px_oklch(0_0_0_/_0.3)]">
             Keyboard Shortcuts
           </h1>
@@ -193,9 +187,7 @@ const Docs: React.FC = () => {
 
           {/* Tips & tricks */}
           <div className="mt-12">
-            <p className="mb-5 text-[0.65rem] font-semibold uppercase tracking-[0.36em] text-[var(--color-text-subtle)] text-bevel">
-              Tips &amp; tricks
-            </p>
+            <Kicker className="mb-5 text-[0.65rem] tracking-[0.36em]">Tips &amp; tricks</Kicker>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Tip
                 title="Search is debounced"

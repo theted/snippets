@@ -17,6 +17,7 @@ import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
 import Toast from '../components/Toast';
 import GlassPanel from '../components/GlassPanel';
+import GlassPill from '../components/GlassPill';
 
 // ── Direction bridging across navigation ──────────────────────────────────────
 // sessionStorage survives the React unmount/remount that happens on navigation,
@@ -43,10 +44,6 @@ function enterClassForDirection(dir: NavDirection | null): string {
 
 const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
-  // Buttons sit inside a glass strip — no per-button backdrop-filter needed.
-  // They use a lighter surface token so the glass parent shows through clearly.
-  back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
-  navBtn: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:opacity-30 disabled:pointer-events-none',
   content: 'mt-10 flex flex-col justify-center',
   contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
 };
@@ -185,30 +182,28 @@ const SnippetPage: React.FC = () => {
           rounded="rounded-[1.6rem]"
           className="flex items-center justify-between gap-4 px-4 py-3"
         >
-          <button type="button" onClick={navigateBack} className={classes.back}>
+          <GlassPill size="sm" onClick={navigateBack}>
             <i className="icon-home" style={{ fontSize: '0.85em' }} />
             Back to archive
-          </button>
+          </GlassPill>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={classes.navBtn}
+            <GlassPill
+              size="sm"
               disabled={prevId === null}
               onClick={() => prevId !== null && navigateTo(prevId, 'prev')}
               title="Previous snippet (←)"
             >
               ← Older
-            </button>
-            <button
-              type="button"
-              className={classes.navBtn}
+            </GlassPill>
+            <GlassPill
+              size="sm"
               disabled={nextId === null}
               onClick={() => nextId !== null && navigateTo(nextId, 'next')}
               title="Next snippet (→)"
             >
               Newer →
-            </button>
+            </GlassPill>
           </div>
         </GlassPanel>
 

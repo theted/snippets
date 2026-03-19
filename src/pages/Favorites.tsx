@@ -1,6 +1,8 @@
 /* eslint-disable max-len */
 import React, { useContext, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import GlassPill from '../components/GlassPill';
+import Kicker from '../components/Kicker';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
 import { useFavorites } from '../hooks/useFavorites';
@@ -16,7 +18,6 @@ import { computeCardWidth } from '../utils/snippetLayout';
 
 const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
-  back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };
 
 
@@ -52,15 +53,13 @@ const Favorites: React.FC = () => {
   return (
     <div className="App">
       <div className={classes.shell}>
-        <Link to="/" className={classes.back}>
+        <GlassPill as={Link} to="/" size="md">
           <i className="icon-home" style={{ fontSize: '0.85em' }} />
           Back to archive
-        </Link>
+        </GlassPill>
 
         <header className="mt-12 md:mt-16">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel">
-            Your collection
-          </p>
+          <Kicker>Your collection</Kicker>
           <h1 className="mt-3 font-[var(--font-display)] text-5xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-6xl lg:text-7xl text-bevel-strong">
             Favorites
           </h1>

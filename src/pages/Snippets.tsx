@@ -16,6 +16,8 @@ import useReactQuery from '../hooks/useReactQuery';
 import { capitalize } from '../utils/helpers';
 import Toast from '../components/Toast';
 import { DEFAULT_SNIPPET_LAYOUT, LANGUAGE_MAP, SnippetLayout } from '../config';
+import GlassPill from '../components/GlassPill';
+import Chip from '../components/Chip';
 import { useFavorites } from '../hooks/useFavorites';
 import { computeCardWidth } from '../utils/snippetLayout';
 import { useDeleteSnippetMutation, useUpdateSnippetMutation } from '../hooks/useSnippetMutations';
@@ -201,6 +203,9 @@ const AUTO_GUTTER = 32;    // px — matches gap-8
 const AUTO_BASE_COL = 420; // px — minimum column width
 // Snippets whose ideal width exceeds this threshold get a 2-column span.
 const WIDE_THRESHOLD = 620;
+// Set to true to animate card positions on reflow (resize / data changes).
+// Currently disabled: position transitions cause a yank on initial layout pass.
+const AUTO_REFLOW_ANIMATIONS = false;
 
 function colSpanForSnippet(content: string): 1 | 2 {
   return computeCardWidth(content) >= WIDE_THRESHOLD ? 2 : 1;
@@ -307,7 +312,7 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
               top: pos?.top ?? 0,
               width: `min(${w}px, 100%)`,
               opacity: pos ? 1 : 0,
-              transition: pos ? 'opacity 0.35s ease, top 0.45s cubic-bezier(0.4,0,0.2,1), left 0.45s cubic-bezier(0.4,0,0.2,1)' : 'none',
+              transition: pos ? (AUTO_REFLOW_ANIMATIONS ? 'opacity 0.35s ease, top 0.45s cubic-bezier(0.4,0,0.2,1), left 0.45s cubic-bezier(0.4,0,0.2,1)' : 'opacity 0.35s ease') : 'none',
             } as React.CSSProperties}
           >
             <Snippet
@@ -438,15 +443,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       {/* ── Language filter chip ── */}
       {languageFilter && (
         <div className="mt-4 flex items-center gap-2">
-          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">Filtered by</span>
-          <button
-            type="button"
-            onClick={() => setLanguageFilter(null)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[oklch(0.62_0.16_240_/_0.5)] bg-[oklch(0.62_0.16_240_/_0.10)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-accent-bright)] text-bevel backdrop-blur-md transition duration-200 hover:bg-[oklch(0.62_0.16_240_/_0.18)]"
+          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">Filtered by</span>
+          <Chip
+            variant="accent"
+            size="md"
+            onRemove={() => setLanguageFilter(null)}
           >
             {LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}
-            <span aria-hidden="true" className="opacity-60">×</span>
-          </button>
+          </Chip>
         </div>
       )}
 
@@ -454,15 +458,11 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       {!isSearching && (
         <div className="mt-6 flex justify-end">
         <GlassPanel intensity="subtle" rounded="rounded-[1.4rem]" className="inline-flex items-center gap-1.5 px-3 py-2.5">
-          <button
-            type="button"
+          <GlassPill
+            size="xs"
+            variant={autoSize ? 'accent' : 'default'}
             onClick={handleAutoSizeToggle}
             title="Auto-size cards to content width"
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.20em] text-bevel backdrop-blur-md transition duration-200 ${
-              autoSize
-                ? 'border-[oklch(0.62_0.16_240_/_0.6)] bg-[oklch(0.62_0.16_240_/_0.12)] text-[var(--color-accent-bright)]'
-                : 'border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)] hover:text-[var(--color-text-muted)]'
-            }`}
           >
             <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
               <rect x="0" y="0" width="3.5" height="11" rx="1" />
@@ -471,25 +471,21 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
               <rect x="4.5" y="8.5" width="1" height="2.5" rx="0.5" />
             </svg>
             Auto
-          </button>
+          </GlassPill>
           <div className="mx-1 h-4 w-px bg-[var(--color-border)]" />
           {(['cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
-            <button
+            <GlassPill
               key={l}
-              type="button"
+              size="xs"
+              variant={!autoSize && layout === l ? 'active' : 'default'}
               onClick={() => handleLayoutChange(l)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.20em] text-bevel backdrop-blur-md transition duration-200 ${
-                !autoSize && layout === l
-                  ? 'border-[var(--color-border-strong)] bg-[var(--color-surface-strong)] text-[var(--color-text)]'
-                  : 'border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text-subtle)] hover:text-[var(--color-text-muted)]'
-              }`}
             >
               {l === 'grid' && <LayoutGridIcon />}
               {l === 'masonry' && <LayoutMasonryIcon />}
               {l === 'stream' && <LayoutStreamIcon />}
               {l === 'cascade' && <LayoutCascadeIcon />}
               {l}
-            </button>
+            </GlassPill>
           ))}
         </GlassPanel>
         </div>

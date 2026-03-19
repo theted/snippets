@@ -6,6 +6,7 @@ import './App.css';
 import CreateSnippet, { CreateSnippetHandle } from './pages/CreateSnippet';
 import Snippets from './pages/Snippets';
 import { SearchbarHandle } from './components/Searchbar';
+import GlassPill from './components/GlassPill';
 import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
@@ -25,8 +26,6 @@ import { createPersistentQueryClient } from './utils/queryPersist';
 
 const queryClient = createPersistentQueryClient();
 
-/** Shared className for pill-shaped nav links in the app toolbar. */
-const PILL_LINK = 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-lg transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]';
 
 // Forces SnippetPage to fully remount on each new :id so that GSAP styles,
 // the directional enter-animation class, and navigatingRef all reset cleanly.
@@ -131,44 +130,26 @@ const App: FC = () => {
                                                 <div className="app-toolbar">
                                                     <CreateSnippet ref={createSnippetRef} />
                                                     <Preferences />
-                                                    <Link
-                                                        to="/favorites"
-                                                        className={PILL_LINK}
-                                                    >
+                                                    <GlassPill as={Link} to="/favorites" size="lg">
                                                         <i className="icon-star-empty" />
                                                         <span>Favorites</span>
-                                                    </Link>
-                                                    <Link
-                                                        to="/docs"
-                                                        className={PILL_LINK}
-                                                    >
+                                                    </GlassPill>
+                                                    <GlassPill as={Link} to="/docs" size="lg">
                                                         <i className="icon-info" />
                                                         <span>Shortcuts</span>
-                                                    </Link>
-                                                    <Link
-                                                        to="/philosophy"
-                                                        className={PILL_LINK}
-                                                    >
-                                                        <span>Philosophy</span>
-                                                    </Link>
-                                                    <Link
-                                                        to="/glass"
-                                                        className={PILL_LINK}
-                                                    >
-                                                        <span>Glass</span>
-                                                    </Link>
-                                                    <Link
-                                                        to="/type"
-                                                        className={PILL_LINK}
-                                                    >
-                                                        <span>Type</span>
-                                                    </Link>
-                                                    <Link
-                                                        to="/colors"
-                                                        className={PILL_LINK}
-                                                    >
-                                                        <span>Colors</span>
-                                                    </Link>
+                                                    </GlassPill>
+                                                    <GlassPill as={Link} to="/philosophy" size="lg">
+                                                        Philosophy
+                                                    </GlassPill>
+                                                    <GlassPill as={Link} to="/glass" size="lg">
+                                                        Glass
+                                                    </GlassPill>
+                                                    <GlassPill as={Link} to="/type" size="lg">
+                                                        Type
+                                                    </GlassPill>
+                                                    <GlassPill as={Link} to="/colors" size="lg">
+                                                        Colors
+                                                    </GlassPill>
                                                 </div>
                                                 <div className="mt-8 flex justify-end">
                                                     <GoogleAuth />
