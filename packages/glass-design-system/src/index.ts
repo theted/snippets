@@ -15,6 +15,14 @@ export {
 } from './glass';
 export type { GlassIntensity, GlassStyles } from './glass';
 
+// Patterns
+export { PATTERNS } from './patterns';
+export type { PatternDef, PatternId } from './patterns';
+
+// Backgrounds
+export { BG_PRESETS, makeHueGradient } from './backgrounds';
+export type { BgPreset, BgId } from './backgrounds';
+
 // Components
 export { default as GlassPanel } from './components/GlassPanel';
 export { default as GlassPill } from './components/GlassPill';

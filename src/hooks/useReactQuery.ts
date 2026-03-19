@@ -1,5 +1,5 @@
-import { useSnippets } from './react-query';
+import { useSnippets, SnippetQueryParams } from './react-query';
 
-export default function useReactQuery(searchQuery: string) {
-  return useSnippets(searchQuery);
+export default function useReactQuery(params: SnippetQueryParams) {
+  return useSnippets(params);
 }

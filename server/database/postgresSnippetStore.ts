@@ -20,18 +20,24 @@ function mapSnippetRow(row: SnippetRow): Snippet {
   };
 }
 
-function buildListQuery({ query, order = 'desc' }: ListSnippetsOptions) {
+function buildListQuery({ query, language, order = 'desc' }: ListSnippetsOptions) {
   const values: string[] = [];
   const whereClauses: string[] = [];
 
   if (query && query.trim().length > 0) {
     values.push(`%${query.trim()}%`);
+    const n = values.length;
     whereClauses.push(`(
-      title ILIKE $1
-      OR content ILIKE $1
-      OR COALESCE(description, '') ILIKE $1
-      OR language ILIKE $1
+      title ILIKE $${n}
+      OR content ILIKE $${n}
+      OR COALESCE(description, '') ILIKE $${n}
+      OR language ILIKE $${n}
     )`);
+  }
+
+  if (language && language.trim().length > 0) {
+    values.push(language.trim());
+    whereClauses.push(`language = $${values.length}`);
   }
 
   const direction = order === 'asc' ? 'ASC' : 'DESC';

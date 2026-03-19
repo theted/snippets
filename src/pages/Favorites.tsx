@@ -29,7 +29,7 @@ const Favorites: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  const { data: allSnippets = [], isPending } = useSnippets('');
+  const { data: allSnippets = [], isPending } = useSnippets({});
   const favoriteSnippets = allSnippets.filter((s) => isFavorite(s.id));
 
   const { mutate: removeSnippet } = useDeleteSnippetMutation({

@@ -1,5 +1,14 @@
 /* eslint-disable max-len */
-import React, { useContext, useState, useRef, useEffect, useCallback, RefObject } from 'react';
+import React, {
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useTransition,
+  RefObject,
+  useMemo,
+} from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import Snippet from '../components/Snippet';
@@ -100,9 +109,26 @@ const MasonryCard = React.memo(({ data }: { data: ISnippet; width: number; index
 type MasonryGridProps = MasonryCallbacks & { snippets: ISnippet[] };
 
 const MasonryGrid: React.FC<MasonryGridProps> = ({
-  snippets, onDelete, onEdit, theme, isFavorite, onToggleFavorite, onFilterLanguage, prefetch,
+  snippets,
+  onDelete,
+  onEdit,
+  theme,
+  isFavorite,
+  onToggleFavorite,
+  onFilterLanguage,
+  prefetch,
 }) => (
-  <MasonryContext.Provider value={{ onDelete, onEdit, theme, isFavorite, onToggleFavorite, onFilterLanguage, prefetch }}>
+  <MasonryContext.Provider
+    value={{
+      onDelete,
+      onEdit,
+      theme,
+      isFavorite,
+      onToggleFavorite,
+      onFilterLanguage,
+      prefetch,
+    }}
+  >
     <div className="mt-12 md:mt-16">
       <Masonry
         items={snippets}
@@ -118,12 +144,19 @@ const MasonryGrid: React.FC<MasonryGridProps> = ({
 
 const LAYOUT_CLASSES: Record<'stream' | 'grid', string> = {
   stream: 'mt-12 flex flex-col gap-14 md:mt-16 md:gap-20',
-  grid:   'mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:mt-16 md:gap-10',
+  grid: 'mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:mt-16 md:gap-10',
 };
 
+const CASCADE_PATTERN = [1, 2, 3, 2];
+const CASCADE_ROW_COLS = [
+  'grid-cols-1',
+  'grid-cols-1 sm:grid-cols-2',
+  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+];
 
-const CASCADE_PATTERN = [1, 2, 3];
-const CASCADE_ROW_COLS = ['grid-cols-1', 'grid-cols-1 sm:grid-cols-2', 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'];
+// Set to true after Snippets first mounts. Survives React unmount/remount so
+// subsequent visits (e.g. navigating back from a snippet) skip the stagger.
+let snippetsLoaded = false;
 
 function groupByCascade<T>(items: T[]): T[][] {
   const groups: T[][] = [];
@@ -149,7 +182,16 @@ type CascadeGridProps = {
   onFilterLanguage: (lang: string) => void;
 };
 
-const CascadeGrid: React.FC<CascadeGridProps> = ({ snippets, onDelete, onEdit, theme, prefetch, isFavorite, onToggleFavorite, onFilterLanguage }) => {
+const CascadeGrid: React.FC<CascadeGridProps> = ({
+  snippets,
+  onDelete,
+  onEdit,
+  theme,
+  prefetch,
+  isFavorite,
+  onToggleFavorite,
+  onFilterLanguage,
+}) => {
   const rows = groupByCascade(snippets);
   let absoluteIndex = 0;
 
@@ -166,7 +208,7 @@ const CascadeGrid: React.FC<CascadeGridProps> = ({ snippets, onDelete, onEdit, t
             {row.map((snippet, colIndex) => (
               <div
                 key={snippet.id}
-                className="snippet-stream-item"
+                className={snippetsLoaded ? undefined : 'snippet-stream-item'}
                 style={{ '--item-index': rowStart + colIndex } as React.CSSProperties}
                 onMouseEnter={() => prefetch(snippet.id)}
               >
@@ -198,10 +240,10 @@ const CascadeGrid: React.FC<CascadeGridProps> = ({ snippets, onDelete, onEdit, t
 // span. A greedy shortest-column packing algorithm places them with absolute
 // positions, so both column-span and card height drive the final layout.
 
-const AUTO_GUTTER = 20;     // px — gap between columns
-const COL_MIN_WIDTH = 260;  // px — below this per-column width, add more columns
-const MIN_COLS = 4;         // always at least 4 columns
-const MAX_COLS = 4;         // cap at 4 columns on very wide screens
+const AUTO_GUTTER = 20; // px — gap between columns
+const COL_MIN_WIDTH = 260; // px — below this per-column width, add more columns
+const MIN_COLS = 5; // always at least 5 columns
+const MAX_COLS = 6; // cap at 5 columns on very wide screens
 // Set to true to animate card positions on reflow (resize / data changes).
 // Currently disabled: position transitions cause a yank on initial layout pass.
 const AUTO_REFLOW_ANIMATIONS = false;
@@ -220,7 +262,7 @@ function packVariableWidth(
   spans: (1 | 2 | 3)[],
   heights: number[],
   colCount: number,
-  colWidth: number,
+  colWidth: number
 ): Array<{ left: number; top: number; width: number }> {
   const colHeights = new Array<number>(colCount).fill(0);
   return spans.map((rawSpan, i) => {
@@ -231,7 +273,10 @@ function packVariableWidth(
     for (let c = 0; c <= colCount - span; c++) {
       let h = colHeights[c];
       for (let s = 1; s < span; s++) h = Math.max(h, colHeights[c + s]);
-      if (h < bestH) { bestH = h; bestCol = c; }
+      if (h < bestH) {
+        bestH = h;
+        bestCol = c;
+      }
     }
     const left = bestCol * (colWidth + AUTO_GUTTER);
     const top = bestH;
@@ -254,7 +299,14 @@ type AutoSizeGridProps = {
 };
 
 const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
-  snippets, onDelete, onEdit, theme, prefetch, isFavorite, onToggleFavorite, onFilterLanguage,
+  snippets,
+  onDelete,
+  onEdit,
+  theme,
+  prefetch,
+  isFavorite,
+  onToggleFavorite,
+  onFilterLanguage,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -276,19 +328,29 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
   useEffect(() => {
     const obs = new ResizeObserver(() => {
       const h = itemRefs.current.map((el) => el?.offsetHeight ?? 0);
-      setItemHeights((prev) => (prev.length === h.length && prev.every((v, i) => v === h[i]) ? prev : h));
+      setItemHeights((prev) =>
+        prev.length === h.length && prev.every((v, i) => v === h[i]) ? prev : h
+      );
     });
-    itemRefs.current.forEach((el) => { if (el) obs.observe(el); });
+    itemRefs.current.forEach((el) => {
+      if (el) obs.observe(el);
+    });
     return () => obs.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snippets]);
 
-  const colCount = containerWidth > 0
-    ? Math.min(MAX_COLS, Math.max(MIN_COLS, Math.floor((containerWidth + AUTO_GUTTER) / (COL_MIN_WIDTH + AUTO_GUTTER))))
-    : MIN_COLS;
-  const colWidth = containerWidth > 0
-    ? (containerWidth - (colCount - 1) * AUTO_GUTTER) / colCount
-    : COL_MIN_WIDTH;
+  const colCount =
+    containerWidth > 0
+      ? Math.min(
+          MAX_COLS,
+          Math.max(
+            MIN_COLS,
+            Math.floor((containerWidth + AUTO_GUTTER) / (COL_MIN_WIDTH + AUTO_GUTTER))
+          )
+        )
+      : MIN_COLS;
+  const colWidth =
+    containerWidth > 0 ? (containerWidth - (colCount - 1) * AUTO_GUTTER) / colCount : COL_MIN_WIDTH;
 
   const spans = snippets.map((s) => colSpanForSnippet(s.content, colCount, colWidth));
   const isPositioned = itemHeights.length === snippets.length && itemHeights.every((h) => h > 0);
@@ -301,26 +363,38 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
     <div
       ref={containerRef}
       className="mt-12 md:mt-16"
-      style={{ position: 'relative', height: totalHeight, overflow: isPositioned ? 'visible' : 'hidden' }}
+      style={{
+        position: 'relative',
+        height: totalHeight,
+        overflow: isPositioned ? 'visible' : 'hidden',
+      }}
     >
       {snippets.map((snippet, i) => {
         const pos = positions?.[i];
         const span = spans[i];
-        const w = pos?.width ?? (span * colWidth + (span - 1) * AUTO_GUTTER);
+        const w = pos?.width ?? span * colWidth + (span - 1) * AUTO_GUTTER;
         return (
           <div
             key={snippet.id}
-            ref={(el) => { itemRefs.current[i] = el; }}
-            className="snippet-stream-item"
+            ref={(el) => {
+              itemRefs.current[i] = el;
+            }}
+            className={snippetsLoaded ? undefined : 'snippet-stream-item'}
             onMouseEnter={() => prefetch(snippet.id)}
-            style={{
-              position: pos ? 'absolute' : 'relative',
-              left: pos?.left ?? 0,
-              top: pos?.top ?? 0,
-              width: `min(${w}px, 100%)`,
-              opacity: pos ? 1 : 0,
-              transition: pos ? (AUTO_REFLOW_ANIMATIONS ? 'opacity 0.35s ease, top 0.45s cubic-bezier(0.4,0,0.2,1), left 0.45s cubic-bezier(0.4,0,0.2,1)' : 'opacity 0.35s ease') : 'none',
-            } as React.CSSProperties}
+            style={
+              {
+                position: pos ? 'absolute' : 'relative',
+                left: pos?.left ?? 0,
+                top: pos?.top ?? 0,
+                width: `min(${w}px, 100%)`,
+                opacity: pos ? 1 : 0,
+                transition: pos
+                  ? AUTO_REFLOW_ANIMATIONS
+                    ? 'opacity 0.35s ease, top 0.45s cubic-bezier(0.4,0,0.2,1), left 0.45s cubic-bezier(0.4,0,0.2,1)'
+                    : 'opacity 0.35s ease'
+                  : 'none',
+              } as React.CSSProperties
+            }
           >
             <Snippet
               id={snippet.id}
@@ -343,10 +417,12 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({
   );
 };
 
+type Props = {
+  searchbarRef?: RefObject<SearchbarHandle | null>;
+  initialLanguage?: string;
+};
 
-type Props = { searchbarRef?: RefObject<SearchbarHandle | null> };
-
-const Snippets: React.FC<Props> = ({ searchbarRef }) => {
+const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
   const queryClient = useQueryClient();
   const { theme, autoSize, setAutoSize } = useContext(ThemeContext);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
@@ -354,10 +430,16 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   const lastEditingIdRef = useRef<SnippetId | null>(null);
   const [editingId, setEditingId] = useState<SnippetId | null>(null);
   const [search, setSearch] = useState<string>('');
-  const [languageFilter, setLanguageFilter] = useState<string | null>(null);
+  const [languageFilter, setLanguageFilter] = useState<string | null>(initialLanguage ?? null);
+  const [isSearchTransitioning, startSearchTransition] = useTransition();
   const [layout, setLayout] = useState<SnippetLayout>(
-    () => (localStorage.getItem('snippetLayout') as SnippetLayout | null) ?? DEFAULT_SNIPPET_LAYOUT,
+    () => (localStorage.getItem('snippetLayout') as SnippetLayout | null) ?? DEFAULT_SNIPPET_LAYOUT
   );
+
+  // Mark as loaded after first render so return visits skip the stagger.
+  useEffect(() => {
+    snippetsLoaded = true;
+  }, []);
 
   const handleLayoutChange = (next: SnippetLayout) => {
     setLayout(next);
@@ -376,9 +458,18 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
         onComplete: () => {
           setAutoSize(!autoSize);
           gsap.fromTo(
-            Array.from(gridRef.current?.querySelectorAll<HTMLElement>('.snippet-stream-item') ?? []),
+            Array.from(
+              gridRef.current?.querySelectorAll<HTMLElement>('.snippet-stream-item') ?? []
+            ),
             { opacity: 0, y: 12 },
-            { opacity: 1, y: 0, duration: 0.32, stagger: 0.03, ease: 'power2.out', delay: 0.04 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.32,
+              stagger: 0.03,
+              ease: 'power2.out',
+              delay: 0.04,
+            }
           );
         },
       });
@@ -386,10 +477,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       setAutoSize(!autoSize);
     }
   }, [autoSize, setAutoSize]);
-  const {
-    data: editingSnippetData,
-    error: editingSnippetError,
-  } = useSnippet(editingId);
+  const { data: editingSnippetData, error: editingSnippetError } = useSnippet(editingId);
   const {
     mutate: removeSnippet,
     error: deleteError,
@@ -400,7 +488,10 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
     error: updateError,
     reset: resetUpdate,
   } = useUpdateSnippetMutation({
-    onMutate: () => { lastEditingIdRef.current = editingId; setEditingId(null); },
+    onMutate: () => {
+      lastEditingIdRef.current = editingId;
+      setEditingId(null);
+    },
     onError: () => setEditingId(lastEditingIdRef.current),
   });
   // Capture edit-load error before editingId → null disables the query and clears it
@@ -413,9 +504,16 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
   }, [editingSnippetError]);
 
   const debouncedSearchQuery = useDebounce(search, 600);
-  // isLoadingResults: true while debounce is pending OR API is fetching
-  const isLoadingResults = useReactQuery(debouncedSearchQuery).isPending || debouncedSearchQuery !== search;
-  const { data: snippets = [], error } = useReactQuery(debouncedSearchQuery);
+  const snippetQueryParams = useMemo(
+    () => ({ q: debouncedSearchQuery || undefined, language: languageFilter ?? undefined }),
+    [debouncedSearchQuery, languageFilter]
+  );
+  // isLoadingResults: true while transition/debounce is pending OR API is fetching
+  const isLoadingResults =
+    useReactQuery(snippetQueryParams).isPending ||
+    isSearchTransitioning ||
+    debouncedSearchQuery !== search;
+  const { data: snippets = [], error } = useReactQuery(snippetQueryParams);
 
   const isSearching = Boolean(search);
 
@@ -423,13 +521,21 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
 
   const onDelete = (id: SnippetId) => removeSnippet(id);
   const onEdit = (id: SnippetId) => setEditingId(id);
-  const onSearch = (value: string) => { setSearch(value); setLanguageFilter(null); };
-  const closeModal = () => { setEditingId(null); resetUpdate(); setCapturedEditError(null); };
+  const onSearch = (value: string) => {
+    setLanguageFilter(null); // immediate — language chip disappears instantly
+    startSearchTransition(() => {
+      setSearch(value);
+    }); // deferred — grid re-render is non-urgent
+  };
+  const closeModal = () => {
+    setEditingId(null);
+    resetUpdate();
+    setCapturedEditError(null);
+  };
 
-  const displaySnippets = languageFilter
-    ? snippets.filter((s) => s.language === languageFilter)
-    : snippets;
-  const onFilterLanguage = (lang: string) => setLanguageFilter((prev) => (prev === lang ? null : lang));
+  const displaySnippets = snippets;
+  const onFilterLanguage = (lang: string) =>
+    setLanguageFilter((prev) => (prev === lang ? null : lang));
 
   const updateSnippet = (formValues: SnippetFormValues) => {
     if (!editingSnippetData) return;
@@ -450,12 +556,10 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       {/* ── Language filter chip ── */}
       {languageFilter && (
         <div className="mt-4 flex items-center gap-2">
-          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">Filtered by</span>
-          <Chip
-            variant="accent"
-            size="md"
-            onRemove={() => setLanguageFilter(null)}
-          >
+          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">
+            Filtered by
+          </span>
+          <Chip variant="accent" size="md" onRemove={() => setLanguageFilter(null)}>
             {LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}
           </Chip>
         </div>
@@ -464,37 +568,41 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
       {/* ── Layout toggle ── */}
       {!isSearching && (
         <div className="mt-6 flex justify-end">
-        <GlassPanel intensity="subtle" rounded="rounded-[1.4rem]" className="inline-flex items-center gap-1.5 px-3 py-2.5">
-          <GlassPill
-            size="xs"
-            variant={autoSize ? 'accent' : 'default'}
-            onClick={handleAutoSizeToggle}
-            title="Auto-size cards to content width"
+          <GlassPanel
+            intensity="subtle"
+            rounded="rounded-[1.4rem]"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5"
           >
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-              <rect x="0" y="0" width="3.5" height="11" rx="1" />
-              <rect x="4.5" y="2" width="6.5" height="7" rx="1" />
-              <rect x="4.5" y="0" width="1" height="2.5" rx="0.5" />
-              <rect x="4.5" y="8.5" width="1" height="2.5" rx="0.5" />
-            </svg>
-            Auto
-          </GlassPill>
-          <div className="mx-1 h-4 w-px bg-[var(--color-border)]" />
-          {(['cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
             <GlassPill
-              key={l}
               size="xs"
-              variant={!autoSize && layout === l ? 'active' : 'default'}
-              onClick={() => handleLayoutChange(l)}
+              variant={autoSize ? 'accent' : 'default'}
+              onClick={handleAutoSizeToggle}
+              title="Auto-size cards to content width"
             >
-              {l === 'grid' && <LayoutGridIcon />}
-              {l === 'masonry' && <LayoutMasonryIcon />}
-              {l === 'stream' && <LayoutStreamIcon />}
-              {l === 'cascade' && <LayoutCascadeIcon />}
-              {l}
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+                <rect x="0" y="0" width="3.5" height="11" rx="1" />
+                <rect x="4.5" y="2" width="6.5" height="7" rx="1" />
+                <rect x="4.5" y="0" width="1" height="2.5" rx="0.5" />
+                <rect x="4.5" y="8.5" width="1" height="2.5" rx="0.5" />
+              </svg>
+              Auto
             </GlassPill>
-          ))}
-        </GlassPanel>
+            <div className="mx-1 h-4 w-px bg-[var(--color-border)]" />
+            {(['cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
+              <GlassPill
+                key={l}
+                size="xs"
+                variant={!autoSize && layout === l ? 'active' : 'default'}
+                onClick={() => handleLayoutChange(l)}
+              >
+                {l === 'grid' && <LayoutGridIcon />}
+                {l === 'masonry' && <LayoutMasonryIcon />}
+                {l === 'stream' && <LayoutStreamIcon />}
+                {l === 'cascade' && <LayoutCascadeIcon />}
+                {l}
+              </GlassPill>
+            ))}
+          </GlassPanel>
         </div>
       )}
 
@@ -503,7 +611,9 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
         <p className="search-results-status mt-12" style={{ paddingTop: '1rem' }}>
           {languageFilter
             ? `No snippets with language "${LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}"`
-            : isSearching ? `No snippets matched "${debouncedSearchQuery}"` : 'No snippets yet — create one to get started.'}
+            : isSearching
+              ? `No snippets matched "${debouncedSearchQuery}"`
+              : 'No snippets yet — create one to get started.'}
         </p>
       ) : autoSize ? (
         <div ref={gridRef}>
@@ -515,11 +625,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onFilterLanguage={onFilterLanguage}
-            prefetch={(id) => queryClient.prefetchQuery({
-              queryKey: snippetKeys.detail(id),
-              queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-              staleTime: 60_000,
-            })}
+            prefetch={(id) =>
+              queryClient.prefetchQuery({
+                queryKey: snippetKeys.detail(id),
+                queryFn: () =>
+                  import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
+                staleTime: 60_000,
+              })
+            }
           />
         </div>
       ) : layout === 'masonry' ? (
@@ -531,11 +644,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
           onFilterLanguage={onFilterLanguage}
-          prefetch={(id) => queryClient.prefetchQuery({
-            queryKey: snippetKeys.detail(id),
-            queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-            staleTime: 60_000,
-          })}
+          prefetch={(id) =>
+            queryClient.prefetchQuery({
+              queryKey: snippetKeys.detail(id),
+              queryFn: () =>
+                import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
+              staleTime: 60_000,
+            })
+          }
         />
       ) : layout === 'cascade' ? (
         <div ref={gridRef}>
@@ -547,11 +663,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onFilterLanguage={onFilterLanguage}
-            prefetch={(id) => queryClient.prefetchQuery({
-              queryKey: snippetKeys.detail(id),
-              queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-              staleTime: 60_000,
-            })}
+            prefetch={(id) =>
+              queryClient.prefetchQuery({
+                queryKey: snippetKeys.detail(id),
+                queryFn: () =>
+                  import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
+                staleTime: 60_000,
+              })
+            }
           />
         </div>
       ) : (
@@ -559,13 +678,20 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
           {displaySnippets.map((snippet, index) => (
             <div
               key={snippet.id}
-              className="snippet-stream-item"
-              style={layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined}
-              onMouseEnter={() => queryClient.prefetchQuery({
-                queryKey: snippetKeys.detail(snippet.id),
-                queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${snippet.id}`)),
-                staleTime: 60_000,
-              })}
+              className={snippetsLoaded ? undefined : 'snippet-stream-item'}
+              style={
+                layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined
+              }
+              onMouseEnter={() =>
+                queryClient.prefetchQuery({
+                  queryKey: snippetKeys.detail(snippet.id),
+                  queryFn: () =>
+                    import('../utils/api.ts').then(({ get }) =>
+                      get<ISnippet>(`snippets/${snippet.id}`)
+                    ),
+                  staleTime: 60_000,
+                })
+              }
             >
               <Snippet
                 id={snippet.id}
@@ -596,7 +722,10 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
               closeModal={closeModal}
             />
           ) : (
-            <GlassPanel intensity="medium" className="flex min-h-[12rem] items-center justify-center p-8">
+            <GlassPanel
+              intensity="medium"
+              className="flex min-h-[12rem] items-center justify-center p-8"
+            >
               <SpinFigure />
             </GlassPanel>
           )}
@@ -608,7 +737,9 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
         <Toast
           variant="error"
           message={`Could not load snippets: ${error.message}`}
-          onDismiss={() => { /* query manages its own error state */ }}
+          onDismiss={() => {
+            /* query manages its own error state */
+          }}
         />
       )}
       {deleteError instanceof Error && (
@@ -632,7 +763,6 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
           onDismiss={resetUpdate}
         />
       )}
-
     </section>
   );
 };

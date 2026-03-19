@@ -3,19 +3,36 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { get } from '../utils/api.ts';
 import { Snippet, SnippetId } from '../types';
 
+export type SnippetQueryParams = {
+  q?: string;
+  language?: string;
+  limit?: number;
+  offset?: number;
+};
+
 export const snippetKeys = {
   all: ['snippets'] as const,
   lists: () => [...snippetKeys.all, 'list'] as const,
-  list: (query: string) => [...snippetKeys.lists(), query] as const,
+  list: (params: SnippetQueryParams) => [...snippetKeys.lists(), params] as const,
   details: () => [...snippetKeys.all, 'detail'] as const,
   detail: (id: SnippetId) => [...snippetKeys.details(), id] as const,
 };
 
-export const useSnippets = (query: string) => useQuery({
-  queryKey: snippetKeys.list(query),
-  queryFn: () => get<Snippet[]>(`snippets?q=${query}&_sort=id&_order=desc`),
-  staleTime: 30_000,
-});
+export const useSnippets = (params: SnippetQueryParams) => {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set('q', params.q);
+  if (params.language) qs.set('language', params.language);
+  qs.set('_sort', 'id');
+  qs.set('_order', 'desc');
+  if (params.limit !== undefined) qs.set('_limit', String(params.limit));
+  if (params.offset !== undefined) qs.set('_start', String(params.offset));
+
+  return useQuery({
+    queryKey: snippetKeys.list(params),
+    queryFn: () => get<Snippet[]>(`snippets?${qs.toString()}`),
+    staleTime: 30_000,
+  });
+};
 
 type UseSnippetOptions = {
   enabled?: boolean;

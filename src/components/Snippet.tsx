@@ -35,7 +35,7 @@ const allStyles = syntaxStyles as Record<string, SyntaxTheme>;
 // ── Full (stream) class set ────────────────────────────────────────────────────
 
 const fullClasses = {
-    container:     'group relative overflow-hidden rounded-[2.2rem] p-5 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 md:p-8 lg:p-10 cursor-pointer',
+    container:     'group relative overflow-hidden rounded-[2.2rem] p-5 backdrop-blur-2xl md:p-8 lg:p-10 cursor-pointer',
     glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
     glow:          'pointer-events-none absolute right-[-8rem] top-[-6rem] h-96 w-96 rounded-full',
     heading:       'relative z-10 pb-6',
@@ -56,7 +56,7 @@ const fullClasses = {
 // ── Compact (grid / masonry) class set ────────────────────────────────────────
 
 const compactClasses = {
-    container:     'group relative overflow-hidden rounded-[1.6rem] p-4 md:p-5 backdrop-blur-2xl transition-transform duration-500 ease-out hover:-translate-y-1 cursor-pointer',
+    container:     'group relative overflow-hidden rounded-[1.6rem] p-4 md:p-5 backdrop-blur-2xl cursor-pointer',
     glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
     glow:          'pointer-events-none absolute right-[-4rem] top-[-3rem] h-48 w-48 rounded-full',
     heading:       'relative z-10 pb-3',
@@ -110,6 +110,9 @@ const Snippet: React.FC<Props> = ({
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const [showScrollFade, setShowScrollFade] = useState(false);
     const [showCopiedToast, setShowCopiedToast] = useState(false);
+    // Detail page (forceAutoSize) has one card — highlight immediately.
+    // Archive cards start plain and highlight once they enter the viewport.
+    const [highlighted, setHighlighted] = useState(forceAutoSize);
     const cardRef = useRef<HTMLDivElement>(null);
     const codeWrapRef = useRef<HTMLDivElement>(null);
 
@@ -122,9 +125,21 @@ const Snippet: React.FC<Props> = ({
     };
 
     useEffect(() => {
+        if (highlighted) return;
+        const el = cardRef.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) { setHighlighted(true); obs.disconnect(); } },
+            { rootMargin: '200px' },
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
         const el = codeWrapRef.current;
         if (el) setShowScrollFade(el.scrollHeight > el.clientHeight + 4);
-    }, [content]);
+    }, [content, highlighted]);
 
     const handleCodeScroll = () => {
         const el = codeWrapRef.current;
@@ -255,14 +270,20 @@ const Snippet: React.FC<Props> = ({
                         overflowX: 'auto',
                     }}
                 >
-                    <SyntaxHighlighter
-                        language={language || 'javascript'}
-                        style={syntaxTheme}
-                        customStyle={{ ...codeStyle, borderRadius: 0, marginBottom: 0, overflow: 'visible' }}
-                        showLineNumbers={showLineNumbers}
-                    >
-                        {content}
-                    </SyntaxHighlighter>
+                    {highlighted ? (
+                        <SyntaxHighlighter
+                            language={language || 'javascript'}
+                            style={syntaxTheme}
+                            customStyle={{ ...codeStyle, borderRadius: 0, marginBottom: 0, overflow: 'visible' }}
+                            showLineNumbers={showLineNumbers}
+                        >
+                            {content}
+                        </SyntaxHighlighter>
+                    ) : (
+                        <pre style={{ ...codeStyle, borderRadius: 0, marginBottom: 0, overflow: 'visible', whiteSpace: 'pre', fontFamily: 'inherit', color: syntaxTheme['hljs']?.color }}>
+                            {content}
+                        </pre>
+                    )}
                 </div>
             </div>
             <div

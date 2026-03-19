@@ -1,68 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { GlassPanel, GLASS_BLUR, GLASS_OPACITY, getGlassStyles } from 'glass-design-system';
-
-// ── Background presets ────────────────────────────────────────────────────────
-
-const BG_PRESETS = [
-  {
-    id: 'night',
-    label: 'Night',
-    swatch: 'linear-gradient(135deg, oklch(0.20 0.06 240), oklch(0.12 0.04 260))',
-    gradient: `
-      radial-gradient(circle at 14% 18%, oklch(0.42 0.24 216 / 0.26), transparent 26%),
-      radial-gradient(circle at 88% 10%, oklch(0.50 0.28 206 / 0.28), transparent 24%),
-      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.11 0.08 248 / 0.94), transparent 100%),
-      linear-gradient(180deg, oklch(0.12 0.030 246) 0%, oklch(0.07 0.05 250) 100%)
-    `,
-  },
-  {
-    id: 'ember',
-    label: 'Ember',
-    swatch: 'linear-gradient(135deg, oklch(0.22 0.08 28), oklch(0.10 0.04 15))',
-    gradient: `
-      radial-gradient(circle at 18% 15%, oklch(0.48 0.22 38 / 0.30), transparent 32%),
-      radial-gradient(circle at 82% 72%, oklch(0.40 0.20 18 / 0.28), transparent 36%),
-      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.10 0.06 22 / 0.92), transparent 100%),
-      linear-gradient(180deg, oklch(0.11 0.028 28) 0%, oklch(0.06 0.016 18) 100%)
-    `,
-  },
-  {
-    id: 'forest',
-    label: 'Forest',
-    swatch: 'linear-gradient(135deg, oklch(0.20 0.07 155), oklch(0.09 0.03 165))',
-    gradient: `
-      radial-gradient(circle at 25% 35%, oklch(0.44 0.20 155 / 0.28), transparent 34%),
-      radial-gradient(circle at 78% 15%, oklch(0.38 0.16 175 / 0.24), transparent 30%),
-      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.09 0.06 160 / 0.94), transparent 100%),
-      linear-gradient(180deg, oklch(0.11 0.032 152) 0%, oklch(0.06 0.018 162) 100%)
-    `,
-  },
-  {
-    id: 'dusk',
-    label: 'Dusk',
-    swatch: 'linear-gradient(135deg, oklch(0.22 0.09 290), oklch(0.10 0.04 310))',
-    gradient: `
-      radial-gradient(circle at 65% 8%, oklch(0.52 0.24 292 / 0.30), transparent 34%),
-      radial-gradient(circle at 12% 75%, oklch(0.42 0.20 322 / 0.26), transparent 36%),
-      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.10 0.07 300 / 0.92), transparent 100%),
-      linear-gradient(180deg, oklch(0.11 0.030 285) 0%, oklch(0.07 0.022 305) 100%)
-    `,
-  },
-  {
-    id: 'dawn',
-    label: 'Dawn',
-    swatch: 'linear-gradient(135deg, oklch(0.94 0.04 80), oklch(0.82 0.06 45))',
-    gradient: `
-      radial-gradient(circle at 22% 20%, oklch(0.90 0.08 72 / 0.40), transparent 38%),
-      radial-gradient(circle at 80% 60%, oklch(0.78 0.10 42 / 0.28), transparent 40%),
-      radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.72 0.06 50 / 0.50), transparent 100%),
-      linear-gradient(180deg, oklch(0.95 0.014 78) 0%, oklch(0.86 0.022 55) 100%)
-    `,
-  },
-] as const;
-
-type BgId = (typeof BG_PRESETS)[number]['id'];
+import { useBackground } from '../context/BackgroundContext';
 
 // ── Inline tinted panel — wraps GlassPanel with a colour wash overlay ──────
 
@@ -322,191 +261,24 @@ const DoDontCard: React.FC<DoDontCardProps> = ({ ok, label, children }) => (
   </div>
 );
 
-// ── Custom gradient generator ─────────────────────────────────────────────────
-
-function makeHueGradient(hue: number, orb: number): string {
-  const l1 = 0.44, c1 = 0.22;
-  const l2 = 0.38, c2 = 0.18;
-  const lBase = 0.11, cBase = 0.07;
-  const o1 = +(0.28 * orb).toFixed(2);
-  const o2 = +(0.24 * orb).toFixed(2);
-  const hue2 = (hue + 20) % 360;
-  return `
-    radial-gradient(circle at 20% 15%, oklch(${l1} ${c1} ${hue} / ${o1}), transparent 32%),
-    radial-gradient(circle at 80% 70%, oklch(${l2} ${c2} ${hue2} / ${o2}), transparent 36%),
-    radial-gradient(ellipse 100% 55% at 50% 100%, oklch(${lBase} ${cBase} ${hue} / 0.92), transparent 100%),
-    linear-gradient(180deg, oklch(0.11 0.030 ${hue}) 0%, oklch(0.06 0.018 ${hue2}) 100%)
-  `;
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const GlassShowcase: React.FC = () => {
-  const [bgId, setBgId] = useState<BgId>('night');
-  const [customHue, setCustomHue] = useState<number | null>(null);
-  const [backdropIntensity, setBackdropIntensity] = useState(1.0);
-  const [showCustom, setShowCustom] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const activeBg = BG_PRESETS.find((b) => b.id === bgId)!;
-  const activeGradient = customHue !== null
-    ? makeHueGradient(customHue, backdropIntensity)
-    : activeBg.gradient;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(activeGradient.trim()).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  // Override the body background while on this page; restore on unmount
-  React.useEffect(() => {
-    const prevBg         = document.body.style.background;
-    const prevAttachment = document.body.style.backgroundAttachment;
-    const prevTransition = document.body.style.transition;
-    document.body.style.transition          = 'background 700ms ease';
-    document.body.style.background          = activeGradient;
-    document.body.style.backgroundAttachment = 'fixed';
-    return () => {
-      document.body.style.background           = prevBg;
-      document.body.style.backgroundAttachment = prevAttachment;
-      document.body.style.transition           = prevTransition;
-    };
-  }, [activeGradient]);
+  const { isDawn } = useBackground();
 
   return (
   <div className="relative min-h-screen">
 
-    {/* Sticky background switcher */}
-    <div className="sticky top-4 z-50 flex flex-col items-end gap-2 px-4 pt-4 md:px-8">
-
-      {/* Preset row + toggle */}
-      <div
-        className="inline-flex items-center gap-1 rounded-full p-1.5"
-        style={{
-          background: 'oklch(0.14 0.024 254 / 0.72)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid oklch(0.4 0.044 248 / 0.32)',
-          boxShadow: '0 4px 24px oklch(0.05 0.015 250 / 0.40)',
-        }}
-      >
-        {BG_PRESETS.map((preset) => (
-          <button
-            key={preset.id}
-            type="button"
-            onClick={() => { setBgId(preset.id); setCustomHue(null); }}
-            title={preset.label}
-            className="relative flex items-center gap-2 rounded-full px-3 py-1.5 transition duration-200"
-            style={{
-              background: customHue === null && bgId === preset.id ? 'oklch(0.28 0.04 252 / 0.80)' : 'transparent',
-            }}
-          >
-            <span className="block h-3 w-3 shrink-0 rounded-full ring-1 ring-white/10" style={{ background: preset.swatch }} />
-            <span
-              className="text-[0.60rem] font-semibold uppercase tracking-[0.22em]"
-              style={{ color: customHue === null && bgId === preset.id ? 'oklch(0.95 0.006 255)' : 'oklch(0.62 0.03 255)' }}
-            >
-              {preset.label}
-            </span>
-          </button>
-        ))}
-
-        {/* Custom hue toggle */}
-        <button
-          type="button"
-          onClick={() => setShowCustom((v) => !v)}
-          title="Custom hue"
-          className="relative flex items-center gap-2 rounded-full px-3 py-1.5 transition duration-200"
-          style={{ background: showCustom ? 'oklch(0.28 0.04 252 / 0.80)' : 'transparent' }}
-        >
-          <span
-            className="block h-3 w-3 shrink-0 rounded-full ring-1 ring-white/10"
-            style={{
-              background: customHue !== null
-                ? `oklch(0.55 0.22 ${customHue})`
-                : 'conic-gradient(oklch(0.6 0.22 0), oklch(0.6 0.22 60), oklch(0.6 0.22 120), oklch(0.6 0.22 180), oklch(0.6 0.22 240), oklch(0.6 0.22 300), oklch(0.6 0.22 360))',
-            }}
-          />
-          <span className="text-[0.60rem] font-semibold uppercase tracking-[0.22em]" style={{ color: showCustom ? 'oklch(0.95 0.006 255)' : 'oklch(0.62 0.03 255)' }}>
-            Custom
-          </span>
-        </button>
-      </div>
-
-      {/* Extended controls panel */}
-      {showCustom && (
-        <div
-          className="flex flex-col gap-4 rounded-[1.4rem] p-4"
-          style={{
-            background: 'oklch(0.14 0.024 254 / 0.82)',
-            backdropFilter: 'blur(24px)',
-            border: '1px solid oklch(0.4 0.044 248 / 0.32)',
-            boxShadow: '0 8px 32px oklch(0.05 0.015 250 / 0.40)',
-            minWidth: '22rem',
-          }}
-        >
-          {/* Hue slider */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[oklch(0.62_0.03_255)]">Hue</span>
-              {customHue !== null && (
-                <span className="text-[0.58rem] font-semibold text-[oklch(0.62_0.03_255)]">{customHue}°</span>
-              )}
-            </div>
-            <div className="relative h-3 overflow-hidden rounded-full" style={{ background: 'conic-gradient(oklch(0.45 0.20 0), oklch(0.45 0.20 60), oklch(0.45 0.20 120), oklch(0.45 0.20 180), oklch(0.45 0.20 240), oklch(0.45 0.20 300), oklch(0.45 0.20 360)) border-box' }}>
-              <div
-                className="absolute inset-y-0 w-1.5 rounded-full bg-white/80 ring-1 ring-white/40 transition-all duration-75"
-                style={{ left: `calc(${((customHue ?? 240) / 360) * 100}% - 3px)` }}
-              />
-            </div>
-            <input
-              type="range" min={0} max={359} step={1}
-              value={customHue ?? 240}
-              onChange={(e) => setCustomHue(Number(e.target.value))}
-              className="mt-[-0.6rem] w-full cursor-pointer opacity-0" style={{ height: '0.75rem' }}
-            />
-          </div>
-
-          {/* Backdrop intensity slider */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[oklch(0.62_0.03_255)]">Backdrop intensity</span>
-              <span className="text-[0.58rem] font-semibold text-[oklch(0.62_0.03_255)]">{Math.round(backdropIntensity * 100)}%</span>
-            </div>
-            <div className="relative h-3 overflow-hidden rounded-full" style={{ background: 'oklch(0.28 0.02 254 / 0.6)' }}>
-              <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-75" style={{ width: `${backdropIntensity * 100}%`, background: 'oklch(0.71 0.17 244)' }} />
-            </div>
-            <input
-              type="range" min={0.1} max={1.5} step={0.05}
-              value={backdropIntensity}
-              onChange={(e) => { setBackdropIntensity(Number(e.target.value)); if (customHue === null) setCustomHue(240); }}
-              className="mt-[-0.6rem] w-full cursor-pointer opacity-0" style={{ height: '0.75rem' }}
-            />
-          </div>
-
-          {/* Copy gradient */}
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="flex items-center justify-center gap-2 rounded-full border border-[oklch(0.4_0.044_248_/_0.32)] bg-[oklch(0.22_0.03_254_/_0.6)] py-2 text-[0.60rem] font-semibold uppercase tracking-[0.22em] text-[oklch(0.82_0.025_255)] transition duration-200 hover:bg-[oklch(0.28_0.04_252_/_0.80)] hover:text-white"
-          >
-            {copied ? '✓ Copied!' : 'Copy CSS gradient'}
-          </button>
-        </div>
-      )}
-    </div>
-
     <div
       className="mx-auto px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,6vw,5rem)]"
-      style={{ maxWidth: '132rem', color: bgId === 'dawn' ? 'oklch(0.22 0.03 50)' : undefined }}
+      style={{ maxWidth: '132rem', color: isDawn ? 'oklch(0.22 0.03 50)' : undefined }}
     >
 
       {/* ── Back nav ── */}
       <Link
         to="/"
         className="mb-14 inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.28em] transition duration-200"
-        style={{ color: bgId === 'dawn' ? 'oklch(0.38 0.05 50)' : 'var(--color-text-subtle)' }}
+        style={{ color: isDawn ? 'oklch(0.38 0.05 50)' : 'var(--color-text-subtle)' }}
       >
         ← Back
       </Link>
@@ -515,19 +287,19 @@ const GlassShowcase: React.FC = () => {
       <div className="mb-20">
         <p
           className="text-[0.72rem] font-semibold uppercase tracking-[0.42em]"
-          style={{ color: bgId === 'dawn' ? 'oklch(0.45 0.06 55)' : 'var(--color-text-subtle)' }}
+          style={{ color: isDawn ? 'oklch(0.45 0.06 55)' : 'var(--color-text-subtle)' }}
         >
           Design system
         </p>
         <h1
           className="mt-3 font-[var(--font-display)] text-[clamp(3.5rem,10vw,7rem)] font-[200] leading-[0.9] tracking-[-0.07em]"
-          style={{ color: bgId === 'dawn' ? 'oklch(0.18 0.04 45)' : 'var(--color-text)' }}
+          style={{ color: isDawn ? 'oklch(0.18 0.04 45)' : 'var(--color-text)' }}
         >
           Glass
         </h1>
         <p
           className="mt-5 max-w-xl text-sm leading-7"
-          style={{ color: bgId === 'dawn' ? 'oklch(0.36 0.04 50)' : 'var(--color-text-muted)' }}
+          style={{ color: isDawn ? 'oklch(0.36 0.04 50)' : 'var(--color-text-muted)' }}
         >
           All panels draw from two master knobs —{' '}
           <code className="rounded px-1 font-[var(--font-code)] text-[0.8em] text-[var(--color-accent-bright)]">
@@ -544,7 +316,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 0 — Design philosophy
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="00 — Philosophy" sub="The principles behind every glass surface in this UI." light={bgId === 'dawn'}>
+      <Section label="00 — Philosophy" sub="The principles behind every glass surface in this UI." light={isDawn}>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {[
             {
@@ -583,7 +355,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 1 — Intensity
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="01 — Intensity" sub="Three tiers scale against the global opacity + blur master values." light={bgId === 'dawn'}>
+      <Section label="01 — Intensity" sub="Three tiers scale against the global opacity + blur master values." light={isDawn}>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           {(['subtle', 'medium', 'strong'] as const).map((intensity) => (
             <GlassPanel key={intensity} intensity={intensity} topGlow bottomGlow rounded="rounded-[2rem]" className="p-7">
@@ -607,7 +379,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 2 — Tinted glass
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="02 — Tinted" sub="A screen-blend colour wash over the base glass — same blur and border, different hue." light={bgId === 'dawn'}>
+      <Section label="02 — Tinted" sub="A screen-blend colour wash over the base glass — same blur and border, different hue." light={isDawn}>
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
           <TintedPanel label="Sapphire" sub="hue 240" tint="oklch(0.55 0.28 240)">
             <SampleContent title="Blue" body="The default palette anchor." />
@@ -633,7 +405,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 3 — Blur levels
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="03 — Blur" sub="Same opacity and border; only backdrop-filter changes. Current global setting shown in bold." light={bgId === 'dawn'}>
+      <Section label="03 — Blur" sub="Same opacity and border; only backdrop-filter changes. Current global setting shown in bold." light={isDawn}>
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           <BlurPanel blur={8}  label="Minimal"  sub="Barely frosted — background structure still visible." />
           <BlurPanel blur={20} label="Light"    sub="Gentle diffusion without losing the depth behind." />
@@ -645,7 +417,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 4 — Glow combinations
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="04 — Ambient glow" sub="Top-right (blue) and bottom-left (teal) corner glows can be toggled independently." light={bgId === 'dawn'}>
+      <Section label="04 — Ambient glow" sub="Top-right (blue) and bottom-left (teal) corner glows can be toggled independently." light={isDawn}>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <GlassPanel intensity="medium" topGlow={false} bottomGlow={false} rounded="rounded-[2rem]" className="p-7">
             <GlowLabel>No glow</GlowLabel>
@@ -669,7 +441,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 5 — Corner radius
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="05 — Radius" sub="The rounded prop is a Tailwind class — any value works." light={bgId === 'dawn'}>
+      <Section label="05 — Radius" sub="The rounded prop is a Tailwind class — any value works." light={isDawn}>
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
             { r: 'rounded-[0.5rem]', label: '8px', sub: 'Almost sharp' },
@@ -690,7 +462,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 6 — Nested glass (glass on glass)
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="06 — Nested" sub="Glass panels layered inside glass panels. Each layer adds a degree of frosted depth." light={bgId === 'dawn'}>
+      <Section label="06 — Nested" sub="Glass panels layered inside glass panels. Each layer adds a degree of frosted depth." light={isDawn}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
           {/* Depth stack */}
@@ -754,7 +526,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 7 — Component patterns
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="07 — Components" sub="Common UI patterns rendered in glass — profile, metrics, media, navigation." light={bgId === 'dawn'}>
+      <Section label="07 — Components" sub="Common UI patterns rendered in glass — profile, metrics, media, navigation." light={isDawn}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 
           {/* Profile card */}
@@ -847,7 +619,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 8 — Navigation patterns
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="08 — Navigation" sub="Bars, tabs, and breadcrumbs — all common surfaces where glass reinforces hierarchy." light={bgId === 'dawn'}>
+      <Section label="08 — Navigation" sub="Bars, tabs, and breadcrumbs — all common surfaces where glass reinforces hierarchy." light={isDawn}>
         <div className="flex flex-col gap-6">
 
           {/* Glass nav bar */}
@@ -928,7 +700,7 @@ const GlassShowcase: React.FC = () => {
       <Section
         label="09 — Forms & Inputs"
         sub="Form controls are glass surfaces too. Fields, toggles, and sliders should feel like they belong in the same light field as the panels behind them — not imported from a different design language."
-        light={bgId === 'dawn'}
+        light={isDawn}
       >
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
@@ -1056,7 +828,7 @@ const GlassShowcase: React.FC = () => {
       <Section
         label="10 — Code & Terminal"
         sub="Code blocks are the reason glass exists in this system. The frosted surface puts distance between the syntax-highlighted content and the ambient background, letting colour and contrast carry meaning without competing with the environment."
-        light={bgId === 'dawn'}
+        light={isDawn}
       >
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
@@ -1156,7 +928,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 11 — Tips & Tricks
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="11 — Tips & Tricks" sub="Interactive demonstrations of the techniques that make glass feel alive." light={bgId === 'dawn'}>
+      <Section label="11 — Tips & Tricks" sub="Interactive demonstrations of the techniques that make glass feel alive." light={isDawn}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
 
           <GlassPanel intensity="subtle" rounded="rounded-[1.8rem]" className="p-6">
@@ -1231,7 +1003,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 10 — Do's & Don'ts
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="12 — Do's & Don'ts" sub="Side-by-side comparisons of correct and incorrect usage patterns." light={bgId === 'dawn'}>
+      <Section label="12 — Do's & Don'ts" sub="Side-by-side comparisons of correct and incorrect usage patterns." light={isDawn}>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
 
           {/* 1 — Background */}
@@ -1376,7 +1148,7 @@ const GlassShowcase: React.FC = () => {
       {/* ══════════════════════════════════════════════════════════════
           § 11 — Quick reference
       ══════════════════════════════════════════════════════════════ */}
-      <Section label="13 — Quick reference" sub="The values, utilities, and rules you reach for most often." light={bgId === 'dawn'}>
+      <Section label="13 — Quick reference" sub="The values, utilities, and rules you reach for most often." light={isDawn}>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
           {/* Master knobs */}

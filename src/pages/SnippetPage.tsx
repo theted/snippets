@@ -1,5 +1,5 @@
 import React, {
-  useCallback, useContext, useEffect, useRef, useState,
+  useCallback, useContext, useEffect, useRef, useState, useTransition,
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
@@ -62,6 +62,8 @@ const SnippetPage: React.FC = () => {
   // enter-animation class is set from the start (not swapped in via an effect).
   const [enterClass] = useState(() => enterClassForDirection(consumeNavDirection()));
 
+  const [, startTransition] = useTransition();
+
   const { data: snippet, isPending, error } = useSnippet(snippetId || null);
   const { prevId, nextId, prefetchIds } = useSnippetNeighbors(snippetId || null);
 
@@ -95,17 +97,17 @@ const SnippetPage: React.FC = () => {
 
     // Slide the current content toward the direction of travel, then navigate.
     // The new page reads NAV_DIRECTION_KEY and enters from the opposite side.
-    const xOut = direction === 'next' ? -70 : 70;
+    const xOut = direction === 'next' ? -40 : 40;
     sessionStorage.setItem(NAV_DIRECTION_KEY, direction);
 
     gsap.to(contentRef.current, {
       opacity: 0,
       x: xOut,
-      duration: 0.28,
+      duration: 0.12,
       ease: 'power2.in',
-      onComplete: () => { navigate(`/snippets/${targetId}`); },
+      onComplete: () => startTransition(() => { navigate(`/snippets/${targetId}`); }),
     });
-  }, [isEditing, navigate]);
+  }, [isEditing, navigate, startTransition]);
 
   const navigateBack = useCallback(() => {
     if (isEditing || navigatingRef.current) return;
@@ -113,11 +115,11 @@ const SnippetPage: React.FC = () => {
     gsap.to(contentRef.current, {
       opacity: 0,
       y: 20,
-      duration: 0.22,
+      duration: 0.1,
       ease: 'power2.in',
-      onComplete: () => { navigate('/'); },
+      onComplete: () => startTransition(() => { navigate('/'); }),
     });
-  }, [isEditing, navigate]);
+  }, [isEditing, navigate, startTransition]);
 
   // ── Keyboard handler ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -227,6 +229,7 @@ const SnippetPage: React.FC = () => {
                 forceAutoSize
                 isFavorite={isFavorite(snippet.id)}
                 onToggleFavorite={toggleFavorite}
+                onFilterLanguage={(lang) => navigate(`/language/${lang}`)}
               />
             </div>
           )}

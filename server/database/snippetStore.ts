@@ -2,6 +2,7 @@ import { CreateSnippet, Snippet, SnippetId } from '../../src/types';
 
 export type ListSnippetsOptions = {
   query?: string;
+  language?: string;
   sortBy?: 'id';
   order?: 'asc' | 'desc';
 };

@@ -7,6 +7,7 @@ const DEFAULT_LANGUAGE = 'javascript';
 
 const listQuerySchema = z.object({
   q: z.string().optional(),
+  language: z.string().optional(),
   _sort: z.literal('id').optional(),
   _order: z.enum(['asc', 'desc']).optional(),
 });
@@ -39,6 +40,7 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
 
     return store.listSnippets({
       query: query.q,
+      language: query.language,
       sortBy: query._sort,
       order: query._order,
     });

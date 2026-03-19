@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     name: Build & deploy to S3
+    if: false # Disabled: frontend is deployed via EC2; S3 pipeline is unused and breaks CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

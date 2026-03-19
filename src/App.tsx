@@ -11,6 +11,7 @@ import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
 import Favorites from './pages/Favorites';
+import LanguagePage from './pages/LanguagePage';
 import NotFound from './pages/NotFound';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
@@ -22,6 +23,10 @@ import { createPersistentQueryClient } from './utils/queryPersist';
 
 const queryClient = createPersistentQueryClient();
 
+// False on first load, true after first render. Resets on page refresh because
+// the module is re-evaluated, but survives SPA navigations — so 'POP' on
+// initial load is treated differently from browser back/forward.
+let appHasNavigated = false;
 
 // Forces SnippetPage to fully remount on each new :id so that GSAP styles,
 // the directional enter-animation class, and navigatingRef all reset cleanly.
@@ -44,6 +49,7 @@ const App: FC = () => {
     const searchbarRef = useRef<SearchbarHandle>(null);
     const navigate = useNavigate();
     const navType = useNavigationType();
+    useEffect(() => { appHasNavigated = true; }, []);
 
 
     useEffect(() => {
@@ -103,7 +109,7 @@ const App: FC = () => {
                 <GlassProvider>
                 <ThemeContext.Provider value={value}>
                     <Spinner />
-                    <div className={`App${navType === 'POP' ? ' app--restore' : ''}`}>
+                    <div className={`App${navType === 'POP' && appHasNavigated ? ' app--restore' : ''}`}>
                         {EXPERIMENTAL_BACKGROUND && <BackgroundAnimation />}
                         <Routes>
                             <Route
@@ -152,6 +158,7 @@ const App: FC = () => {
                                 }
                             />
                             <Route path="/snippets/:id" element={<SnippetPageRoute />} />
+                            <Route path="/language/:language" element={<LanguagePage />} />
                             <Route path="/favorites" element={<Favorites />} />
                             <Route path="/docs" element={<Docs />} />
                             <Route path="*" element={<NotFound />} />
