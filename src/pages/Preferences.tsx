@@ -13,7 +13,7 @@ const options = THEMES.map((lang) => ({ label: lang, value: lang }));
 const rowGlass = getGlassStyles('subtle');
 
 const Preferences: React.FC = () => {
-  const { showLineNumbers, setLineNumbers, setTheme, theme } = useContext(ThemeContext);
+  const { showLineNumbers, setLineNumbers, setTheme, theme, autoSize, setAutoSize } = useContext(ThemeContext);
   const [showPreferences, setShowPreferences] = useState(false);
 
   const closePreferences = () => setShowPreferences(false);
@@ -78,6 +78,40 @@ const Preferences: React.FC = () => {
                 className="h-4 w-4 accent-[var(--color-accent)]"
               />
               {showLineNumbers ? 'Enabled' : 'Disabled'}
+            </label>
+          </div>
+
+          {/* Auto-size row */}
+          <div
+            className="flex flex-col gap-5 overflow-hidden rounded-[1.8rem] p-6 md:flex-row md:items-center md:justify-between"
+            style={rowGlass.panel}
+          >
+            <div className="max-w-lg">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)]">
+                Code Display
+              </p>
+              <h5 className="mt-2 font-[var(--font-display)] text-xl font-[300] tracking-[-0.04em] text-[var(--color-text)]">
+                Auto-size code blocks
+              </h5>
+              <p className="mt-2 text-sm leading-7 text-[var(--color-text-muted)]">
+                Expand code blocks to show all content without scrolling. When off, tall snippets are capped and scroll inline.
+              </p>
+            </div>
+            <label
+              className="inline-flex shrink-0 cursor-pointer items-center gap-3 rounded-full px-5 py-3 text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)] transition duration-300 hover:text-[var(--color-text)]"
+              style={{
+                background: 'oklch(0.18 0.02 254 / 0.6)',
+                border: '1px solid oklch(0.42 0.05 248 / 0.28)',
+              }}
+            >
+              <input
+                name="autoSize"
+                type="checkbox"
+                checked={autoSize}
+                onChange={(e) => setAutoSize(e.target.checked)}
+                className="h-4 w-4 accent-[var(--color-accent)]"
+              />
+              {autoSize ? 'Enabled' : 'Disabled'}
             </label>
           </div>
 

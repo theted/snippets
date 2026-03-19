@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, FC } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Routes, Route, Link, useNavigate, useNavigationType, useParams } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import './App.css';
 import CreateSnippet, { CreateSnippetHandle } from './pages/CreateSnippet';
@@ -9,29 +9,34 @@ import { SearchbarHandle } from './components/Searchbar';
 import Preferences from './pages/Preferences';
 import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
+import Favorites from './pages/Favorites';
+import NotFound from './pages/NotFound';
 import GlassShowcase from './pages/GlassShowcase';
+import TypeShowcase from './pages/TypeShowcase';
+import ColorShowcase from './pages/ColorShowcase';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import { AuthProvider } from './contexts/authContext';
 import { ThemeContext, ThemeContextValue } from './contexts/themeContext';
 import { DEFAULT_THEME, ENVIRONMENT, EXPERIMENTAL_BACKGROUND, THEMES } from './config';
+import { createPersistentQueryClient } from './utils/queryPersist';
 
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            staleTime: 60_000, // data stays fresh for 1 min — no background refetch on every nav
-            gcTime: 5 * 60_000, // keep unused cache entries for 5 min
-            retry: 1,
-        },
-    },
-});
+const queryClient = createPersistentQueryClient();
 
-type ThemePreferences = Pick<ThemeContextValue, 'showLineNumbers' | 'theme'>;
+// Forces SnippetPage to fully remount on each new :id so that GSAP styles,
+// the directional enter-animation class, and navigatingRef all reset cleanly.
+const SnippetPageRoute: FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <SnippetPage key={id} />;
+};
+
+type ThemePreferences = Pick<ThemeContextValue, 'showLineNumbers' | 'theme' | 'autoSize'>;
 
 const getDefaultGlobalState = (): ThemePreferences => ({
     theme: window.localStorage.getItem('theme') || DEFAULT_THEME,
     showLineNumbers: window.localStorage.getItem('showLineNumbers') === 'true',
+    autoSize: window.localStorage.getItem('autoSize') === 'true',
 });
 
 const App: FC = () => {
@@ -39,6 +44,7 @@ const App: FC = () => {
     const createSnippetRef = useRef<CreateSnippetHandle>(null);
     const searchbarRef = useRef<SearchbarHandle>(null);
     const navigate = useNavigate();
+    const navType = useNavigationType();
 
 
     useEffect(() => {
@@ -85,6 +91,11 @@ const App: FC = () => {
             setGlobalState((previous) => ({ ...previous, theme: newTheme }));
             window.localStorage.setItem('theme', newTheme);
         },
+        autoSize: globalState.autoSize,
+        setAutoSize: (nextValue: boolean) => {
+            setGlobalState((previous) => ({ ...previous, autoSize: nextValue }));
+            window.localStorage.setItem('autoSize', String(nextValue));
+        },
     };
 
     return (
@@ -92,7 +103,7 @@ const App: FC = () => {
             <AuthProvider>
                 <ThemeContext.Provider value={value}>
                     <Spinner />
-                    <div className="App">
+                    <div className={`App${navType === 'POP' ? ' app--restore' : ''}`}>
                         {EXPERIMENTAL_BACKGROUND && <BackgroundAnimation />}
                         <Routes>
                             <Route
@@ -117,6 +128,13 @@ const App: FC = () => {
                                                     <CreateSnippet ref={createSnippetRef} />
                                                     <Preferences />
                                                     <Link
+                                                        to="/favorites"
+                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                    >
+                                                        <i className="icon-star-empty" />
+                                                        <span>Favorites</span>
+                                                    </Link>
+                                                    <Link
                                                         to="/docs"
                                                         className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
                                                     >
@@ -128,6 +146,18 @@ const App: FC = () => {
                                                         className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
                                                     >
                                                         <span>Glass</span>
+                                                    </Link>
+                                                    <Link
+                                                        to="/type"
+                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                    >
+                                                        <span>Type</span>
+                                                    </Link>
+                                                    <Link
+                                                        to="/colors"
+                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                    >
+                                                        <span>Colors</span>
                                                     </Link>
                                                 </div>
                                                 <div className="mt-8 flex justify-end">
@@ -145,9 +175,13 @@ const App: FC = () => {
                                     </>
                                 }
                             />
-                            <Route path="/snippets/:id" element={<SnippetPage />} />
+                            <Route path="/snippets/:id" element={<SnippetPageRoute />} />
+                            <Route path="/favorites" element={<Favorites />} />
                             <Route path="/docs" element={<Docs />} />
                             <Route path="/glass" element={<GlassShowcase />} />
+                            <Route path="/type" element={<TypeShowcase />} />
+                            <Route path="/colors" element={<ColorShowcase />} />
+                            <Route path="*" element={<NotFound />} />
                         </Routes>
                     </div>
                 </ThemeContext.Provider>

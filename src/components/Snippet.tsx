@@ -6,8 +6,10 @@ import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
 
 import { ThemeContext } from '../contexts/themeContext';
+import { CARD_BG_ALPHA } from '../design/glass';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
+import { LANGUAGE_MAP } from '../config';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import Toast from './Toast';
 
@@ -18,6 +20,8 @@ type Props = ISnippet & {
     /** Compact mode — smaller padding, smaller title, capped code height.
      *  Used by grid and masonry layouts. Stream layout uses full size. */
     compact?: boolean;
+    isFavorite?: boolean;
+    onToggleFavorite?: (id: SnippetId) => void;
 };
 
 type SyntaxTheme = Record<string, React.CSSProperties>;
@@ -90,9 +94,11 @@ const Snippet: React.FC<Props> = ({
     onEdit,
     theme,
     compact = false,
+    isFavorite = false,
+    onToggleFavorite,
 }) => {
     const navigate = useNavigate();
-    const { showLineNumbers } = useContext(ThemeContext);
+    const { showLineNumbers, autoSize } = useContext(ThemeContext);
     const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
     const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
     const [isHovered, setIsHovered] = useState(false);
@@ -157,7 +163,7 @@ const Snippet: React.FC<Props> = ({
             style={{
                 border: '1px solid transparent',
                 backgroundImage: `
-          linear-gradient(oklch(0.22 0.028 254 / 0.42), oklch(0.22 0.028 254 / 0.42)),
+          linear-gradient(oklch(0.22 0.028 254 / ${CARD_BG_ALPHA}), oklch(0.22 0.028 254 / ${CARD_BG_ALPHA})),
           radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%,
             oklch(0.66 0.14 232 / ${isHovered ? '0.08' : '0.06'}),
             oklch(0.34 0.06 245 / ${isHovered ? '0.05' : '0.03'}) 52%,
@@ -218,7 +224,9 @@ const Snippet: React.FC<Props> = ({
                             {description && <p className={c.description}>{description}</p>}
                         </Link>
                     </div>
-                    <span className={c.language}>{language || 'plaintext'}</span>
+                    <span className={c.language}>
+                        {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
+                    </span>
                 </div>
             </div>
             <div className={c.code}>
@@ -228,7 +236,7 @@ const Snippet: React.FC<Props> = ({
                     onScroll={handleCodeScroll}
                     className="no-scrollbar"
                     style={{
-                        maxHeight: c.codeMaxHeight,
+                        maxHeight: autoSize ? '1200px' : c.codeMaxHeight,
                         overflowY: 'auto',
                         overflowX: 'auto',
                     }}
@@ -278,6 +286,16 @@ const Snippet: React.FC<Props> = ({
                     <i className="icon-code" />
                     Copy
                 </button>
+                {onToggleFavorite && (
+                    <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(id); }}
+                        className={`${c.controlButton} ${isFavorite ? '!border-[oklch(0.78_0.16_88_/_0.45)] !text-[oklch(0.82_0.18_88)]' : ''}`}
+                    >
+                        <i className={isFavorite ? 'icon-star' : 'icon-star-empty'} />
+                        {isFavorite ? 'Saved' : 'Save'}
+                    </button>
+                )}
             </div>
 
             {confirmingDelete && (

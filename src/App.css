@@ -162,6 +162,25 @@
   animation-delay: 80ms;
 }
 
+/* Directional slide-in variants for arrow-key navigation */
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(72px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-72px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+
+.snippet-detail-enter-from-right {
+  animation: slideInFromRight 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.snippet-detail-enter-from-left {
+  animation: slideInFromLeft 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .animated {
   animation-duration: 1s;
   animation-fill-mode: both;
@@ -576,6 +595,19 @@ kbd {
   30%  { transform: translate(12vw, -5vw);  }
   65%  { transform: translate(-8vw, -3vw);  }
   100% { transform: translate(6vw,  -8vw);  }
+}
+
+/* ── Suppress entrance animations on back/forward navigation ── */
+/* navType === 'POP' adds .app--restore; the page content is      */
+/* already known so re-animating it looks like a jarring flash.  */
+
+.app--restore .app-hero,
+.app--restore .searchbar-hero,
+.app--restore .snippet-stream-item,
+.app--restore .snippet-detail-enter,
+.app--restore .App::before,
+.app--restore .App::after {
+  animation: none;
 }
 
 /* ── Pause animation while a dialog is open ─────────────────── */

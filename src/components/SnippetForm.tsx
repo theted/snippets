@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE } from '../config';
+import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, LANGUAGE_MAP } from '../config';
 import Textfield from './Textfield';
 import Textarea from './Textarea';
 import Dropdown from './Dropdown';
@@ -8,7 +8,10 @@ import CodeEditor from './CodeEditor';
 import GlassPanel from './GlassPanel';
 import { SnippetFormValues } from '../types';
 
-const languages = AVAILABLE_LANGUAGES.map((lang) => ({ label: lang, value: lang }));
+const languages = AVAILABLE_LANGUAGES.map((lang) => ({
+  label: LANGUAGE_MAP[lang as keyof typeof LANGUAGE_MAP] ?? lang,
+  value: lang,
+}));
 
 type InputChangeEvent = React.ChangeEvent<
     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
