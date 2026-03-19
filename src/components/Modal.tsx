@@ -25,7 +25,7 @@ const classes = {
   container: 'fixed inset-0 z-30 overflow-y-auto opacity-0',
   // Inner wrapper centres content and acts as the click-outside target
   inner: 'flex min-h-full items-center justify-center p-4 md:p-8',
-  content: 'relative w-full max-w-6xl',
+  content: 'relative w-full max-w-7xl',
   bg: 'fixed inset-0 z-20',
   close: 'absolute right-4 top-4 z-40 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
 };

@@ -92,9 +92,9 @@ test('renders the snippet title after fetch', async () => {
   });
 });
 
-test('renders back-to-archive link', async () => {
+test('renders back-to-archive button', async () => {
   renderPage();
-  expect(screen.getByRole('link', { name: /back to archive/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /back to archive/i })).toBeInTheDocument();
 });
 
 test('renders prev and next navigation buttons', async () => {

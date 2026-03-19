@@ -22,13 +22,13 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
     mutationFn: (data: CreateSnippetInput) => post<Snippet, CreateSnippetInput>('snippets', data),
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
-      setIsFormVisible(false);
     },
   });
 
   const closeModal = () => setIsFormVisible(false);
 
   const onSubmit = (formValues: SnippetFormValues) => {
+    setIsFormVisible(false);
     createSnippet(formValues);
   };
 
