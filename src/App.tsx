@@ -26,7 +26,7 @@ import { createPersistentQueryClient } from './utils/queryPersist';
 const queryClient = createPersistentQueryClient();
 
 /** Shared className for pill-shaped nav links in the app toolbar. */
-const PILL_LINK = 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]';
+const PILL_LINK = 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-lg transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]';
 
 // Forces SnippetPage to fully remount on each new :id so that GSAP styles,
 // the directional enter-animation class, and navigatingRef all reset cleanly.

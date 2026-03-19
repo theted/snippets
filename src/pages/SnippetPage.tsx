@@ -1,7 +1,7 @@
 import React, {
   useCallback, useContext, useEffect, useRef, useState,
 } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
@@ -16,6 +16,7 @@ import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
 import Toast from '../components/Toast';
+import GlassPanel from '../components/GlassPanel';
 
 // ── Direction bridging across navigation ──────────────────────────────────────
 // sessionStorage survives the React unmount/remount that happens on navigation,
@@ -42,8 +43,10 @@ function enterClassForDirection(dir: NavDirection | null): string {
 
 const classes = {
   shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
-  back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
-  navBtn: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:opacity-30 disabled:pointer-events-none',
+  // Buttons sit inside a glass strip — no per-button backdrop-filter needed.
+  // They use a lighter surface token so the glass parent shows through clearly.
+  back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
+  navBtn: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:opacity-30 disabled:pointer-events-none',
   content: 'mt-10 flex flex-col justify-center',
   contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
 };
@@ -108,6 +111,18 @@ const SnippetPage: React.FC = () => {
     });
   }, [isEditing, navigate]);
 
+  const navigateBack = useCallback(() => {
+    if (isEditing || navigatingRef.current) return;
+    navigatingRef.current = true;
+    gsap.to(contentRef.current, {
+      opacity: 0,
+      y: 20,
+      duration: 0.22,
+      ease: 'power2.in',
+      onComplete: () => { navigate('/'); },
+    });
+  }, [isEditing, navigate]);
+
   // ── Keyboard handler ────────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -118,13 +133,13 @@ const SnippetPage: React.FC = () => {
         || (active instanceof HTMLElement && active.isContentEditable);
       if (isInput) return;
 
-      if (e.key === 'Escape' && !isEditing) { navigate('/'); return; }
+      if (e.key === 'Escape' && !isEditing) { navigateBack(); return; }
       if (e.key === 'ArrowRight' && nextId !== null) navigateTo(nextId, 'next');
       if (e.key === 'ArrowLeft'  && prevId !== null) navigateTo(prevId, 'prev');
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isEditing, prevId, nextId, navigate, navigateTo]);
+  }, [isEditing, prevId, nextId, navigate, navigateTo, navigateBack]);
 
   // ── Mutations ───────────────────────────────────────────────────────────────
   const { mutate: updateSnippet, error: updateError, reset: resetUpdate } = useMutation({
@@ -132,9 +147,10 @@ const SnippetPage: React.FC = () => {
       `snippets/${snippetId}`,
       { ...snippet, ...formValues },
     ),
+    onMutate: () => { setIsEditing(false); },
+    onError: () => { setIsEditing(true); },
     onSuccess: async () => {
       await invalidateSnippetQueries(queryClient);
-      setIsEditing(false);
     },
   });
 
@@ -163,12 +179,16 @@ const SnippetPage: React.FC = () => {
     <div className="App">
       <div className={classes.shell}>
 
-        {/* Top bar: back link + prev/next navigation */}
-        <div className="flex items-center justify-between gap-4">
-          <Link to="/" className={classes.back}>
+        {/* Top bar: floating glass navigation strip */}
+        <GlassPanel
+          intensity="subtle"
+          rounded="rounded-[1.6rem]"
+          className="flex items-center justify-between gap-4 px-4 py-3"
+        >
+          <button type="button" onClick={navigateBack} className={classes.back}>
             <i className="icon-home" style={{ fontSize: '0.85em' }} />
             Back to archive
-          </Link>
+          </button>
 
           <div className="flex items-center gap-2">
             <button
@@ -190,7 +210,7 @@ const SnippetPage: React.FC = () => {
               Newer →
             </button>
           </div>
-        </div>
+        </GlassPanel>
 
         <div ref={contentRef} className={`${classes.contentWrap} ${enterClass}`}>
           {isPending && (

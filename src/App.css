@@ -338,7 +338,20 @@
   border-radius: 1.6rem;
   overflow: hidden;
   background: var(--color-glass-card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(40px);
+  position: relative;
+}
+
+/* Top-edge shimmer — same 1px glass rim technique used on GlassPanel */
+.search-results-list::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: 1.6rem 1.6rem 0 0;
+  background: linear-gradient(90deg, transparent, oklch(0.88 0.12 228 / 0.44), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-result-item + .search-result-item {
@@ -370,6 +383,7 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--color-text);
+  text-shadow: 0 1px 1px oklch(0 0 0 / 0.48), 0 -1px 0 oklch(1 0 0 / 0.07);
   transition: color 200ms ease;
 }
 

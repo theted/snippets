@@ -29,14 +29,14 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
 const classes = {
     // Two-column grid: code left (wider), metadata right.
     // On mobile the columns collapse to a single stack.
-    grid: 'flex flex-col gap-8 md:grid md:grid-cols-[1.7fr_1fr] md:items-start md:gap-10 lg:gap-14',
+    grid: 'flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start md:gap-10 lg:gap-14',
 
     // Left column — code
     codeCol: 'flex flex-col gap-4 md:gap-5',
     codeTextarea: 'flex-1 font-[var(--font-code)] text-sm leading-7 md:min-h-[32rem]',
 
     // Right column — header + fields + actions
-    metaCol: 'flex flex-col gap-7',
+    metaCol: 'flex flex-col gap-7 md:justify-between',
 
     // Form header (visible in right col on desktop, top of stack on mobile)
     header: 'pb-1',
@@ -97,6 +97,12 @@ const SnippetForm: React.FC<Props> = ({
                 event.preventDefault();
                 onSubmit(formState);
             }}
+            onKeyDown={(event: React.KeyboardEvent) => {
+                if (event.ctrlKey && event.key === 'Enter') {
+                    event.preventDefault();
+                    onSubmit(formState);
+                }
+            }}
             intensity="strong"
             topGlow
             rounded="rounded-[2.4rem]"
@@ -119,6 +125,7 @@ const SnippetForm: React.FC<Props> = ({
                         language={formState.language}
                         autoFocus={focusContent}
                         minHeight="32rem"
+                        onSubmit={() => onSubmit(formState)}
                     />
                 </div>
 
