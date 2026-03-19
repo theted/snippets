@@ -50,7 +50,7 @@ test('renders title and description', () => {
 
 test('renders language badge', () => {
   renderSnippet();
-  expect(screen.getByText('javascript')).toBeInTheDocument();
+  expect(screen.getByText('Javascript')).toBeInTheDocument();
 });
 
 test('shows "plaintext" when no language is provided', () => {

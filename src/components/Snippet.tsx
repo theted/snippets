@@ -6,7 +6,7 @@ import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
 
 import { ThemeContext } from '../contexts/themeContext';
-import { CARD_BG_ALPHA } from '../design/glass';
+import { CARD_BG_ALPHA, GLOW_TR, GLOW_BL } from '../design/glass';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
 import { LANGUAGE_MAP } from '../config';
@@ -196,7 +196,7 @@ const Snippet: React.FC<Props> = ({
             <div
                 className={c.glow}
                 style={{
-                    background: 'radial-gradient(circle, oklch(0.52 0.24 238 / 0.14) 0%, transparent 70%)',
+                    background: `radial-gradient(circle, oklch(${GLOW_TR} / 0.14) 0%, transparent 70%)`,
                     filter: `blur(${compact ? '48px' : '72px'})`,
                 }}
             />
@@ -204,7 +204,7 @@ const Snippet: React.FC<Props> = ({
                 aria-hidden="true"
                 className={`pointer-events-none absolute ${compact ? 'bottom-[-3rem] left-[-3rem] h-48 w-48' : 'bottom-[-5rem] left-[-5rem] h-80 w-80'} rounded-full`}
                 style={{
-                    background: 'radial-gradient(circle, oklch(0.58 0.14 210 / 0.12) 0%, transparent 70%)',
+                    background: `radial-gradient(circle, oklch(${GLOW_BL} / 0.12) 0%, transparent 70%)`,
                     filter: `blur(${compact ? '48px' : '64px'})`,
                 }}
             />

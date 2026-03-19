@@ -10,6 +10,7 @@ import { update, remove } from '../utils/api.ts';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import { useFavorites } from '../hooks/useFavorites';
+import { computeCardWidth } from '../utils/snippetLayout';
 import Snippet from '../components/Snippet';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
@@ -44,7 +45,7 @@ const classes = {
   back: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]',
   navBtn: 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel backdrop-blur-sm transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:opacity-30 disabled:pointer-events-none',
   content: 'mt-10 flex flex-col justify-center',
-  contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col justify-center',
+  contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -199,19 +200,21 @@ const SnippetPage: React.FC = () => {
           )}
 
           {snippet && (
-            <Snippet
-              id={snippet.id}
-              title={snippet.title}
-              content={snippet.content}
-              description={snippet.description}
-              language={snippet.language}
-              onDelete={() => deleteSnippet()}
-              onEdit={() => setIsEditing(true)}
-              theme={theme}
-              forceAutoSize
-              isFavorite={isFavorite(snippet.id)}
-              onToggleFavorite={toggleFavorite}
-            />
+            <div style={{ width: `min(${computeCardWidth(snippet.content)}px, 100%)` }}>
+              <Snippet
+                id={snippet.id}
+                title={snippet.title}
+                content={snippet.content}
+                description={snippet.description}
+                language={snippet.language}
+                onDelete={() => deleteSnippet()}
+                onEdit={() => setIsEditing(true)}
+                theme={theme}
+                forceAutoSize
+                isFavorite={isFavorite(snippet.id)}
+                onToggleFavorite={toggleFavorite}
+              />
+            </div>
           )}
         </div>
       </div>

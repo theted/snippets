@@ -1,10 +1,9 @@
 /* eslint-disable max-len */
 import React, { useContext, useState, useRef, useEffect, useCallback, RefObject } from 'react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import Snippet from '../components/Snippet';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
-import { update, remove } from '../utils/api.ts';
 import Searchbar, { SearchbarHandle } from '../components/Searchbar';
 import { SpinFigure } from '../components/Spinner';
 import SnippetForm from '../components/SnippetForm';
@@ -17,16 +16,8 @@ import { capitalize } from '../utils/helpers';
 import Toast from '../components/Toast';
 import { DEFAULT_SNIPPET_LAYOUT, SnippetLayout } from '../config';
 import { useFavorites } from '../hooks/useFavorites';
-import {
-  invalidateSnippetQueries,
-  removeSnippetFromLists,
-  restoreSnippetLists,
-  restoreSnippetDetail,
-  SnippetListSnapshot,
-  SnippetDetailSnapshot,
-  snapshotSnippetLists,
-  snapshotAndPatchSnippet,
-} from '../utils/snippetQueryCache';
+import { computeCardWidth } from '../utils/snippetLayout';
+import { useDeleteSnippetMutation, useUpdateSnippetMutation } from '../hooks/useSnippetMutations';
 
 const LayoutGridIcon = () => (
   <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
@@ -71,12 +62,6 @@ const LAYOUT_CLASSES: Record<Exclude<SnippetLayout, 'cascade'>, string> = {
   masonry: 'mt-12 sm:columns-2 xl:columns-3 gap-8 md:mt-16 md:gap-10',
 };
 
-// ── Auto-size width computation ───────────────────────────────────────────────
-// Monospace char width at 1.18rem ≈ 10.5px; card padding + gutter ≈ 160px
-function computeCardWidth(content: string): number {
-  const longestLine = content.split('\n').reduce((max, line) => Math.max(max, line.length), 0);
-  return Math.max(480, Math.min(1400, longestLine * 10.5 + 160));
-}
 
 const CASCADE_PATTERN = [1, 2, 3];
 const CASCADE_ROW_COLS = ['grid-cols-1', 'grid-cols-1 sm:grid-cols-2', 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'];
@@ -189,13 +174,6 @@ const AutoSizeGrid: React.FC<AutoSizeGridProps> = ({ snippets, onDelete, onEdit,
   </div>
 );
 
-async function removeSnippetCallback(id: SnippetId) {
-  return remove('snippets', id);
-}
-
-async function updateSnippetCallback(data: ISnippet) {
-  return update<ISnippet, ISnippet>(`snippets/${data.id}`, data);
-}
 
 type Props = { searchbarRef?: RefObject<SearchbarHandle | null> };
 
@@ -245,39 +223,12 @@ const Snippets: React.FC<Props> = ({ searchbarRef }) => {
     mutate: removeSnippet,
     error: deleteError,
     reset: resetDelete,
-  } = useMutation<void, Error, SnippetId, { previousSnippets: SnippetListSnapshot }>({
-    mutationFn: removeSnippetCallback,
-    onMutate: async (id) => {
-      const previousSnippets = await snapshotSnippetLists(queryClient);
-      removeSnippetFromLists(queryClient, id);
-      return { previousSnippets };
-    },
-    onError: (_error, _id, context) => {
-      restoreSnippetLists(queryClient, context?.previousSnippets);
-    },
-    onSuccess: async () => {
-      await invalidateSnippetQueries(queryClient);
-    },
-  });
+  } = useDeleteSnippetMutation();
   const {
     mutate: updateSnippetMutation,
     error: updateError,
     reset: resetUpdate,
-  } = useMutation<ISnippet, Error, ISnippet, { lists: SnippetListSnapshot; detail: SnippetDetailSnapshot }>({
-    mutationFn: updateSnippetCallback,
-    onMutate: async (updated) => {
-      const snapshot = await snapshotAndPatchSnippet(queryClient, updated);
-      setEditingId(null);
-      return snapshot;
-    },
-    onError: (_error, _updated, context) => {
-      restoreSnippetLists(queryClient, context?.lists);
-      if (context?.detail) restoreSnippetDetail(queryClient, context.detail);
-    },
-    onSuccess: async () => {
-      await invalidateSnippetQueries(queryClient);
-    },
-  });
+  } = useUpdateSnippetMutation({ onMutate: () => setEditingId(null) });
   // Capture edit-load error before editingId → null disables the query and clears it
   const [capturedEditError, setCapturedEditError] = useState<string | null>(null);
   useEffect(() => {

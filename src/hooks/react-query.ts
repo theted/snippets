@@ -48,10 +48,29 @@ const snippetNavOrderKey = ['snippets', 'nav-order'] as const;
  * The hook's return type and all call sites in SnippetPage stay unchanged.
  */
 export const useSnippetNeighbors = (currentId: SnippetId | null): SnippetNeighbors => {
+  const queryClient = useQueryClient();
+
   const { data: snippets } = useQuery({
     queryKey: snippetNavOrderKey,
     queryFn: () => get<Snippet[]>('snippets?_sort=id&_order=asc'),
     staleTime: 60_000,
+    // Seed from any cached list so navigation buttons are enabled immediately
+    // when arriving from the archive page — no extra round-trip needed.
+    initialData: () => {
+      const lists = queryClient.getQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() });
+      for (const [, data] of lists) {
+        if (data?.length) return [...data].sort((a, b) => a.id - b.id);
+      }
+      return undefined;
+    },
+    initialDataUpdatedAt: () => {
+      const lists = queryClient.getQueriesData<Snippet[]>({ queryKey: snippetKeys.lists() });
+      for (const [key] of lists) {
+        const state = queryClient.getQueryState(key);
+        if (state?.dataUpdatedAt) return state.dataUpdatedAt;
+      }
+      return 0;
+    },
   });
 
   return useMemo(() => {

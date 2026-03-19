@@ -25,6 +25,9 @@ import { createPersistentQueryClient } from './utils/queryPersist';
 
 const queryClient = createPersistentQueryClient();
 
+/** Shared className for pill-shaped nav links in the app toolbar. */
+const PILL_LINK = 'inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]';
+
 // Forces SnippetPage to fully remount on each new :id so that GSAP styles,
 // the directional enter-animation class, and navigatingRef all reset cleanly.
 const SnippetPageRoute: FC = () => {
@@ -130,39 +133,39 @@ const App: FC = () => {
                                                     <Preferences />
                                                     <Link
                                                         to="/favorites"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <i className="icon-star-empty" />
                                                         <span>Favorites</span>
                                                     </Link>
                                                     <Link
                                                         to="/docs"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <i className="icon-info" />
                                                         <span>Shortcuts</span>
                                                     </Link>
                                                     <Link
                                                         to="/philosophy"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <span>Philosophy</span>
                                                     </Link>
                                                     <Link
                                                         to="/glass"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <span>Glass</span>
                                                     </Link>
                                                     <Link
                                                         to="/type"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <span>Type</span>
                                                     </Link>
                                                     <Link
                                                         to="/colors"
-                                                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3.5 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[var(--color-text-muted)] text-bevel transition duration-300 ease-out hover:-translate-y-0.5 hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-soft)]"
+                                                        className={PILL_LINK}
                                                     >
                                                         <span>Colors</span>
                                                     </Link>

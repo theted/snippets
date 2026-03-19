@@ -41,8 +41,8 @@ const BG_L    = '0.20 0.024 254';  // panel background base
 const EDGE    = '0.48 0.06 248';   // border edge
 const LIGHT   = '0.82 0.1  230';   // shimmer / inner highlight
 const DEPTH   = '0.05 0.015 250';  // shadow depth
-const GLOW_TR = '0.52 0.24 238';   // top-right glow (deep blue)
-const GLOW_BL = '0.58 0.14 210';   // bottom-left glow (teal)
+export const GLOW_TR = '0.52 0.24 238';   // top-right glow (deep blue)
+export const GLOW_BL = '0.58 0.14 210';   // bottom-left glow (teal)
 
 // Base alpha for the flat background layer used by Snippet cards
 // (they render their own background outside GlassPanel — this keeps
