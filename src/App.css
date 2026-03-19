@@ -268,40 +268,17 @@
 .icon-info:before { content: '\f129'; }
 .icon-trash:before { content: '\f1f8'; }
 
-.spinner {
-  display: block;
-  width: 3rem;
-  height: 3rem;
-  animation: rotate 1.9s linear infinite;
+.spin-ring {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2.5px solid rgba(125, 196, 250, 0.15);
+  border-top-color: rgba(125, 196, 250, 0.75);
+  animation: spin-ring 0.75s linear infinite;
 }
 
-.spinner .path {
-  stroke: var(--color-accent-bright);
-  stroke-linecap: round;
-  animation: dash 1.4s ease-in-out infinite;
-}
-
-@keyframes rotate {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes dash {
-  0% {
-    stroke-dasharray: 1, 150;
-    stroke-dashoffset: 0;
-  }
-
-  50% {
-    stroke-dasharray: 90, 150;
-    stroke-dashoffset: -35;
-  }
-
-  100% {
-    stroke-dasharray: 90, 150;
-    stroke-dashoffset: -124;
-  }
+@keyframes spin-ring {
+  to { transform: rotate(360deg); }
 }
 
 /* ─── Compact search results ─────────────────────────────────────── */

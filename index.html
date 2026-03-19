@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color:#0d1420">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -15,8 +15,22 @@
     <title>Snippets</title>
   </head>
   <body>
+    <div id="bg-gradient"></div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div id="html-spinner" style="
+        position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+        pointer-events:none;
+      ">
+        <div style="
+          width:36px;height:36px;border-radius:50%;
+          border:2.5px solid rgba(125,196,250,0.15);
+          border-top-color:rgba(125,196,250,0.7);
+          animation:html-spin 0.75s linear infinite;
+        "></div>
+      </div>
+    </div>
+    <style>@keyframes html-spin{to{transform:rotate(360deg)}}</style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
