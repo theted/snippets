@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
 import { BackgroundProvider, useBackground } from './context/BackgroundContext';
@@ -9,10 +9,16 @@ import TypeShowcase from './pages/TypeShowcase';
 import ColorShowcase from './pages/ColorShowcase';
 import ProductDemo from './pages/ProductDemo';
 import ComponentDocs from './pages/ComponentDocs';
+import Portfolio from './pages/Portfolio';
 
 // Inner component so it can consume the BackgroundContext
 const AppInner: React.FC = () => {
   const { activeGradient, activePattern } = useBackground();
+  const [topBarVisible, setTopBarVisible] = useState(false);
+  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const showBar = () => { clearTimeout(hideTimer.current); setTopBarVisible(true); };
+  const scheduleHide = () => { hideTimer.current = setTimeout(() => setTopBarVisible(false), 300); };
 
   // Apply active gradient to body background; restore on unmount
   useEffect(() => {
@@ -49,28 +55,44 @@ const AppInner: React.FC = () => {
         />
       )}
 
-      {/* Global background switcher — fixed top-right */}
-      <BackgroundSwitcher />
+      {/* Invisible sentinel — catches hover in the top 100px */}
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '100px', zIndex: 199, pointerEvents: 'auto' }}
+        onMouseEnter={showBar}
+        onMouseLeave={scheduleHide}
+      />
 
-      {/* Page nav — fixed top-left */}
-      <nav
-        style={{
-          position: 'fixed',
-          top: '1.5rem',
-          left: '1.5rem',
-          zIndex: 200,
-          display: 'flex',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-        }}
+      {/* Auto-hide top bar */}
+      <div
+        className={`topbar-inner${topBarVisible ? ' topbar-visible' : ''}`}
+        style={{ zIndex: 200 }}
+        onMouseEnter={showBar}
+        onMouseLeave={scheduleHide}
       >
-        <GlassPill as={Link} to="/" size="sm">Glass</GlassPill>
-        <GlassPill as={Link} to="/components" size="sm">Components</GlassPill>
-        <GlassPill as={Link} to="/philosophy" size="sm">Philosophy</GlassPill>
-        <GlassPill as={Link} to="/type" size="sm">Type</GlassPill>
-        <GlassPill as={Link} to="/colors" size="sm">Colors</GlassPill>
-        <GlassPill as={Link} to="/product" size="sm">Product</GlassPill>
-      </nav>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            padding: '1.5rem',
+            gap: '1rem',
+          }}
+        >
+          {/* Page nav */}
+          <nav style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <GlassPill as={Link} to="/" size="sm">Glass</GlassPill>
+            <GlassPill as={Link} to="/components" size="sm">Components</GlassPill>
+            <GlassPill as={Link} to="/philosophy" size="sm">Philosophy</GlassPill>
+            <GlassPill as={Link} to="/type" size="sm">Type</GlassPill>
+            <GlassPill as={Link} to="/colors" size="sm">Colors</GlassPill>
+            <GlassPill as={Link} to="/product" size="sm">Product</GlassPill>
+            <GlassPill as={Link} to="/portfolio" size="sm">Portfolio</GlassPill>
+          </nav>
+
+          {/* Background / pattern controls */}
+          <BackgroundSwitcher />
+        </div>
+      </div>
 
       <Routes>
         <Route path="/" element={<GlassShowcase />} />
@@ -79,6 +101,7 @@ const AppInner: React.FC = () => {
         <Route path="/type" element={<TypeShowcase />} />
         <Route path="/colors" element={<ColorShowcase />} />
         <Route path="/product" element={<ProductDemo />} />
+        <Route path="/portfolio" element={<Portfolio />} />
       </Routes>
     </div>
   );
