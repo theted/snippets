@@ -80,3 +80,49 @@ test('clearPersistedCache removes the stored entry', () => {
 test('clearPersistedCache is a no-op when there is nothing stored', () => {
   expect(() => clearPersistedCache()).not.toThrow();
 });
+
+// ── Save-on-success ────────────────────────────────────────────────────────────
+
+test('saves snippets queries to localStorage after a successful fetch', async () => {
+  const client = createPersistentQueryClient();
+
+  await client.fetchQuery({
+    queryKey: ['snippets', 'list', {}],
+    queryFn: () => Promise.resolve([{ id: 1, title: 'Fresh' }]),
+  });
+
+  const raw = localStorage.getItem(CACHE_KEY);
+  expect(raw).not.toBeNull();
+  const { state, savedAt } = JSON.parse(raw!);
+  expect(state.queries).toHaveLength(1);
+  expect(state.queries[0].queryKey).toEqual(['snippets', 'list', {}]);
+  expect(savedAt).toBeCloseTo(Date.now(), -3); // within ~1 second
+});
+
+test('does not save non-snippets queries to localStorage', async () => {
+  const client = createPersistentQueryClient();
+
+  await client.fetchQuery({
+    queryKey: ['users', 'profile'],
+    queryFn: () => Promise.resolve({ name: 'Alice' }),
+  });
+
+  expect(localStorage.getItem(CACHE_KEY)).toBeNull();
+});
+
+test('only serialises snippets keys — other keys in the same client are excluded', async () => {
+  const client = createPersistentQueryClient();
+
+  await client.fetchQuery({
+    queryKey: ['snippets', 'list', {}],
+    queryFn: () => Promise.resolve([{ id: 1 }]),
+  });
+  await client.fetchQuery({
+    queryKey: ['preferences', 'theme'],
+    queryFn: () => Promise.resolve('dark'),
+  });
+
+  const { state } = JSON.parse(localStorage.getItem(CACHE_KEY)!);
+  expect(state.queries).toHaveLength(1);
+  expect(state.queries[0].queryKey[0]).toBe('snippets');
+});

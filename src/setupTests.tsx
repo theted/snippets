@@ -19,6 +19,40 @@ vi.mock('react-syntax-highlighter', () => ({
 // Tests always use the default theme (vs2015), so that's all we need here.
 vi.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({ vs2015: {} }));
 
+// IntersectionObserver is not implemented in jsdom. Provide a no-op stub so
+// components using it (e.g. Snippet's lazy syntax-highlight) mount without
+// throwing. Tests that need to trigger intersection can override this locally
+// with vi.spyOn(global, 'IntersectionObserver').
+class MockIntersectionObserver {
+  observe    = vi.fn();
+  unobserve  = vi.fn();
+  disconnect = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(_cb: IntersectionObserverCallback, _opts?: IntersectionObserverInit) {}
+}
+Object.defineProperty(global, 'IntersectionObserver', {
+  writable: true, configurable: true, value: MockIntersectionObserver,
+});
+
+// masonic uses ResizeObserver for column measurement. Provide a no-op stub.
+class MockResizeObserver {
+  observe    = vi.fn();
+  unobserve  = vi.fn();
+  disconnect = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(_cb: ResizeObserverCallback) {}
+}
+Object.defineProperty(global, 'ResizeObserver', {
+  writable: true, configurable: true, value: MockResizeObserver,
+});
+
+// navigator.clipboard is not implemented in jsdom. Provide a stub so tests
+// that exercise copy functionality can spy on it.
+Object.defineProperty(navigator, 'clipboard', {
+  configurable: true,
+  value: { writeText: vi.fn().mockResolvedValue(undefined) },
+});
+
 // @uiw/react-codemirror initialises the CodeMirror DOM engine and calls layout
 // APIs (getClientRects, measureText) that jsdom does not implement. Replace it
 // with a plain <textarea> so form tests can find the code field via its label

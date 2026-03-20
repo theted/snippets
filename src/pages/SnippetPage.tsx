@@ -6,7 +6,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
 import { useSnippet, useSnippetNeighbors, snippetKeys } from '../hooks/react-query';
-import { update, remove } from '../utils/api.ts';
+import { get, update, remove } from '../utils/api.ts';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import { useFavorites } from '../hooks/useFavorites';
@@ -83,8 +83,7 @@ const SnippetPage: React.FC = () => {
   useEffect(() => {
     const prefetch = (neighborId: SnippetId) => queryClient.prefetchQuery({
       queryKey: snippetKeys.detail(neighborId),
-      queryFn: () => import('../utils/api.ts').then(({ get: apiGet }) =>
-        apiGet<ISnippet>(`snippets/${neighborId}`)),
+      queryFn: () => get<ISnippet>(`snippets/${neighborId}`),
       staleTime: 60_000,
     });
 
