@@ -29,14 +29,14 @@ const EMPTY_FORM_STATE: SnippetFormValues = {
 const classes = {
     // Two-column grid: code left (wider), metadata right.
     // On mobile the columns collapse to a single stack.
-    grid: 'flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start md:gap-10 lg:gap-14',
+    grid: 'flex flex-col gap-8 md:grid md:grid-cols-2 md:gap-10 lg:gap-14',
 
-    // Left column — code
-    codeCol: 'flex flex-col gap-4 md:gap-5',
+    // Left column — code: h-full so CodeEditor can flex-1 to fill
+    codeCol: 'flex flex-col gap-4 md:gap-5 md:h-full',
     codeTextarea: 'flex-1 font-[var(--font-code)] text-sm leading-7 md:min-h-[32rem]',
 
-    // Right column — header + fields + actions
-    metaCol: 'flex flex-col gap-7 md:justify-between',
+    // Right column — self-start prevents it from stretching to grid row height
+    metaCol: 'flex flex-col gap-7 md:justify-between md:self-start',
 
     // Form header (visible in right col on desktop, top of stack on mobile)
     header: 'pb-1',
@@ -124,7 +124,10 @@ const SnippetForm: React.FC<Props> = ({
                         onChange={handleCodeChange}
                         language={formState.language}
                         autoFocus={focusContent}
-                        minHeight="32rem"
+                        minHeight="20rem"
+                        maxHeight="800px"
+                        height="100%"
+                        className="flex-1 max-h-[800px]"
                         onSubmit={() => onSubmit(formState)}
                     />
                 </div>

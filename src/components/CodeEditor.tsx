@@ -159,6 +159,8 @@ type Props = {
     autoFocus?: boolean;
     minHeight?: string;
     maxHeight?: string;
+    height?: string;
+    className?: string;
     onSubmit?: () => void;
 };
 
@@ -171,6 +173,8 @@ const CodeEditor: React.FC<Props> = ({
     autoFocus = false,
     minHeight = '30rem',
     maxHeight = '800px',
+    height,
+    className = '',
     onSubmit,
 }) => {
     const { showLineNumbers } = useContext(ThemeContext);
@@ -181,12 +185,30 @@ const CodeEditor: React.FC<Props> = ({
     // user can Tab to other fields without being trapped.
     const shortcutKeymap = useMemo(() => Prec.highest(keymap.of([
         { key: 'Ctrl-Enter', run: () => { onSubmit?.(); return true; } },
-        { key: 'Escape',     run: (view) => { view.contentDOM.blur(); return true; } },
+        {
+            key: 'Escape',
+            run: (view) => {
+                view.contentDOM.blur();
+                // Move focus to the next focusable element in the enclosing form
+                const form = view.dom.closest('form');
+                if (form) {
+                    const focusable = Array.from(
+                        form.querySelectorAll<HTMLElement>(
+                            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])'
+                        )
+                    );
+                    const editorIdx = focusable.findIndex((el) => view.dom.contains(el));
+                    const next = focusable[editorIdx + 1];
+                    next?.focus();
+                }
+                return true;
+            },
+        },
     ])), [onSubmit]);
 
     return (
         <div
-            className="overflow-hidden rounded-[1.5rem] border border-[var(--color-border)] transition-[border-color,box-shadow] duration-300 focus-within:border-[oklch(0.62_0.16_240_/_0.65)] focus-within:[box-shadow:0_0_0_3px_oklch(0.71_0.17_244_/_0.14),inset_0_1px_0_oklch(0.77_0.12_235_/_0.08)]"
+            className={`overflow-hidden rounded-[1.5rem] border border-[var(--color-border)] transition-[border-color,box-shadow] duration-300 focus-within:border-[oklch(0.62_0.16_240_/_0.65)] focus-within:[box-shadow:0_0_0_3px_oklch(0.71_0.17_244_/_0.14),inset_0_1px_0_oklch(0.77_0.12_235_/_0.08)]${className ? ` ${className}` : ''}`}
             style={{
                 background:
                     'linear-gradient(160deg, oklch(0.18 0.022 254 / 0.38), oklch(0.14 0.018 255 / 0.48))',
@@ -203,6 +225,7 @@ const CodeEditor: React.FC<Props> = ({
                 theme={oneDark}
                 extensions={[...langExts, appOverlay, EditorView.lineWrapping, shortcutKeymap]}
                 autoFocus={autoFocus}
+                height={height}
                 minHeight={minHeight}
                 maxHeight={maxHeight}
                 placeholder={placeholder}

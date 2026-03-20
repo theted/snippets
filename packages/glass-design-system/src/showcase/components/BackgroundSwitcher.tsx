@@ -29,8 +29,7 @@ const BackgroundSwitcher: React.FC = () => {
 
   return (
     <div
-      className="fixed right-4 top-4 z-[200] flex flex-col items-end gap-2"
-      style={{ pointerEvents: 'auto' }}
+      className="flex flex-col items-end gap-2"
     >
       {/* ── Row 1: gradient presets ── */}
       <div className="inline-flex items-center gap-1 rounded-full p-1.5" style={glassPanel}>

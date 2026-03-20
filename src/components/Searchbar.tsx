@@ -150,14 +150,16 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* Dot-grid texture */}
+      {/* Grain texture overlay */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 rounded-[2.4rem]"
         style={{
-          backgroundImage: 'radial-gradient(circle, oklch(0.82 0.06 236 / 0.9) 1px, transparent 1px)',
-          backgroundSize: '22px 22px',
-          opacity: isFocused ? 0.07 : 0.048,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+          backgroundSize: '256px 256px',
+          backgroundRepeat: 'repeat',
+          mixBlendMode: 'overlay',
+          opacity: isFocused ? 0.06 : 0.04,
           transition: 'opacity 500ms ease',
         }}
       />
