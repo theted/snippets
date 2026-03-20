@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeContext } from '../contexts/themeContext';
@@ -50,6 +50,13 @@ const mockSnippet = {
   language: 'javascript',
 };
 
+// Mirror the real app's SnippetPageRoute so key changes on navigation,
+// forcing a clean remount (and fresh navigatingRef) for each snippet id.
+const SnippetPageRoute = () => {
+  const { id } = useParams<{ id: string }>();
+  return <SnippetPage key={id} />;
+};
+
 function renderPage(id: number | string = 42) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -59,7 +66,7 @@ function renderPage(id: number | string = 42) {
       <QueryClientProvider client={queryClient}>
         <ThemeContext.Provider value={themeDefaults}>
           <Routes>
-            <Route path="/snippets/:id" element={<SnippetPage key={id} />} />
+            <Route path="/snippets/:id" element={<SnippetPageRoute />} />
             <Route path="/" element={<div>Home</div>} />
           </Routes>
         </ThemeContext.Provider>
@@ -173,5 +180,81 @@ test('Escape key navigates back to home', async () => {
   await user.keyboard('{Escape}');
   await waitFor(() => {
     expect(screen.getByText('Home')).toBeInTheDocument();
+  });
+});
+
+test('navigateBack plays a GSAP exit animation before calling navigate', async () => {
+  const { gsap } = await import('gsap');
+  const user = userEvent.setup();
+  renderPage();
+  await waitFor(() => expect(screen.getByText('My snippet')).toBeInTheDocument());
+
+  await user.click(screen.getByRole('button', { name: /back to archive/i }));
+
+  // The exit tween must have been fired with opacity:0 (the visual out-transition)
+  expect(gsap.to).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ opacity: 0 }),
+  );
+  // And navigation must have happened via the onComplete callback
+  await waitFor(() => expect(screen.getByText('Home')).toBeInTheDocument());
+});
+
+// ── Arrow-key navigation ──────────────────────────────────────────────────────
+// Set up a three-snippet nav-order so prevId and nextId are non-null.
+
+describe('Arrow-key navigation', () => {
+  const prevSnippet = { id: 41, title: 'Prev snippet', content: 'prev', description: '', language: 'javascript' };
+  const nextSnippet = { id: 43, title: 'Next snippet', content: 'next', description: '', language: 'javascript' };
+
+  beforeEach(() => {
+    vi.mocked(api.get).mockImplementation((path: string) => {
+      if (path === 'snippets/41') return Promise.resolve(prevSnippet);
+      if (path === 'snippets/42') return Promise.resolve(mockSnippet);
+      if (path === 'snippets/43') return Promise.resolve(nextSnippet);
+      // nav-order list — all three snippets, ascending
+      return Promise.resolve([prevSnippet, mockSnippet, nextSnippet]);
+    });
+  });
+
+  test('ArrowRight navigates to the next snippet', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await waitFor(() => expect(screen.getByText('My snippet')).toBeInTheDocument());
+    // Wait for nav-order to load so nextId is populated
+    await waitFor(() => expect(screen.getByRole('button', { name: /newer/i })).not.toBeDisabled());
+
+    await user.keyboard('{ArrowRight}');
+
+    await waitFor(() => expect(screen.getByText('Next snippet')).toBeInTheDocument());
+  });
+
+  test('ArrowLeft navigates to the previous snippet', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await waitFor(() => expect(screen.getByText('My snippet')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('button', { name: /older/i })).not.toBeDisabled());
+
+    await user.keyboard('{ArrowLeft}');
+
+    await waitFor(() => expect(screen.getByText('Prev snippet')).toBeInTheDocument());
+  });
+
+  test('arrow keys do not navigate while a text input is focused', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await waitFor(() => expect(screen.getByText('My snippet')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('button', { name: /newer/i })).not.toBeDisabled());
+
+    // Open the edit modal so a text input receives focus
+    await user.click(screen.getByRole('button', { name: /edit/i }));
+    await waitFor(() => expect(screen.getByPlaceholderText('Title')).toBeInTheDocument());
+    await user.click(screen.getByPlaceholderText('Title'));
+
+    await user.keyboard('{ArrowRight}');
+
+    // Still on snippet 42 — the navigation was suppressed
+    expect(screen.queryByText('Next snippet')).not.toBeInTheDocument();
+    expect(screen.getByText('My snippet')).toBeInTheDocument();
   });
 });

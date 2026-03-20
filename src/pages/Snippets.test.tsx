@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
-import Snippets from './Snippets';
+import Snippets, { _resetSnippetsLoaded } from './Snippets';
 import * as api from '../utils/api.ts';
 
 vi.mock('../components/CodeEditor', () => ({
@@ -67,6 +67,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
+  _resetSnippetsLoaded();
 });
 
 // ─── Getting snippets ──────────────────────────────────────────────────────────
@@ -205,3 +207,54 @@ test('calls update with the correct data when the edit form is submitted', async
     );
   });
 });
+
+// ── Layout switching ───────────────────────────────────────────────────────────
+
+test.each(['cascade', 'grid', 'stream'] as const)(
+  'clicking the %s layout button saves it to localStorage',
+  async (layout) => {
+    const user = userEvent.setup();
+    renderSnippets();
+    await waitFor(() => expect(screen.getByText('First snippet')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: layout }));
+    expect(localStorage.getItem('snippetLayout')).toBe(layout);
+  },
+);
+
+// masonry uses masonic which relies on DOM measurement APIs absent in jsdom —
+// verify it at least saves the preference and mounts without throwing.
+test('clicking the masonry layout button saves it to localStorage', async () => {
+  const user = userEvent.setup();
+  renderSnippets();
+  await waitFor(() => expect(screen.getByText('First snippet')).toBeInTheDocument());
+  await user.click(screen.getByRole('button', { name: 'masonry' }));
+  expect(localStorage.getItem('snippetLayout')).toBe('masonry');
+});
+
+test('restores the saved layout from localStorage on mount', async () => {
+  localStorage.setItem('snippetLayout', 'stream');
+  renderSnippets();
+  // Stream layout stamps each card wrapper with --item-index for stagger animation.
+  // Select by the inline custom property which is always set (unlike snippet-stream-item
+  // which is absent once snippetsLoaded becomes true after the first render).
+  await waitFor(() => {
+    const items = document.querySelectorAll<HTMLElement>('[style*="--item-index"]');
+    expect(items.length).toBeGreaterThan(0);
+    expect(items[0]).toHaveStyle({ '--item-index': '0' });
+    expect(items[1]).toHaveStyle({ '--item-index': '1' });
+  });
+});
+
+test.each(['cascade', 'grid', 'stream'] as const)(
+  '%s layout keeps all snippet cards visible after switching',
+  async (layout) => {
+    const user = userEvent.setup();
+    renderSnippets();
+    await waitFor(() => expect(screen.getByText('First snippet')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: layout }));
+    await waitFor(() => {
+      expect(screen.getByText('First snippet')).toBeInTheDocument();
+      expect(screen.getByText('Second snippet')).toBeInTheDocument();
+    });
+  },
+);

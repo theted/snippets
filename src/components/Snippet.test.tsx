@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
@@ -17,7 +17,7 @@ vi.mock('gsap', () => ({
         (el as HTMLElement).style.opacity = String(to.opacity);
       }
     }),
-    timeline: vi.fn(() => ({ to: vi.fn(), kill: vi.fn() })),
+    timeline: vi.fn(() => ({ to: vi.fn(), fromTo: vi.fn(), call: vi.fn(), kill: vi.fn() })),
   },
 }));
 
@@ -130,4 +130,91 @@ test('scroll fade disappears once the user scrolls to the bottom', () => {
   Object.defineProperty(wrap, 'scrollTop', { configurable: true, value: 400 });
   fireEvent.scroll(wrap);
   expect(screen.getByTestId('scroll-fade')).toHaveStyle('opacity: 0');
+});
+
+// ── Copy ─────────────────────────────────────────────────────────────────────
+
+test('copy button writes the snippet content to the clipboard', async () => {
+  const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+  renderSnippet();
+  fireEvent.click(screen.getByRole('button', { name: /copy/i }));
+  await waitFor(() => expect(writeText).toHaveBeenCalledWith('const x = 1;'));
+});
+
+test('shows a copied toast after clicking copy', async () => {
+  vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+  const user = userEvent.setup();
+  renderSnippet();
+  await user.click(screen.getByRole('button', { name: /copy/i }));
+  await waitFor(() => {
+    expect(screen.getByText(/copied to clipboard/i)).toBeInTheDocument();
+  });
+});
+
+// ── Favorite ──────────────────────────────────────────────────────────────────
+
+test('calls onToggleFavorite with the snippet id when save is clicked', async () => {
+  const onToggleFavorite = vi.fn();
+  const user = userEvent.setup();
+  renderSnippet({ onToggleFavorite, isFavorite: false });
+  await user.click(screen.getByRole('button', { name: /^save$/i }));
+  expect(onToggleFavorite).toHaveBeenCalledWith(1);
+});
+
+test('shows "Saved" label when isFavorite is true', () => {
+  renderSnippet({ onToggleFavorite: vi.fn(), isFavorite: true });
+  expect(screen.getByRole('button', { name: /^saved$/i })).toBeInTheDocument();
+});
+
+// ── Language filter ────────────────────────────────────────────────────────────
+
+test('calls onFilterLanguage with the language when the chip is clicked', async () => {
+  const onFilterLanguage = vi.fn();
+  const user = userEvent.setup();
+  renderSnippet({ onFilterLanguage });
+  // Chip renders as <button> when onClick is provided
+  await user.click(screen.getByRole('button', { name: /javascript/i }));
+  expect(onFilterLanguage).toHaveBeenCalledWith('javascript');
+});
+
+test('card link points to the snippet detail route', () => {
+  renderSnippet();
+  const links = screen.getAllByRole('link');
+  expect(links.some((l) => l.getAttribute('href') === '/snippets/1')).toBe(true);
+});
+
+// ── Lazy syntax highlighting ──────────────────────────────────────────────────
+
+test('renders plain <pre> before the card enters the viewport', () => {
+  // IntersectionObserver never fires in jsdom (no-op mock in setupTests) so
+  // highlighted stays false and the plain <pre> fallback is shown.
+  const { container } = renderSnippet();
+  expect(container.querySelector('pre')).toBeInTheDocument();
+});
+
+test('highlights code immediately when forceAutoSize is true (detail page)', () => {
+  // forceAutoSize skips the observer and starts highlighted=true, so
+  // SyntaxHighlighter renders directly (mocked to return children as text node,
+  // no <pre> wrapper).
+  const { container } = renderSnippet({ forceAutoSize: true });
+  expect(container.querySelector('pre')).not.toBeInTheDocument();
+});
+
+test('switches to highlighted output once IntersectionObserver fires', async () => {
+  let intersect!: IntersectionObserverCallback;
+  vi.spyOn(global, 'IntersectionObserver').mockImplementation(function(cb) {
+    intersect = cb;
+    return { observe: vi.fn(), disconnect: vi.fn() } as unknown as IntersectionObserver;
+  } as unknown as typeof IntersectionObserver);
+
+  const { container } = renderSnippet();
+  expect(container.querySelector('pre')).toBeInTheDocument();
+
+  act(() => intersect([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
+
+  await waitFor(() => {
+    expect(container.querySelector('pre')).not.toBeInTheDocument();
+  });
+
+  vi.restoreAllMocks();
 });
