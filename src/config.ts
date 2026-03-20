@@ -156,9 +156,11 @@ export const DEFAULT_THEME = 'vs2015';
 export const TRANSITION_TIME = 300;
 
 // ── Snippet stream layout ──────────────────────────────────────────────────────
-// 'stream'  — full-width cards stacked vertically (original, editorial feel)
-// 'grid'    — 2–3 column CSS grid, compact cards, more snippets per screen
-// 'masonry' — CSS multi-column, compact cards, natural per-item height
-// 'cascade' — repeating 1 → 2 → 3 column rows, editorial rhythm
-export type SnippetLayout = 'stream' | 'grid' | 'masonry' | 'cascade';
+// 'stream'    — full-width cards stacked vertically (editorial feel)
+// 'grid'      — fixed 2–3 column CSS grid, compact cards
+// 'masonry'   — variable-height masonic columns, compact cards
+// 'cascade'   — repeating 1 → 2 → 3 column rows, editorial rhythm
+// 'auto'      — variable-width masonry: spans 1–3 cols based on content length
+// 'spotlight' — first card full-size hero, remaining as compact grid
+export type SnippetLayout = 'stream' | 'grid' | 'masonry' | 'cascade' | 'auto' | 'spotlight';
 export const DEFAULT_SNIPPET_LAYOUT: SnippetLayout = 'grid';

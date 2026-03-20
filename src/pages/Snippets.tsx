@@ -10,7 +10,6 @@ import React, {
   useMemo,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { gsap } from 'gsap';
 import Snippet from '../components/Snippet';
 import { GlassPanel, GlassPill } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
@@ -30,43 +29,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { computeCardWidth } from '../utils/snippetLayout';
 import { useDeleteSnippetMutation, useUpdateSnippetMutation } from '../hooks/useSnippetMutations';
 import { Masonry } from 'masonic';
-
-const LayoutGridIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-    <rect x="0" y="0" width="4.5" height="4.5" rx="1" />
-    <rect x="6.5" y="0" width="4.5" height="4.5" rx="1" />
-    <rect x="0" y="6.5" width="4.5" height="4.5" rx="1" />
-    <rect x="6.5" y="6.5" width="4.5" height="4.5" rx="1" />
-  </svg>
-);
-
-const LayoutMasonryIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-    <rect x="0" y="0" width="4.5" height="7" rx="1" />
-    <rect x="6.5" y="0" width="4.5" height="4.5" rx="1" />
-    <rect x="0" y="8.5" width="4.5" height="2.5" rx="1" />
-    <rect x="6.5" y="6" width="4.5" height="5" rx="1" />
-  </svg>
-);
-
-const LayoutStreamIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-    <rect x="0" y="0" width="11" height="2.8" rx="1" />
-    <rect x="0" y="4.1" width="11" height="2.8" rx="1" />
-    <rect x="0" y="8.2" width="11" height="2.8" rx="1" />
-  </svg>
-);
-
-const LayoutCascadeIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-    <rect x="0" y="0" width="11" height="2.4" rx="1" />
-    <rect x="0" y="4.1" width="5.1" height="2.4" rx="1" />
-    <rect x="5.9" y="4.1" width="5.1" height="2.4" rx="1" />
-    <rect x="0" y="8.2" width="2.8" height="2.4" rx="1" />
-    <rect x="4.1" y="8.2" width="2.8" height="2.4" rx="1" />
-    <rect x="8.2" y="8.2" width="2.8" height="2.4" rx="1" />
-  </svg>
-);
+import Icon from '../components/Icon';
 
 // ── Masonry (masonic) ─────────────────────────────────────────────────────────
 // masonic requires a stable render component — callbacks are passed through
@@ -157,6 +120,7 @@ const CASCADE_ROW_COLS = [
 // Set to true after Snippets first mounts. Survives React unmount/remount so
 // subsequent visits (e.g. navigating back from a snippet) skip the stagger.
 let snippetsLoaded = false;
+export const _resetSnippetsLoaded = () => { snippetsLoaded = false; };
 
 function groupByCascade<T>(items: T[]): T[][] {
   const groups: T[][] = [];
@@ -231,6 +195,65 @@ const CascadeGrid: React.FC<CascadeGridProps> = ({
           </div>
         );
       })}
+    </div>
+  );
+};
+
+// ── Spotlight layout ──────────────────────────────────────────────────────────
+// First snippet rendered full-size as a hero; the rest in a compact 3-col grid.
+
+type SpotlightGridProps = {
+  snippets: ISnippet[];
+  onDelete: (id: SnippetId) => void;
+  onEdit: (id: SnippetId) => void;
+  theme: string;
+  prefetch: (id: SnippetId) => void;
+  isFavorite: (id: SnippetId) => boolean;
+  onToggleFavorite: (id: SnippetId) => void;
+  onFilterLanguage: (lang: string) => void;
+};
+
+const SpotlightGrid: React.FC<SpotlightGridProps> = ({
+  snippets, onDelete, onEdit, theme, prefetch, isFavorite, onToggleFavorite, onFilterLanguage,
+}) => {
+  const [hero, ...rest] = snippets;
+  return (
+    <div className="mt-12 md:mt-16">
+      {hero && (
+        <div
+          className={snippetsLoaded ? undefined : 'snippet-stream-item'}
+          style={{ '--item-index': 0 } as React.CSSProperties}
+          onMouseEnter={() => prefetch(hero.id)}
+        >
+          <Snippet
+            id={hero.id} title={hero.title} description={hero.description}
+            content={hero.content} language={hero.language}
+            onDelete={onDelete} onEdit={onEdit} theme={theme} compact={false}
+            isFavorite={isFavorite(hero.id)} onToggleFavorite={onToggleFavorite}
+            onFilterLanguage={onFilterLanguage}
+          />
+        </div>
+      )}
+      {rest.length > 0 && (
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:gap-10">
+          {rest.map((snippet, index) => (
+            <div
+              key={snippet.id}
+              className={snippetsLoaded ? undefined : 'snippet-stream-item'}
+              style={{ '--item-index': index + 1 } as React.CSSProperties}
+              onMouseEnter={() => prefetch(snippet.id)}
+            >
+              <Snippet
+                id={snippet.id} title={snippet.title} description={snippet.description}
+                content={snippet.content} language={snippet.language}
+                onDelete={onDelete} onEdit={onEdit} theme={theme} compact
+                isFavorite={isFavorite(snippet.id)} onToggleFavorite={onToggleFavorite}
+                onFilterLanguage={onFilterLanguage}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -424,7 +447,7 @@ type Props = {
 
 const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
   const queryClient = useQueryClient();
-  const { theme, autoSize, setAutoSize } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
   const gridRef = useRef<HTMLDivElement>(null);
   const lastEditingIdRef = useRef<SnippetId | null>(null);
@@ -432,51 +455,32 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
   const [search, setSearch] = useState<string>('');
   const [languageFilter, setLanguageFilter] = useState<string | null>(initialLanguage ?? null);
   const [isSearchTransitioning, startSearchTransition] = useTransition();
-  const [layout, setLayout] = useState<SnippetLayout>(
-    () => (localStorage.getItem('snippetLayout') as SnippetLayout | null) ?? DEFAULT_SNIPPET_LAYOUT
-  );
+  const [layout, setLayout] = useState<SnippetLayout>(() => {
+    const saved = localStorage.getItem('snippetLayout') as SnippetLayout | null;
+    const valid: SnippetLayout[] = ['stream', 'grid', 'masonry', 'cascade', 'auto', 'spotlight'];
+    if (saved && valid.includes(saved)) return saved;
+    if (localStorage.getItem('autoSize') === 'true') return 'auto'; // migrate old flag
+    return DEFAULT_SNIPPET_LAYOUT;
+  });
 
   // Mark as loaded after first render so return visits skip the stagger.
   useEffect(() => {
     snippetsLoaded = true;
   }, []);
 
-  const handleLayoutChange = (next: SnippetLayout) => {
+  const handleLayoutChange = useCallback((next: SnippetLayout) => {
     setLayout(next);
     localStorage.setItem('snippetLayout', next);
-  };
+  }, []);
 
-  const handleAutoSizeToggle = useCallback(() => {
-    const items = gridRef.current?.querySelectorAll<HTMLElement>('.snippet-stream-item');
-    if (items && items.length > 0) {
-      gsap.to(Array.from(items), {
-        opacity: 0,
-        y: 8,
-        duration: 0.18,
-        stagger: 0.015,
-        ease: 'power2.in',
-        onComplete: () => {
-          setAutoSize(!autoSize);
-          gsap.fromTo(
-            Array.from(
-              gridRef.current?.querySelectorAll<HTMLElement>('.snippet-stream-item') ?? []
-            ),
-            { opacity: 0, y: 12 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.32,
-              stagger: 0.03,
-              ease: 'power2.out',
-              delay: 0.04,
-            }
-          );
-        },
-      });
-    } else {
-      setAutoSize(!autoSize);
-    }
-  }, [autoSize, setAutoSize]);
+  const prefetch = useCallback((id: SnippetId) => {
+    queryClient.prefetchQuery({
+      queryKey: snippetKeys.detail(id),
+      queryFn: () => import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
+      staleTime: 60_000,
+    });
+  }, [queryClient]);
+
   const { data: editingSnippetData, error: editingSnippetError } = useSnippet(editingId);
   const {
     mutate: removeSnippet,
@@ -573,32 +577,19 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
             rounded="rounded-[1.4rem]"
             className="inline-flex items-center gap-1.5 px-3 py-2.5"
           >
-            <GlassPill
-              size="xs"
-              variant={autoSize ? 'accent' : 'default'}
-              onClick={handleAutoSizeToggle}
-              title="Auto-size cards to content width"
-            >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
-                <rect x="0" y="0" width="3.5" height="11" rx="1" />
-                <rect x="4.5" y="2" width="6.5" height="7" rx="1" />
-                <rect x="4.5" y="0" width="1" height="2.5" rx="0.5" />
-                <rect x="4.5" y="8.5" width="1" height="2.5" rx="0.5" />
-              </svg>
-              Auto
-            </GlassPill>
-            <div className="mx-1 h-4 w-px bg-[var(--color-border)]" />
-            {(['cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
+            {(['auto', 'spotlight', 'cascade', 'grid', 'masonry', 'stream'] as SnippetLayout[]).map((l) => (
               <GlassPill
                 key={l}
                 size="xs"
-                variant={!autoSize && layout === l ? 'active' : 'default'}
+                variant={layout === l ? 'active' : 'default'}
                 onClick={() => handleLayoutChange(l)}
               >
-                {l === 'grid' && <LayoutGridIcon />}
-                {l === 'masonry' && <LayoutMasonryIcon />}
-                {l === 'stream' && <LayoutStreamIcon />}
-                {l === 'cascade' && <LayoutCascadeIcon />}
+                {l === 'auto'      && <Icon name="layout-auto" />}
+                {l === 'spotlight' && <Icon name="layout-spotlight" />}
+                {l === 'cascade'   && <Icon name="layout-cascade" />}
+                {l === 'grid'      && <Icon name="layout-grid" />}
+                {l === 'masonry'   && <Icon name="layout-masonry" />}
+                {l === 'stream'    && <Icon name="layout-stream" />}
                 {l}
               </GlassPill>
             ))}
@@ -615,62 +606,34 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
               ? `No snippets matched "${debouncedSearchQuery}"`
               : 'No snippets yet — create one to get started.'}
         </p>
-      ) : autoSize ? (
+      ) : layout === 'auto' ? (
         <div ref={gridRef}>
           <AutoSizeGrid
-            snippets={displaySnippets}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            theme={theme}
-            isFavorite={isFavorite}
-            onToggleFavorite={toggleFavorite}
-            onFilterLanguage={onFilterLanguage}
-            prefetch={(id) =>
-              queryClient.prefetchQuery({
-                queryKey: snippetKeys.detail(id),
-                queryFn: () =>
-                  import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-                staleTime: 60_000,
-              })
-            }
+            snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
+            isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+            onFilterLanguage={onFilterLanguage} prefetch={prefetch}
+          />
+        </div>
+      ) : layout === 'spotlight' ? (
+        <div ref={gridRef}>
+          <SpotlightGrid
+            snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
+            isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+            onFilterLanguage={onFilterLanguage} prefetch={prefetch}
           />
         </div>
       ) : layout === 'masonry' ? (
         <MasonryGrid
-          snippets={displaySnippets}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          theme={theme}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onFilterLanguage={onFilterLanguage}
-          prefetch={(id) =>
-            queryClient.prefetchQuery({
-              queryKey: snippetKeys.detail(id),
-              queryFn: () =>
-                import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-              staleTime: 60_000,
-            })
-          }
+          snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
+          isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+          onFilterLanguage={onFilterLanguage} prefetch={prefetch}
         />
       ) : layout === 'cascade' ? (
         <div ref={gridRef}>
           <CascadeGrid
-            snippets={displaySnippets}
-            onDelete={onDelete}
-            onEdit={onEdit}
-            theme={theme}
-            isFavorite={isFavorite}
-            onToggleFavorite={toggleFavorite}
-            onFilterLanguage={onFilterLanguage}
-            prefetch={(id) =>
-              queryClient.prefetchQuery({
-                queryKey: snippetKeys.detail(id),
-                queryFn: () =>
-                  import('../utils/api.ts').then(({ get }) => get<ISnippet>(`snippets/${id}`)),
-                staleTime: 60_000,
-              })
-            }
+            snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
+            isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+            onFilterLanguage={onFilterLanguage} prefetch={prefetch}
           />
         </div>
       ) : (
@@ -679,32 +642,15 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
             <div
               key={snippet.id}
               className={snippetsLoaded ? undefined : 'snippet-stream-item'}
-              style={
-                layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined
-              }
-              onMouseEnter={() =>
-                queryClient.prefetchQuery({
-                  queryKey: snippetKeys.detail(snippet.id),
-                  queryFn: () =>
-                    import('../utils/api.ts').then(({ get }) =>
-                      get<ISnippet>(`snippets/${snippet.id}`)
-                    ),
-                  staleTime: 60_000,
-                })
-              }
+              style={layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined}
+              onMouseEnter={() => prefetch(snippet.id)}
             >
               <Snippet
-                id={snippet.id}
-                title={snippet.title}
-                description={snippet.description}
-                content={snippet.content}
-                language={snippet.language}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                theme={theme}
+                id={snippet.id} title={snippet.title} description={snippet.description}
+                content={snippet.content} language={snippet.language}
+                onDelete={onDelete} onEdit={onEdit} theme={theme}
                 compact={layout !== 'stream'}
-                isFavorite={isFavorite(snippet.id)}
-                onToggleFavorite={toggleFavorite}
+                isFavorite={isFavorite(snippet.id)} onToggleFavorite={toggleFavorite}
                 onFilterLanguage={onFilterLanguage}
               />
             </div>
