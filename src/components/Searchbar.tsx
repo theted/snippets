@@ -1,7 +1,11 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useGlass } from 'glass-design-system';
 import Textfield from './Textfield';
+import { SpinFigure } from './Spinner';
 import { capitalize } from '../utils/helpers';
+
+const RESULTS_LIMIT = 10;
 
 type SearchResult = { id: number; title: string; language?: string };
 
@@ -28,6 +32,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
   isSearching = false,
   debouncedQuery = '',
 }, ref) => {
+  const { blur } = useGlass();
   const [searchTerm, setSearchTerm] = useState('');
   const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
   const [isHovered, setIsHovered] = useState(false);
@@ -95,8 +100,9 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
 
   return (
     <div
-      className="searchbar-hero group relative overflow-hidden rounded-[2.4rem] backdrop-blur-2xl px-6 py-8 md:px-10 md:py-10 lg:px-12 lg:py-12"
+      className="searchbar-hero group relative overflow-hidden rounded-[2.4rem] px-6 py-8 md:px-10 md:py-10 lg:px-12 lg:py-12"
       style={{
+        backdropFilter: `blur(${blur}px)`,
         border: '1px solid transparent',
         backgroundImage: `
           linear-gradient(var(--color-glass-card), var(--color-glass-card)),
@@ -232,12 +238,14 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         <div>
           {isSearching && (
             isLoadingResults ? (
-              <p className="search-results-status">Searching…</p>
+              <div className="flex items-center justify-center py-6">
+                <SpinFigure />
+              </div>
             ) : results.length === 0 ? (
               <p className="search-results-status">No snippets matched &ldquo;{debouncedQuery}&rdquo;</p>
             ) : (
               <ul className="search-results-list" role="listbox" aria-label="Search results">
-                {results.map((snippet, index) => (
+                {results.slice(0, RESULTS_LIMIT).map((snippet, index) => (
                   <li key={snippet.id} className="search-result-item" role="option" aria-selected="false">
                     <Link
                       to={`/snippets/${snippet.id}`}
