@@ -28,6 +28,11 @@
           radial-gradient(ellipse 100% 55% at 50% 100%, oklch(0.11 0.08 248 / 0.94), transparent 100%),
           linear-gradient(180deg, #0d1420 0%, oklch(0.07 0.05 250) 100%);
         background-size: 256px 256px, auto, auto, auto, auto, auto, auto;
+        animation: bg-reveal 3s ease-out both;
+      }
+      @keyframes bg-reveal {
+        from { opacity: 0; }
+        to   { opacity: 1; }
       }
     </style>
   </head>
