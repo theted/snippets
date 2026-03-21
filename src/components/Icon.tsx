@@ -12,6 +12,10 @@ export type IconName =
   | 'pencil'
   | 'code'
   | 'plus'
+  | 'menu'
+  | 'close'
+  | 'chart'
+  | 'link'
   | 'layout-auto'
   | 'layout-spotlight'
   | 'layout-grid'
@@ -24,6 +28,29 @@ interface IconProps {
   className?: string;
   style?: React.CSSProperties;
 }
+
+const ICON_SVGS: Partial<Record<IconName, React.ReactElement>> = {
+  chart: (
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden="true">
+      <rect x="0" y="6" width="2.5" height="5" rx="0.7" />
+      <rect x="4.25" y="3" width="2.5" height="8" rx="0.7" />
+      <rect x="8.5" y="0" width="2.5" height="11" rx="0.7" />
+    </svg>
+  ),
+  menu: (
+    <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor" aria-hidden="true">
+      <rect x="0" y="0" width="14" height="1.8" rx="0.9" />
+      <rect x="0" y="4.1" width="14" height="1.8" rx="0.9" />
+      <rect x="0" y="8.2" width="14" height="1.8" rx="0.9" />
+    </svg>
+  ),
+  close: (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <line x1="1" y1="1" x2="9" y2="9" />
+      <line x1="9" y1="1" x2="1" y2="9" />
+    </svg>
+  ),
+};
 
 const LAYOUT_SVGS: Partial<Record<IconName, React.ReactElement>> = {
   'layout-auto': (
@@ -78,7 +105,7 @@ const LAYOUT_SVGS: Partial<Record<IconName, React.ReactElement>> = {
 };
 
 const Icon: React.FC<IconProps> = ({ name, className, style }) => {
-  const svg = LAYOUT_SVGS[name];
+  const svg = ICON_SVGS[name] ?? LAYOUT_SVGS[name];
   if (svg) return <span className={className} style={style}>{svg}</span>;
   return <i className={[`icon-${name}`, className].filter(Boolean).join(' ')} style={style} />;
 };
