@@ -1,6 +1,31 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useGlass } from 'glass-design-system';
+
+const TITLES: { kicker: string; headline: string }[] = [
+  { kicker: 'Curate The Archive',    headline: 'Find the exact fragment you need.' },
+  { kicker: 'Your Code Memory',      headline: 'Write it once. Find it forever.' },
+  { kicker: 'The Fragment Archive',  headline: 'Everything you\'ve earned, in order.' },
+  { kicker: 'Search Everything',     headline: 'The one line you half-remembered is in here.' },
+  { kicker: 'Recall Anything',       headline: 'Stop rewriting what you already solved.' },
+  { kicker: 'The Quiet Library',     headline: 'Dark, indexed, and always open.' },
+  { kicker: 'Your Second Brain',     headline: 'Code from six months ago, back in ten seconds.' },
+  { kicker: 'All Your Fragments',    headline: 'Organised the way your mind actually searches.' },
+  { kicker: 'The Reference Layer',   headline: 'Pull up the right pattern before the context vanishes.' },
+  { kicker: 'Institutional Memory',  headline: 'Every trick you\'ve learned. Nowhere to forget it.' },
+  { kicker: 'The Code Cellar',       headline: 'Aged well. Always ready.' },
+  { kicker: 'Preserved in Amber',    headline: 'Catch the good ones before they\'re gone.' },
+  { kicker: 'The Deep Stack',        headline: 'Every hard-won solution, within reach.' },
+  { kicker: 'Low Light, High Signal', headline: 'Everything useful. Nothing in the way.' },
+  { kicker: 'The Long Game',         headline: 'The snippets you\'ll still reach for in three years.' },
+  { kicker: 'Zero Noise',            headline: 'Just the code. Exactly what you need.' },
+  { kicker: 'The Night Shift',       headline: 'Still works at 2am when the syntax escapes you.' },
+  { kicker: 'Scar Tissue',           headline: 'Every bug you fixed. Every trick you earned.' },
+  { kicker: 'Dark And Indexed',      headline: 'The quieter the interface, the louder the code.' },
+  { kicker: 'The Slow Accumulation', headline: 'Built snippet by snippet. Invaluable over time.' },
+  { kicker: 'Pattern Recognition',   headline: 'The code your hands know before your brain does.' },
+  { kicker: 'The Good Stuff',        headline: 'None of the noise. All of the parts that matter.' },
+];
 import Textfield from './Textfield';
 import { SpinFigure } from './Spinner';
 import { capitalize } from '../utils/helpers';
@@ -33,6 +58,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
   debouncedQuery = '',
 }, ref) => {
   const { blur } = useGlass();
+  const [title] = useState(() => TITLES[Math.floor(Math.random() * TITLES.length)]);
   const [searchTerm, setSearchTerm] = useState('');
   const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
   const [isHovered, setIsHovered] = useState(false);
@@ -205,13 +231,13 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel">
-            Curate The Archive
+            {title.kicker}
           </p>
           <h2
             className="mt-3 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.055em] text-[var(--color-text)] md:text-6xl"
             style={{ textShadow: titleTextShadow }}
           >
-            Find the exact fragment you need.
+            {title.headline}
           </h2>
         </div>
         <p className="max-w-xl text-sm leading-7 text-[var(--color-text-muted)] md:text-base">
