@@ -103,14 +103,28 @@ export function createPostgresSnippetStore(db: DrizzleDb): SnippetStore {
     async getStats(): Promise<SnippetStats> {
       const [row] = await db
         .select({
-          totalSnippets:  count(),
-          totalLanguages: countDistinct(snippets.language),
+          totalSnippets:   count(),
+          totalLanguages:  countDistinct(snippets.language),
+          totalLines:      sql<number>`COALESCE(SUM(array_length(string_to_array(${snippets.content}, E'\\n'), 1)), 0)`,
+          totalCharacters: sql<number>`COALESCE(SUM(length(${snippets.content})), 0)`,
         })
         .from(snippets);
 
+      const topLanguages = await db
+        .select({
+          language: snippets.language,
+          count:    sql<number>`COUNT(*)::int`,
+        })
+        .from(snippets)
+        .groupBy(snippets.language)
+        .orderBy(sql`COUNT(*) DESC`);
+
       return {
-        totalSnippets:  row.totalSnippets,
-        totalLanguages: row.totalLanguages,
+        totalSnippets:   row.totalSnippets,
+        totalLanguages:  row.totalLanguages,
+        totalLines:      row.totalLines,
+        totalCharacters: row.totalCharacters,
+        topLanguages,
       };
     },
 

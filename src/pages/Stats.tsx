@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { GlassPill, GlassPanel, GlassDivider } from 'glass-design-system';
 import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
 import { SpinFigure } from '../components/Spinner';
 import { useServerStatus } from '../hooks/useServerStatus';
+import { snippetKeys } from '../hooks/react-query';
 
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
@@ -23,14 +25,34 @@ function formatDate(iso: string): string {
   });
 }
 
+function formatLines(n: number): string {
+  return n.toLocaleString();
+}
+
+function formatSize(bytes: number): string {
+  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
+  if (bytes >= 1_000) return `${Math.round(bytes / 1_000)} KB`;
+  return `${bytes} B`;
+}
+
+function formatCacheAge(cachedAt: number | null | undefined): string {
+  if (!cachedAt) return 'Cold';
+  const s = Math.floor((Date.now() - cachedAt) / 1000);
+  const m = Math.floor(s / 60);
+  if (m === 0) return `${s}s ago`;
+  return `${m}m ${s % 60}s ago`;
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 type StatTileProps = {
   kicker: string;
   value: React.ReactNode;
   label: string;
 };
 
-// GlassPanel gives this `position: relative`, ensuring it paints above the
-// parent panel's absolutely-positioned light-wash overlay (prevents hover leak).
 const StatTile: React.FC<StatTileProps> = ({ kicker, value, label }) => (
   <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.8rem]" className="p-6 md:p-8">
     <div className="relative z-10 flex flex-col gap-2">
@@ -43,8 +65,22 @@ const StatTile: React.FC<StatTileProps> = ({ kicker, value, label }) => (
   </GlassPanel>
 );
 
+const SNIPPET_STALE_MS = 30 * 60_000;
+
 const Stats: React.FC = () => {
   const { data: status, isPending, isError } = useServerStatus();
+  const queryClient = useQueryClient();
+
+  const allSuccessQueries = queryClient.getQueryCache().findAll({ predicate: (q) => q.state.status === 'success' });
+  const cachedQueryCount = allSuccessQueries.length;
+
+  const snippetListQueries = queryClient.getQueryCache().findAll({ queryKey: snippetKeys.lists() });
+  const latestSnippetFetch = snippetListQueries.reduce<number | null>((best, q) => {
+    const t = q.state.dataUpdatedAt;
+    return t && (!best || t > best) ? t : best;
+  }, null) || null;
+
+  const isSnippetsFresh = latestSnippetFetch ? Date.now() - latestSnippetFetch < SNIPPET_STALE_MS : null;
 
   return (
     <div className="App">
@@ -81,13 +117,53 @@ const Stats: React.FC = () => {
             <GlassPanel intensity="strong" topGlow bottomGlow rounded="rounded-[2.4rem]" className="p-8 md:p-12">
               <div className="relative z-10">
 
-              {/* Database */}
+              {/* Library */}
               <section>
-                <Kicker>Database</Kicker>
-                <div className="mt-6 grid grid-cols-2 gap-4 sm:max-w-xl">
-                  <StatTile kicker="Snippets"   value={status.db.totalSnippets}  label="total in database"   />
-                  <StatTile kicker="Languages"  value={status.db.totalLanguages} label="distinct languages"  />
+                <Kicker>Library</Kicker>
+                <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <StatTile kicker="Snippets"  value={status.db.totalSnippets}                        label="total in database"   />
+                  <StatTile kicker="Languages" value={status.db.totalLanguages}                       label="distinct languages"  />
+                  <StatTile kicker="Lines"     value={formatLines(status.db.totalLines ?? 0)}         label="lines stored"        />
+                  <StatTile kicker="Size"      value={formatSize(status.db.totalCharacters ?? 0)}     label="of code content"     />
                 </div>
+              </section>
+
+              <GlassDivider className="my-8" />
+
+              {/* Languages */}
+              <section>
+                <Kicker>Languages</Kicker>
+                <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.8rem]" className="mt-6 p-6 md:p-8">
+                  <div className="relative z-10 flex flex-col gap-4">
+                    {(status.db.topLanguages ?? []).map((lang, i) => {
+                      const pct = status.db.totalSnippets > 0
+                        ? Math.round((lang.count / status.db.totalSnippets) * 100)
+                        : 0;
+                      return (
+                        <div key={lang.language} className="flex items-center gap-4">
+                          <span className="w-5 shrink-0 text-xs tabular-nums text-[var(--color-text-subtle)]">
+                            {i + 1}
+                          </span>
+                          <span className="w-28 shrink-0 text-sm text-[var(--color-text)]">
+                            {capitalize(lang.language)}
+                          </span>
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--color-glass-row)]">
+                            <div
+                              className="h-full rounded-full bg-[var(--color-accent)]"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="w-8 shrink-0 text-right text-sm tabular-nums text-[var(--color-text)]">
+                            {lang.count}
+                          </span>
+                          <span className="w-9 shrink-0 text-right text-xs tabular-nums text-[var(--color-text-subtle)]">
+                            {pct}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </GlassPanel>
               </section>
 
               <GlassDivider className="my-8" />
@@ -97,15 +173,15 @@ const Stats: React.FC = () => {
                 <Kicker>Cache</Kicker>
                 <div className="mt-6 grid grid-cols-2 gap-4 sm:max-w-xl">
                   <StatTile kicker="In memory" value={status.cache.snippetCount} label="snippets cached server-side" />
-                  <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.8rem]" className="p-6 md:p-8">
-                    <div className="relative z-10 flex flex-col justify-center gap-2">
-                      <Kicker className="tracking-[0.28em]">TTL</Kicker>
-                      <p className="mt-3 text-sm leading-7 text-[var(--color-text-muted)]">
-                        The unfiltered snippet list is cached server-side for 10 minutes.
-                        Any write operation clears it immediately.
-                      </p>
-                    </div>
-                  </GlassPanel>
+                  <StatTile
+                    kicker="Cache age"
+                    value={
+                      <span className={status.cache.cachedAt ? '' : 'text-[var(--color-text-subtle)]'}>
+                        {formatCacheAge(status.cache.cachedAt)}
+                      </span>
+                    }
+                    label={status.cache.cachedAt ? 'since last population' : 'cache is empty'}
+                  />
                 </div>
               </section>
 
@@ -129,6 +205,50 @@ const Stats: React.FC = () => {
             </GlassPanel>
           )}
         </div>
+
+        {/* Client Cache — always rendered, outside the server-data conditional */}
+        <div className="mt-6">
+          <GlassPanel intensity="strong" topGlow bottomGlow rounded="rounded-[2.4rem]" className="p-8 md:p-12">
+            <div className="relative z-10">
+              <section>
+                <Kicker>Client Cache</Kicker>
+                <p className="mt-2 text-sm text-[var(--color-text-subtle)]">
+                  React Query in-browser cache — independent of the server.
+                </p>
+                <div className="mt-6 grid grid-cols-2 gap-4 sm:max-w-xl sm:grid-cols-3">
+                  <StatTile
+                    kicker="Queries"
+                    value={cachedQueryCount}
+                    label="successful entries cached"
+                  />
+                  <StatTile
+                    kicker="Snippets"
+                    value={
+                      <span className={latestSnippetFetch ? '' : 'text-[var(--color-text-subtle)]'}>
+                        {formatCacheAge(latestSnippetFetch)}
+                      </span>
+                    }
+                    label={latestSnippetFetch ? 'since last fetch' : 'not yet loaded'}
+                  />
+                  <StatTile
+                    kicker="Freshness"
+                    value={
+                      <span className={isSnippetsFresh === null ? 'text-[var(--color-text-subtle)]' : ''}>
+                        {isSnippetsFresh === null ? '—' : isSnippetsFresh ? 'Fresh' : 'Stale'}
+                      </span>
+                    }
+                    label={
+                      isSnippetsFresh === true  ? 'within 30 min window' :
+                      isSnippetsFresh === false ? 'refetches on next visit' :
+                      'browse snippets first'
+                    }
+                  />
+                </div>
+              </section>
+            </div>
+          </GlassPanel>
+        </div>
+
       </div>
     </div>
   );

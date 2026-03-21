@@ -14,11 +14,15 @@ export async function registerStatusRoute(
 
     return {
       db: {
-        totalSnippets: stats.totalSnippets,
-        totalLanguages: stats.totalLanguages,
+        totalSnippets:   stats.totalSnippets,
+        totalLanguages:  stats.totalLanguages,
+        totalLines:      stats.totalLines,
+        totalCharacters: stats.totalCharacters,
+        topLanguages:    stats.topLanguages,
       },
       cache: {
         snippetCount: cache.count,
+        cachedAt:     cache.cachedAt,
       },
       server: {
         version: process.env.npm_package_version ?? '0.1.0',

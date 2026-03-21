@@ -30,4 +30,9 @@ export class SnippetCache {
   get count(): number {
     return this.get()?.length ?? 0;
   }
+
+  get cachedAt(): number | null {
+    if (!this.entry || Date.now() > this.entry.cachedAt + this.ttlMs) return null;
+    return this.entry.cachedAt;
+  }
 }
