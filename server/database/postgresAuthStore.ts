@@ -1,73 +1,68 @@
-import { Pool } from 'pg';
+import { eq } from 'drizzle-orm';
 import { AuthUser, UserId } from '../../src/types';
+import { DrizzleDb } from './db';
+import { UserRow, userIdentities, users } from './schema';
 import { AuthStore, GoogleUserIdentity } from './authStore';
-
-type UserRow = {
-  id: number;
-  email: string;
-  display_name: string;
-  avatar_url: string | null;
-};
 
 function mapUserRow(row: UserRow): AuthUser {
   return {
-    id: row.id,
-    email: row.email,
-    displayName: row.display_name,
-    avatarUrl: row.avatar_url ?? undefined,
+    id:          row.id,
+    email:       row.email,
+    displayName: row.displayName,
+    avatarUrl:   row.avatarUrl ?? undefined,
   };
 }
 
-export function createPostgresAuthStore(pool: Pool): AuthStore {
+export function createPostgresAuthStore(db: DrizzleDb): AuthStore {
   return {
     async getUserById(id: UserId): Promise<AuthUser | null> {
-      const result = await pool.query<UserRow>(`
-        SELECT id, email, display_name, avatar_url
-        FROM users
-        WHERE id = $1
-      `, [id]);
+      const [row] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
 
-      return result.rows[0] ? mapUserRow(result.rows[0]) : null;
+      return row ? mapUserRow(row) : null;
     },
 
     async upsertGoogleUser(identity: GoogleUserIdentity): Promise<AuthUser> {
-      const client = await pool.connect();
+      return db.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(users)
+          .values({
+            email:       identity.email,
+            displayName: identity.displayName,
+            avatarUrl:   identity.avatarUrl ?? null,
+          })
+          .onConflictDoUpdate({
+            target: users.email,
+            set: {
+              displayName: identity.displayName,
+              avatarUrl:   identity.avatarUrl ?? null,
+              updatedAt:   new Date(),
+            },
+          })
+          .returning();
 
-      try {
-        await client.query('BEGIN');
-
-        const userResult = await client.query<UserRow>(`
-          INSERT INTO users (email, display_name, avatar_url)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (email)
-          DO UPDATE SET
-            display_name = EXCLUDED.display_name,
-            avatar_url = EXCLUDED.avatar_url,
-            updated_at = NOW()
-          RETURNING id, email, display_name, avatar_url
-        `, [identity.email, identity.displayName, identity.avatarUrl ?? null]);
-
-        const user = userResult.rows[0];
-
-        await client.query(`
-          INSERT INTO user_identities (user_id, provider, provider_subject, email)
-          VALUES ($1, 'google', $2, $3)
-          ON CONFLICT (provider, provider_subject)
-          DO UPDATE SET
-            user_id = EXCLUDED.user_id,
-            email = EXCLUDED.email,
-            updated_at = NOW()
-        `, [user.id, identity.subject, identity.email]);
-
-        await client.query('COMMIT');
+        await tx
+          .insert(userIdentities)
+          .values({
+            userId:          user.id,
+            provider:        'google',
+            providerSubject: identity.subject,
+            email:           identity.email,
+          })
+          .onConflictDoUpdate({
+            target: [userIdentities.provider, userIdentities.providerSubject],
+            set: {
+              userId:    user.id,
+              email:     identity.email,
+              updatedAt: new Date(),
+            },
+          });
 
         return mapUserRow(user);
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      } finally {
-        client.release();
-      }
+      });
     },
   };
 }

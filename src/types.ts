@@ -19,12 +19,14 @@ export type SnippetId = Snippet['id'];
 export const CreateSnippetSchema = SnippetSchema.omit({ id: true });
 export type CreateSnippet = z.infer<typeof CreateSnippetSchema>;
 
-export type SnippetFormValues = {
-  title: string;
-  content: string;
-  description: string;
-  language: string;
-};
+export const SnippetFormSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be 100 characters or fewer'),
+  content: z.string().min(1, 'Code is required'),
+  description: z.string().max(500, 'Description must be 500 characters or fewer'),
+  language: z.string().min(1, 'Language is required'),
+});
+
+export type SnippetFormValues = z.infer<typeof SnippetFormSchema>;
 
 export const AuthUserSchema = z.object({
   id: z.number(),

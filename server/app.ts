@@ -3,18 +3,23 @@ import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
 import { ZodError } from 'zod';
 import { createGoogleAuthService } from './auth/google';
+import { SnippetCache } from './cache/snippetCache';
 import { createPostgresAuthStore } from './database/postgresAuthStore';
 import { createPostgresPool } from './database/postgresPool';
+import { createDrizzleDb } from './database/db';
 import { getConfig } from './config';
 import { createPostgresSnippetStore } from './database/postgresSnippetStore';
 import { registerAuthRoutes } from './routes/auth';
 import { registerSnippetRoutes } from './routes/snippets';
+import { registerStatusRoute } from './routes/status';
 
 export async function buildApp() {
   const config = getConfig();
   const postgresPool = createPostgresPool(config.database);
-  const store = createPostgresSnippetStore(postgresPool);
-  const authStore = createPostgresAuthStore(postgresPool);
+  const db = createDrizzleDb(postgresPool);
+  const store = createPostgresSnippetStore(db);
+  const cache = new SnippetCache();
+  const authStore = createPostgresAuthStore(db);
   const googleAuthService = config.auth.google.enabled && config.auth.google.clientId
     ? createGoogleAuthService(config.auth.google.clientId, authStore)
     : undefined;
@@ -47,7 +52,8 @@ export async function buildApp() {
   });
 
   await registerAuthRoutes(app, config, googleAuthService);
-  await registerSnippetRoutes(app, store);
+  await registerSnippetRoutes(app, store, cache);
+  await registerStatusRoute(app, store, cache);
 
   app.addHook('onClose', async () => {
     await postgresPool.end();

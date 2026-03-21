@@ -1,14 +1,8 @@
-import { Pool } from 'pg';
+import { and, asc, count, countDistinct, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { CreateSnippet, Snippet, SnippetId } from '../../src/types';
+import { DrizzleDb } from './db';
+import { SnippetRow, snippets } from './schema';
 import { ListSnippetsOptions, SnippetStats, SnippetStore } from './snippetStore';
-
-type SnippetRow = {
-  id: number;
-  title: string;
-  content: string;
-  description: string | null;
-  language: string;
-};
 
 function mapSnippetRow(row: SnippetRow): Snippet {
   return {
@@ -20,97 +14,103 @@ function mapSnippetRow(row: SnippetRow): Snippet {
   };
 }
 
-function buildListQuery({ query, language, order = 'desc' }: ListSnippetsOptions) {
-  const values: string[] = [];
-  const whereClauses: string[] = [];
-
-  if (query && query.trim().length > 0) {
-    values.push(`%${query.trim()}%`);
-    const n = values.length;
-    whereClauses.push(`(
-      title ILIKE $${n}
-      OR content ILIKE $${n}
-      OR COALESCE(description, '') ILIKE $${n}
-      OR language ILIKE $${n}
-    )`);
-  }
-
-  if (language && language.trim().length > 0) {
-    values.push(language.trim());
-    whereClauses.push(`language = $${values.length}`);
-  }
-
-  const direction = order === 'asc' ? 'ASC' : 'DESC';
-  const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-
+export function createPostgresSnippetStore(db: DrizzleDb): SnippetStore {
   return {
-    text: `
-      SELECT id, title, content, description, language
-      FROM snippets
-      ${where}
-      ORDER BY id ${direction}
-    `,
-    values,
-  };
-}
+    async listSnippets({ query, language, order = 'desc' }: ListSnippetsOptions): Promise<Snippet[]> {
+      const conditions = [];
 
-export function createPostgresSnippetStore(pool: Pool): SnippetStore {
-  return {
-    async listSnippets(options: ListSnippetsOptions): Promise<Snippet[]> {
-      const query = buildListQuery(options);
-      const result = await pool.query<SnippetRow>(query.text, query.values);
-      return result.rows.map(mapSnippetRow);
+      if (query && query.trim().length > 0) {
+        const term = `%${query.trim()}%`;
+        conditions.push(
+          or(
+            ilike(snippets.title, term),
+            ilike(snippets.content, term),
+            ilike(sql`COALESCE(${snippets.description}, '')`, term),
+            ilike(snippets.language, term),
+          ),
+        );
+      }
+
+      if (language && language.trim().length > 0) {
+        conditions.push(eq(snippets.language, language.trim()));
+      }
+
+      const rows = await db
+        .select({
+          id:          snippets.id,
+          title:       snippets.title,
+          content:     snippets.content,
+          description: snippets.description,
+          language:    snippets.language,
+          updatedAt:   snippets.updatedAt,
+        })
+        .from(snippets)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(order === 'asc' ? asc(snippets.id) : desc(snippets.id));
+
+      return rows.map(mapSnippetRow);
     },
 
     async getSnippet(id: SnippetId): Promise<Snippet | null> {
-      const result = await pool.query<SnippetRow>(`
-        SELECT id, title, content, description, language
-        FROM snippets
-        WHERE id = $1
-      `, [id]);
+      const [row] = await db
+        .select()
+        .from(snippets)
+        .where(eq(snippets.id, id))
+        .limit(1);
 
-      return result.rows[0] ? mapSnippetRow(result.rows[0]) : null;
+      return row ? mapSnippetRow(row) : null;
     },
 
     async createSnippet(input: CreateSnippet): Promise<Snippet> {
-      const result = await pool.query<SnippetRow>(`
-        INSERT INTO snippets (title, content, description, language)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, title, content, description, language
-      `, [input.title, input.content, input.description ?? '', input.language ?? 'javascript']);
+      const [row] = await db
+        .insert(snippets)
+        .values({
+          title:       input.title,
+          content:     input.content,
+          description: input.description ?? '',
+          language:    input.language ?? 'javascript',
+        })
+        .returning();
 
-      return mapSnippetRow(result.rows[0]);
+      return mapSnippetRow(row);
     },
 
     async updateSnippet(id: SnippetId, input: CreateSnippet): Promise<Snippet | null> {
-      const result = await pool.query<SnippetRow>(`
-        UPDATE snippets
-        SET title = $1,
-            content = $2,
-            description = $3,
-            language = $4,
-            updated_at = NOW()
-        WHERE id = $5
-        RETURNING id, title, content, description, language
-      `, [input.title, input.content, input.description ?? '', input.language ?? 'javascript', id]);
+      const [row] = await db
+        .update(snippets)
+        .set({
+          title:       input.title,
+          content:     input.content,
+          description: input.description ?? '',
+          language:    input.language ?? 'javascript',
+          updatedAt:   new Date(),
+        })
+        .where(eq(snippets.id, id))
+        .returning();
 
-      return result.rows[0] ? mapSnippetRow(result.rows[0]) : null;
+      return row ? mapSnippetRow(row) : null;
     },
 
     async deleteSnippet(id: SnippetId): Promise<boolean> {
-      const result = await pool.query('DELETE FROM snippets WHERE id = $1', [id]);
-      return result.rowCount !== null && result.rowCount > 0;
+      const deleted = await db
+        .delete(snippets)
+        .where(eq(snippets.id, id))
+        .returning({ id: snippets.id });
+
+      return deleted.length > 0;
     },
 
     async getStats(): Promise<SnippetStats> {
-      const result = await pool.query<{ total_snippets: string; total_languages: string }>(`
-        SELECT COUNT(*) AS total_snippets,
-               COUNT(DISTINCT language) AS total_languages
-        FROM snippets
-      `);
+      const [row] = await db
+        .select({
+          totalSnippets:  count(),
+          totalLanguages: countDistinct(snippets.language),
+        })
+        .from(snippets);
+
       return {
-        totalSnippets: Number(result.rows[0].total_snippets),
-        totalLanguages: Number(result.rows[0].total_languages),
+        totalSnippets:  row.totalSnippets,
+        totalLanguages: row.totalLanguages,
       };
     },
 

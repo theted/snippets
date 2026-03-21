@@ -1,0 +1,9 @@
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
+
+export function createDrizzleDb(pool: Pool) {
+  return drizzle(pool, { schema });
+}
+
+export type DrizzleDb = ReturnType<typeof createDrizzleDb>;
