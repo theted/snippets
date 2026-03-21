@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CreateSnippet } from '../../src/types';
+import { SnippetCache } from '../cache/snippetCache';
 import { SnippetStore } from '../database/snippetStore';
 
 const DEFAULT_LANGUAGE = 'javascript';
@@ -32,18 +33,30 @@ function normalizeSnippetInput(input: z.infer<typeof snippetInputSchema>): Creat
   };
 }
 
-export async function registerSnippetRoutes(app: FastifyInstance, store: SnippetStore) {
+export async function registerSnippetRoutes(app: FastifyInstance, store: SnippetStore, cache: SnippetCache) {
   app.get('/health', async () => ({ ok: true }));
 
   app.get('/snippets', async (request) => {
     const query = listQuerySchema.parse(request.query);
+    const isUnfiltered = !query.q && !query.language;
 
-    return store.listSnippets({
+    if (isUnfiltered) {
+      const cached = cache.get();
+      if (cached) return cached;
+    }
+
+    const snippets = await store.listSnippets({
       query: query.q,
       language: query.language,
       sortBy: query._sort,
       order: query._order,
     });
+
+    if (isUnfiltered) {
+      cache.set(snippets);
+    }
+
+    return snippets;
   });
 
   app.get('/snippets/:id', async (request, reply) => {
@@ -61,6 +74,7 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
   app.post('/snippets', async (request, reply) => {
     const payload = normalizeSnippetInput(snippetInputSchema.parse(request.body));
     const snippet = await store.createSnippet(payload);
+    cache.invalidate();
     reply.status(201);
     return snippet;
   });
@@ -75,6 +89,7 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
       return { errors: [`Snippet ${id} was not found.`] };
     }
 
+    cache.invalidate();
     return snippet;
   });
 
@@ -87,6 +102,7 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
       return { errors: [`Snippet ${id} was not found.`] };
     }
 
+    cache.invalidate();
     reply.status(204);
     return null;
   });

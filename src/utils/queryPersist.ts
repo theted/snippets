@@ -74,8 +74,8 @@ export function createPersistentQueryClient(): QueryClient {
     queryCache,
     defaultOptions: {
       queries: {
-        staleTime: 60_000,  // data stays fresh for 1 min
-        gcTime:    5 * 60_000,
+        staleTime: 30 * 60_000,  // data stays fresh for 30 min
+        gcTime:    2 * 60 * 60_000, // keep inactive queries in memory for 2 h
         retry: 1,
       },
     },

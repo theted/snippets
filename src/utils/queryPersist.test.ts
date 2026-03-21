@@ -16,7 +16,7 @@ test('returns a QueryClient instance', () => {
 
 test('returns a client with the expected default staleTime', () => {
   const client = createPersistentQueryClient();
-  expect(client.getDefaultOptions().queries?.staleTime).toBe(60_000);
+  expect(client.getDefaultOptions().queries?.staleTime).toBe(30 * 60_000);
 });
 
 test('hydrates from a valid cached snapshot on startup', async () => {
