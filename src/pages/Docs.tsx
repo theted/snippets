@@ -56,19 +56,21 @@ const ShortcutRow: React.FC<ShortcutProps> = ({ chord, description, detail }) =>
 const Section: React.FC<React.PropsWithChildren<{ label: string }>> = ({ label, children }) => (
   <div className="mt-10 first:mt-0">
     <Kicker className="mb-1 text-[0.65rem] tracking-[0.36em]">{label}</Kicker>
-    <div className="rounded-[1.7rem] border border-[var(--color-border)] bg-[var(--color-glass-row)] px-6 backdrop-blur-xl">
-      {children}
-    </div>
+    <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.7rem]" className="px-6">
+      <div className="relative z-10">{children}</div>
+    </GlassPanel>
   </div>
 );
 
 // ── Tip card ──────────────────────────────────────────────────────────────────
 
 const Tip: React.FC<{ title: string; body: string }> = ({ title, body }) => (
-  <div className="rounded-[1.4rem] border border-[var(--color-border)] bg-[var(--color-glass-card)] p-5 backdrop-blur-xl">
-    <Kicker className="text-[0.7rem] tracking-[0.28em]">{title}</Kicker>
-    <p className="mt-2 text-sm leading-7 text-[var(--color-text-muted)]">{body}</p>
-  </div>
+  <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.4rem]" className="p-5">
+    <div className="relative z-10">
+      <Kicker className="text-[0.7rem] tracking-[0.28em]">{title}</Kicker>
+      <p className="mt-2 text-sm leading-7 text-[var(--color-text-muted)]">{body}</p>
+    </div>
+  </GlassPanel>
 );
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -108,7 +110,7 @@ const Docs: React.FC = () => {
           rounded="rounded-[2.4rem]"
           className="snippet-detail-enter p-8 md:p-10 lg:p-12"
         >
-
+        <div className="relative z-10">
           {/* Header */}
           <Kicker className="text-[0.7rem] tracking-[0.38em]">Reference</Kicker>
           <h1 className="mt-3 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.06em] text-[var(--color-text)] md:text-5xl [text-shadow:0_1px_0_oklch(1_0_0_/_0.14),0_2px_16px_oklch(0_0_0_/_0.3)]">
@@ -215,6 +217,7 @@ const Docs: React.FC = () => {
               />
             </div>
           </div>
+        </div>
         </GlassPanel>
       </div>
     </div>

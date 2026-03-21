@@ -1,14 +1,16 @@
 import React from 'react';
 
-export type ChipSize    = 'sm' | 'md';
+export type ChipSize    = 'xs' | 'sm' | 'md';
 export type ChipVariant = 'default' | 'accent';
 
 /**
  * Size → padding / text.
- *   sm — compact card contexts (grid / masonry)
- *   md — full-size card contexts (stream) and standalone filter chips
+ *   xs — very compact card contexts (grid / masonry)
+ *   sm — compact card contexts (stream)
+ *   md — standalone filter chips and display contexts
  */
 const SIZE: Record<ChipSize, string> = {
+  xs: 'px-2 py-0.5 text-[0.55rem] tracking-[0.16em]',
   sm: 'px-2.5 py-1 text-[0.60rem] tracking-[0.20em]',
   md: 'px-4 py-2 text-[0.68rem] tracking-[0.24em]',
 };

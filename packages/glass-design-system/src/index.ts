@@ -28,3 +28,9 @@ export { default as GlassPanel } from './components/GlassPanel';
 export { default as GlassPill } from './components/GlassPill';
 export type { GlassPillSize, GlassPillVariant } from './components/GlassPill';
 export { default as GlassDivider } from './components/GlassDivider';
+export {
+  default as GlassInput,
+  GlassInputWrap,
+  GlassTextarea,
+} from './components/GlassInput';
+export type { GlassInputVariant } from './components/GlassInput';

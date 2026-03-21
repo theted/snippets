@@ -44,12 +44,15 @@ type ProviderProps = React.PropsWithChildren<Partial<GlassConfig>>;
 export function GlassProvider({ children, blur, opacity, lightAlpha, shadowAlpha }: ProviderProps) {
   const parent = useContext(GlassContext);
 
-  const value = useMemo<GlassConfig>(() => ({
-    blur:        blur        ?? parent.blur,
-    opacity:     opacity     ?? parent.opacity,
-    lightAlpha:  lightAlpha  ?? parent.lightAlpha,
-    shadowAlpha: shadowAlpha ?? parent.shadowAlpha,
-  }), [blur, opacity, lightAlpha, shadowAlpha, parent]);
+  const value = useMemo<GlassConfig>(
+    () => ({
+      blur: blur ?? parent.blur,
+      opacity: opacity ?? parent.opacity,
+      lightAlpha: lightAlpha ?? parent.lightAlpha,
+      shadowAlpha: shadowAlpha ?? parent.shadowAlpha,
+    }),
+    [blur, opacity, lightAlpha, shadowAlpha, parent]
+  );
 
   return <GlassContext.Provider value={value}>{children}</GlassContext.Provider>;
 }

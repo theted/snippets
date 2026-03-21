@@ -5,6 +5,9 @@ import {
   GlassPill,
   GlassDivider,
   GlassProvider,
+  GlassInput,
+  GlassInputWrap,
+  GlassTextarea,
   useGlass,
   getGlassStyles,
   GLASS_DEFAULTS,
@@ -136,6 +139,96 @@ const DoDont: React.FC<{
     </div>
   </div>
 );
+
+// ── § Glass Form Fields demo ──────────────────────────────────────────────────
+
+const GlassFormFieldsDemo: React.FC = () => {
+  const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
+  const [lang, setLang] = useState('typescript');
+  const [blur, setBlur] = useState(16);
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* Left: interactive form */}
+      <GlassPanel intensity="medium" topGlow rounded="rounded-[2rem]" className="p-8 flex flex-col gap-6">
+        <div>
+          <p className="mb-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]">Title</p>
+          <GlassInput
+            type="text"
+            placeholder="My awesome snippet…"
+            value={name}
+            fieldBlur={blur}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          <p className="mb-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]">Description</p>
+          <GlassTextarea
+            placeholder="What does this snippet do?"
+            rows={4}
+            value={desc}
+            fieldBlur={blur}
+            onChange={(e) => setDesc(e.target.value)}
+          />
+        </div>
+        <div>
+          <p className="mb-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.26em] text-[var(--color-text-subtle)]">Language</p>
+          <GlassInputWrap fieldBlur={blur}>
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className="block w-full appearance-none bg-transparent px-5 py-4 text-base leading-normal text-[var(--color-text)] focus:outline-none"
+            >
+              {['typescript', 'javascript', 'python', 'rust', 'go', 'css'].map((l) => (
+                <option key={l} value={l} style={{ background: 'oklch(0.14 0.02 254)' }}>{l}</option>
+              ))}
+            </select>
+          </GlassInputWrap>
+        </div>
+      </GlassPanel>
+
+      {/* Right: blur knob + field states */}
+      <div className="flex flex-col gap-6">
+        {/* Blur knob */}
+        <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.4rem]" className="p-5">
+          <p className="mb-3 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">
+            Field blur — <span className="text-[var(--color-accent-bright)]">{blur}px</span>
+          </p>
+          <input
+            type="range" min={0} max={40} step={2} value={blur}
+            onChange={(e) => setBlur(Number(e.target.value))}
+            className="w-full accent-[var(--color-accent)]"
+          />
+          <p className="mt-2 text-[0.62rem] leading-5 text-[var(--color-text-muted)]">
+            Drag to see how <Code>fieldBlur</Code> scales the backdrop blur from sharp (0) to frosted (40).
+          </p>
+        </GlassPanel>
+
+        {/* State reference */}
+        <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.4rem]" className="p-5 flex flex-col gap-4">
+          <p className="text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">Field states</p>
+          <div className="flex flex-col gap-3">
+            {/* idle */}
+            <div>
+              <p className="mb-1 text-[0.58rem] text-[var(--color-text-subtle)]">Idle</p>
+              <GlassInputWrap focused={false} fieldBlur={blur}>
+                <input readOnly value="" placeholder="Idle — no interaction" className="block w-full appearance-none bg-transparent px-4 py-3 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-subtle)] focus:outline-none" />
+              </GlassInputWrap>
+            </div>
+            {/* focused */}
+            <div>
+              <p className="mb-1 text-[0.58rem] text-[var(--color-text-subtle)]">Focused (simulated)</p>
+              <GlassInputWrap focused={true} fieldBlur={blur}>
+                <input readOnly value="" placeholder="Active — focus glow + bright border" className="block w-full appearance-none bg-transparent px-4 py-3 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-subtle)] focus:outline-none" />
+              </GlassInputWrap>
+            </div>
+          </div>
+        </GlassPanel>
+      </div>
+    </div>
+  );
+};
 
 // ── § GlassPanel demos ────────────────────────────────────────────────────────
 
@@ -378,6 +471,7 @@ const ComponentDocs: React.FC = () => {
               { label: 'GlassDivider', id: 'glass-divider' },
               { label: 'GlassProvider', id: 'glass-provider' },
               { label: 'getGlassStyles', id: 'get-glass-styles' },
+              { label: 'Glass Form Fields', id: 'form-fields' },
             ].map(({ label, id }) => (
               <GlassPill key={id} size="sm" as="a" href={`#${id}`}>
                 {label}
@@ -953,6 +1047,108 @@ const ComponentDocs: React.FC = () => {
               </code>
             </pre>
           </GlassPanel>
+        </PageSection>
+
+        {/* ── § Glass Form Fields ──────────────────────────────────────────────── */}
+        <PageSection id="form-fields">
+          <SectionLabel>Components</SectionLabel>
+          <SectionTitle>Glass Form Fields</SectionTitle>
+          <SectionSub>
+            Frosted-glass inputs inherit the same depth language as panels — translucent background,
+            top-edge shimmer, and a glowing focus ring that echoes the ambient accent colour.
+          </SectionSub>
+
+          <GlassDivider className="my-10" />
+
+          {/* Live demo */}
+          <DemoLabel>Live demo — interact with the fields</DemoLabel>
+          <GlassFormFieldsDemo />
+
+          <GlassDivider className="my-10" />
+
+          {/* GlassInput API */}
+          <DemoLabel>GlassInput — props</DemoLabel>
+          <PropsTable rows={[
+            { name: 'fieldBlur',        type: 'number',  default: '16',   description: 'backdrop-filter blur in px. Lower = more clear, higher = more frosted.' },
+            { name: 'shimmer',          type: 'boolean', default: 'true',  description: 'Show the 1 px top-edge highlight line.' },
+            { name: 'wrapperClassName', type: 'string',  default: '—',    description: 'Extra class applied to the outer glass wrapper div.' },
+            { name: 'wrapperStyle',     type: 'CSSProperties', default: '—', description: 'Inline styles merged into the wrapper div (e.g. custom border-radius).' },
+          ]} />
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            {/* Usage snippet — GlassInput */}
+            <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.4rem]" className="p-5">
+              <p className="mb-3 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">
+                <Code>GlassInput</Code> — basic usage
+              </p>
+              <pre className="overflow-x-auto font-[var(--font-code)] text-[0.68rem] leading-6 text-[var(--color-text-muted)]"><code>{`import { GlassInput, GlassTextarea } from 'glass-design-system';
+
+// Single-line input
+<GlassInput
+  type="text"
+  placeholder="Search snippets…"
+  value={query}
+  onChange={(e) => setQuery(e.target.value)}
+/>
+
+// Multi-line textarea
+<GlassTextarea
+  placeholder="Description…"
+  rows={4}
+  value={desc}
+  onChange={(e) => setDesc(e.target.value)}
+/>`}</code></pre>
+            </GlassPanel>
+
+            {/* Usage snippet — GlassInputWrap */}
+            <GlassPanel intensity="subtle" topGlow={false} rounded="rounded-[1.4rem]" className="p-5">
+              <p className="mb-3 text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)]">
+                <Code>GlassInputWrap</Code> — custom elements
+              </p>
+              <pre className="overflow-x-auto font-[var(--font-code)] text-[0.68rem] leading-6 text-[var(--color-text-muted)]"><code>{`import { GlassInputWrap } from 'glass-design-system';
+
+// Wrap any element — <select>, custom inputs, etc.
+// The wrapper listens to focus/blur on its children
+// automatically via onFocus/onBlur bubbling.
+<GlassInputWrap>
+  <select className="block w-full bg-transparent
+      px-5 py-4 focus:outline-none">
+    <option>JavaScript</option>
+    <option>TypeScript</option>
+  </select>
+</GlassInputWrap>
+
+// Pass radius for non-standard shapes
+<GlassInputWrap radius="9999px">
+  <input className="block w-full bg-transparent
+      px-6 py-3 focus:outline-none" />
+</GlassInputWrap>`}</code></pre>
+            </GlassPanel>
+          </div>
+
+          {/* Design notes */}
+          <div className="mt-6">
+            <DoDont
+              do={{
+                label: 'transparent bg on the element',
+                children: (
+                  <div className="space-y-2 text-[0.70rem] leading-5 text-[var(--color-text-muted)]">
+                    <p>Set <Code>bg-transparent</Code> (or <Code>background: transparent</Code>) on the inner <Code>{'<input>'}</Code> so the wrapper's <Code>backdrop-filter</Code> shows through.</p>
+                    <p className="text-[var(--color-success)]">The glass blur is on the wrapper — the input is a clear window into it.</p>
+                  </div>
+                ),
+              }}
+              dont={{
+                label: 'opaque bg on the element',
+                children: (
+                  <div className="space-y-2 text-[0.70rem] leading-5 text-[var(--color-text-muted)]">
+                    <p>Using a solid background on the input (<Code>bg-[var(--color-glass-field)]</Code>) blocks the blur from showing through, defeating the glassmorphic effect.</p>
+                    <p className="text-[var(--color-danger)]">You get a flat, opaque field instead of a frosted one.</p>
+                  </div>
+                ),
+              }}
+            />
+          </div>
         </PageSection>
 
         {/* Footer */}
