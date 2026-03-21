@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
 import Icon from '../components/Icon';
@@ -8,6 +8,13 @@ import { LANGUAGE_MAP } from '../config';
 const LanguagePage: React.FC = () => {
   const { language = '' } = useParams<{ language: string }>();
   const displayName = LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language;
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  useEffect(() => {
+    document.title = `${displayName} — Snippets`;
+    return () => { document.title = 'Snippets'; };
+  }, [displayName]);
 
   return (
     <>
@@ -21,7 +28,7 @@ const LanguagePage: React.FC = () => {
             All snippets written in {displayName}.
           </p>
           <div className="app-toolbar">
-            <GlassPill as={Link} to="/" size="lg">
+            <GlassPill as={Link} to="/" size="lg" className="whitespace-nowrap">
               <Icon name="home" />
               <span>All snippets</span>
             </GlassPill>

@@ -43,9 +43,9 @@ function enterClassForDirection(dir: NavDirection | null): string {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const classes = {
-  shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] py-[clamp(2rem,5vw,4rem)]',
+  shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] pt-8 md:pt-10 pb-[clamp(2rem,5vw,4rem)]',
   content: 'mt-10 flex flex-col justify-center',
-  contentWrap: 'flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
+  contentWrap: 'mt-10 flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -57,6 +57,7 @@ const SnippetPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
 
   // Read & clear the direction flag before first paint so the correct
@@ -176,6 +177,20 @@ const SnippetPage: React.FC = () => {
     },
   });
 
+  // ── Document title ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (snippet) document.title = `${snippet.title} · Snippets`;
+    return () => { document.title = 'Snippets'; };
+  }, [snippet]);
+
+  // ── Permalink ───────────────────────────────────────────────────────────────
+  const handleCopyLink = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  }, []);
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="App">
@@ -185,29 +200,42 @@ const SnippetPage: React.FC = () => {
         <GlassPanel
           intensity="subtle"
           rounded="rounded-[1.6rem]"
-          className="sticky top-4 z-10 flex items-center justify-between gap-4 px-4 py-3"
+          className="sticky top-4 z-10 flex items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3"
         >
-          <GlassPill size="sm" onClick={navigateBack}>
-            <Icon name="home" style={{ fontSize: '0.85em' }} />
-            Back to archive
-          </GlassPill>
-
-          <div className="flex items-center gap-2">
+          <div className="relative z-10 flex items-center gap-2">
+            <GlassPill size="sm" className="whitespace-nowrap" onClick={navigateBack}>
+              <Icon name="home" style={{ fontSize: '0.85em' }} />
+              <span className="hidden sm:inline">Back to archive</span>
+            </GlassPill>
             <GlassPill
               size="sm"
+              className="whitespace-nowrap"
+              onClick={handleCopyLink}
+              title="Copy permalink"
+            >
+              <Icon name="link" style={{ fontSize: '0.85em' }} />
+              <span className="hidden sm:inline">{linkCopied ? 'Copied!' : 'Link'}</span>
+            </GlassPill>
+          </div>
+
+          <div className="relative z-10 flex items-center gap-2">
+            <GlassPill
+              size="sm"
+              className="whitespace-nowrap"
               disabled={prevId === null}
               onClick={() => prevId !== null && navigateTo(prevId, 'prev')}
               title="Previous snippet (←)"
             >
-              ← Older
+              ← <span className="hidden sm:inline">Older</span>
             </GlassPill>
             <GlassPill
               size="sm"
+              className="whitespace-nowrap"
               disabled={nextId === null}
               onClick={() => nextId !== null && navigateTo(nextId, 'next')}
               title="Next snippet (→)"
             >
-              Newer →
+              <span className="hidden sm:inline">Newer</span> →
             </GlassPill>
           </div>
         </GlassPanel>

@@ -9,6 +9,7 @@ import React, {
   RefObject,
   useMemo,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Snippet from '../components/Snippet';
 import { GlassPanel, GlassPill } from 'glass-design-system';
@@ -446,6 +447,7 @@ type Props = {
 };
 
 const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext);
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
@@ -462,6 +464,16 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
     if (localStorage.getItem('autoSize') === 'true') return 'auto'; // migrate old flag
     return DEFAULT_SNIPPET_LAYOUT;
   });
+
+  // On narrow screens the multi-column layouts don't make sense — force stream.
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  const effectiveLayout: SnippetLayout = isMobile ? 'stream' : layout;
 
   // Mark as loaded after first render so return visits skip the stagger.
   useEffect(() => {
@@ -508,16 +520,24 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
   }, [editingSnippetError]);
 
   const debouncedSearchQuery = useDebounce(search, 600);
-  const snippetQueryParams = useMemo(
-    () => ({ q: debouncedSearchQuery || undefined, language: languageFilter ?? undefined }),
-    [debouncedSearchQuery, languageFilter]
+
+  // Grid always shows all snippets for the current language — never filtered by search.
+  const gridQueryParams = useMemo(
+    () => ({ language: languageFilter ?? undefined }),
+    [languageFilter]
   );
-  // isLoadingResults: true while transition/debounce is pending OR API is fetching
+  const { data: snippets = [], error } = useReactQuery(gridQueryParams);
+
+  // Search results (inline dropdown only) — separate query, separate data.
+  const searchQueryParams = useMemo(
+    () => ({ q: debouncedSearchQuery || undefined }),
+    [debouncedSearchQuery]
+  );
   const isLoadingResults =
-    useReactQuery(snippetQueryParams).isPending ||
+    useReactQuery(searchQueryParams).isPending ||
     isSearchTransitioning ||
     debouncedSearchQuery !== search;
-  const { data: snippets = [], error } = useReactQuery(snippetQueryParams);
+  const { data: searchResults = [] } = useReactQuery(searchQueryParams);
 
   const isSearching = Boolean(search);
 
@@ -538,8 +558,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
   };
 
   const displaySnippets = snippets;
-  const onFilterLanguage = (lang: string) =>
-    setLanguageFilter((prev) => (prev === lang ? null : lang));
+  const onFilterLanguage = (lang: string) => navigate(`/language/${lang}`);
 
   const updateSnippet = (formValues: SnippetFormValues) => {
     if (!editingSnippetData) return;
@@ -551,7 +570,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
       <Searchbar
         ref={searchbarRef}
         onSearch={onSearch}
-        results={snippets}
+        results={searchResults}
         isLoadingResults={isLoadingResults}
         isSearching={isSearching}
         debouncedQuery={debouncedSearchQuery}
@@ -563,14 +582,14 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
           <span className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-subtle)] text-bevel">
             Filtered by
           </span>
-          <Chip variant="accent" size="md" onRemove={() => setLanguageFilter(null)}>
+          <Chip variant="accent" size="md" onRemove={() => (initialLanguage ? navigate('/') : setLanguageFilter(null))}>
             {LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}
           </Chip>
         </div>
       )}
 
-      {/* ── Layout toggle ── */}
-      {!isSearching && (
+      {/* ── Layout toggle — hidden on mobile (stream is used there) ── */}
+      {!isSearching && !isMobile && (
         <div className="mt-6 flex justify-end">
           <GlassPanel
             intensity="subtle"
@@ -581,8 +600,10 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
               <GlassPill
                 key={l}
                 size="xs"
+                className="whitespace-nowrap"
                 variant={layout === l ? 'active' : 'default'}
                 onClick={() => handleLayoutChange(l)}
+                title={l}
               >
                 {l === 'auto'      && <Icon name="layout-auto" />}
                 {l === 'spotlight' && <Icon name="layout-spotlight" />}
@@ -590,7 +611,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
                 {l === 'grid'      && <Icon name="layout-grid" />}
                 {l === 'masonry'   && <Icon name="layout-masonry" />}
                 {l === 'stream'    && <Icon name="layout-stream" />}
-                {l}
+                <span className="hidden sm:inline">{l}</span>
               </GlassPill>
             ))}
           </GlassPanel>
@@ -602,11 +623,9 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
         <p className="search-results-status mt-12" style={{ paddingTop: '1rem' }}>
           {languageFilter
             ? `No snippets with language "${LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}"`
-            : isSearching
-              ? `No snippets matched "${debouncedSearchQuery}"`
-              : 'No snippets yet — create one to get started.'}
+            : 'No snippets yet — create one to get started.'}
         </p>
-      ) : layout === 'auto' ? (
+      ) : effectiveLayout === 'auto' ? (
         <div ref={gridRef}>
           <AutoSizeGrid
             snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
@@ -614,7 +633,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
             onFilterLanguage={onFilterLanguage} prefetch={prefetch}
           />
         </div>
-      ) : layout === 'spotlight' ? (
+      ) : effectiveLayout === 'spotlight' ? (
         <div ref={gridRef}>
           <SpotlightGrid
             snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
@@ -622,13 +641,13 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
             onFilterLanguage={onFilterLanguage} prefetch={prefetch}
           />
         </div>
-      ) : layout === 'masonry' ? (
+      ) : effectiveLayout === 'masonry' ? (
         <MasonryGrid
           snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
           isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
           onFilterLanguage={onFilterLanguage} prefetch={prefetch}
         />
-      ) : layout === 'cascade' ? (
+      ) : effectiveLayout === 'cascade' ? (
         <div ref={gridRef}>
           <CascadeGrid
             snippets={displaySnippets} onDelete={onDelete} onEdit={onEdit} theme={theme}
@@ -637,19 +656,19 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
           />
         </div>
       ) : (
-        <div ref={gridRef} className={LAYOUT_CLASSES[layout as 'stream' | 'grid']}>
+        <div ref={gridRef} className={LAYOUT_CLASSES[effectiveLayout as 'stream' | 'grid']}>
           {displaySnippets.map((snippet, index) => (
             <div
               key={snippet.id}
               className={snippetsLoaded ? undefined : 'snippet-stream-item'}
-              style={layout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined}
+              style={effectiveLayout === 'stream' ? ({ '--item-index': index } as React.CSSProperties) : undefined}
               onMouseEnter={() => prefetch(snippet.id)}
             >
               <Snippet
                 id={snippet.id} title={snippet.title} description={snippet.description}
                 content={snippet.content} language={snippet.language}
                 onDelete={onDelete} onEdit={onEdit} theme={theme}
-                compact={layout !== 'stream'}
+                compact={effectiveLayout !== 'stream'}
                 isFavorite={isFavorite(snippet.id)} onToggleFavorite={toggleFavorite}
                 onFilterLanguage={onFilterLanguage}
               />
@@ -672,7 +691,7 @@ const Snippets: React.FC<Props> = ({ searchbarRef, initialLanguage }) => {
               intensity="medium"
               className="flex min-h-[12rem] items-center justify-center p-8"
             >
-              <SpinFigure />
+              <div className="relative z-10"><SpinFigure /></div>
             </GlassPanel>
           )}
         </Modal>

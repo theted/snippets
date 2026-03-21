@@ -6,7 +6,7 @@ import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
 
 import { ThemeContext } from '../contexts/themeContext';
-import { CARD_BG_ALPHA, GLOW_TR, GLOW_BL } from 'glass-design-system';
+import { CARD_BG_ALPHA, GLOW_TR, GLOW_BL, useGlass } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
 import { LANGUAGE_MAP } from '../config';
@@ -36,20 +36,20 @@ const allStyles = syntaxStyles as Record<string, SyntaxTheme>;
 // ── Full (stream) class set ────────────────────────────────────────────────────
 
 const fullClasses = {
-    container:     'group relative overflow-hidden rounded-[2.2rem] p-5 backdrop-blur-2xl md:p-8 lg:p-10 cursor-pointer',
+    container:     'group relative overflow-hidden rounded-[2.2rem] p-5 md:p-8 lg:p-10 cursor-pointer flex flex-col',
     glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
     glow:          'pointer-events-none absolute right-[-8rem] top-[-6rem] h-96 w-96 rounded-full',
-    heading:       'relative z-10 pb-6',
+    heading:       'relative z-10 pb-6 flex-none',
     meta:          'flex flex-col gap-4 md:flex-row md:items-start md:justify-between',
     titleBlock:    'max-w-4xl group/link',
     titleLink:     'block outline-none',
     kicker:        'text-[0.68rem] font-semibold uppercase tracking-[0.30em] text-[var(--color-text-subtle)] text-bevel',
     title:         'mt-3 font-[var(--font-display)] text-2xl font-[250] tracking-[-0.05em] text-[var(--color-text)] md:text-3xl lg:text-4xl text-bevel-strong',
     description:   'mt-3 max-w-3xl text-sm leading-7 text-[var(--color-text-muted)] text-bevel',
-    code:          'relative z-10 overflow-hidden rounded-[1.6rem] text-sm',
-    controls:      'relative z-30 mt-5 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
+    code:          'relative z-10 overflow-hidden rounded-[1.6rem] text-sm flex-1 min-h-0',
+    controls:      'relative z-30 mt-5 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 flex-none',
     controlButton: 'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3.5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.20em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
-    codeMaxHeight: 'min(800px, 90vh)',
+    cardMaxHeight: '650px',
     codeFontSize:  '0.95rem',
     codeLineHeight: '1.7',
 };
@@ -57,20 +57,20 @@ const fullClasses = {
 // ── Compact (grid / masonry) class set ────────────────────────────────────────
 
 const compactClasses = {
-    container:     'group relative overflow-hidden rounded-[1.6rem] p-4 md:p-5 backdrop-blur-2xl cursor-pointer',
+    container:     'group relative overflow-hidden rounded-[1.6rem] p-4 md:p-5 cursor-pointer flex flex-col',
     glassEdge:     'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.82_0.1_230_/_0.28)] to-transparent',
     glow:          'pointer-events-none absolute right-[-4rem] top-[-3rem] h-48 w-48 rounded-full',
-    heading:       'relative z-10 pb-3',
+    heading:       'relative z-10 pb-3 flex-none',
     meta:          'flex items-start justify-between gap-3',
     titleBlock:    'min-w-0 group/link',
     titleLink:     'block outline-none',
     kicker:        'text-[0.60rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel',
     title:         'mt-1 font-[var(--font-display)] text-lg font-[300] tracking-[-0.04em] text-[var(--color-text)] md:text-xl text-bevel-strong',
     description:   'mt-1.5 text-xs leading-5 text-[var(--color-text-muted)] line-clamp-2 text-bevel',
-    code:          'relative z-10 overflow-hidden rounded-[1.2rem] text-sm',
-    controls:      'relative z-30 mt-3 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100',
+    code:          'relative z-10 overflow-hidden rounded-[1.2rem] text-sm flex-1 min-h-0',
+    controls:      'relative z-30 mt-3 flex flex-wrap gap-2 opacity-100 transition duration-300 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 flex-none',
     controlButton: 'inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-[0.60rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)] text-bevel transition duration-300 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)]',
-    codeMaxHeight: '220px',
+    cardMaxHeight: '500px',
     codeFontSize:  '0.82rem',
     codeLineHeight: '1.6',
 };
@@ -103,8 +103,8 @@ const Snippet: React.FC<Props> = ({
     onFilterLanguage,
 }) => {
     const navigate = useNavigate();
-    const { showLineNumbers, autoSize: autoSizePreference } = useContext(ThemeContext);
-    const autoSize = forceAutoSize || autoSizePreference;
+    const { blur } = useGlass();
+    const { showLineNumbers } = useContext(ThemeContext);
     const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
     const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
     const [isHovered, setIsHovered] = useState(false);
@@ -131,7 +131,7 @@ const Snippet: React.FC<Props> = ({
         if (!el) return;
         const obs = new IntersectionObserver(
             ([entry]) => { if (entry.isIntersecting) { setHighlighted(true); obs.disconnect(); } },
-            { rootMargin: '200px' },
+            { rootMargin: '800px' },
         );
         obs.observe(el);
         return () => obs.disconnect();
@@ -180,8 +180,10 @@ const Snippet: React.FC<Props> = ({
     return (
         <div
             ref={cardRef}
+            data-testid="snippet-card"
             className={c.container}
             style={{
+                backdropFilter: `blur(${blur}px)`,
                 border: '1px solid transparent',
                 backgroundImage: `
           linear-gradient(oklch(0.22 0.028 254 / ${CARD_BG_ALPHA}), oklch(0.22 0.028 254 / ${CARD_BG_ALPHA})),
@@ -196,6 +198,7 @@ const Snippet: React.FC<Props> = ({
                     ? '0 12px 52px oklch(0.05 0.015 250 / 0.46), inset 0 1px 0 oklch(0.8 0.1 230 / 0.18)'
                     : '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)',
                 transition: 'box-shadow 500ms ease',
+                maxHeight: forceAutoSize ? undefined : c.cardMaxHeight,
             }}
             onClick={() => navigate(`/snippets/${id}`)}
             onMouseMove={handleMouseMove}
@@ -246,7 +249,7 @@ const Snippet: React.FC<Props> = ({
                         </Link>
                     </div>
                     <Chip
-                        size={compact ? 'sm' : 'md'}
+                        size={compact ? 'xs' : 'sm'}
                         onClick={onFilterLanguage
                             ? (e) => { e.preventDefault(); e.stopPropagation(); onFilterLanguage(language ?? 'plaintext'); }
                             : undefined}
@@ -266,7 +269,8 @@ const Snippet: React.FC<Props> = ({
                     onScroll={handleCodeScroll}
                     className="no-scrollbar"
                     style={{
-                        maxHeight: autoSize ? '1200px' : c.codeMaxHeight,
+                        height: forceAutoSize ? 'auto' : '100%',
+                        maxHeight: forceAutoSize ? '1200px' : undefined,
                         overflowY: 'auto',
                         overflowX: 'auto',
                     }}

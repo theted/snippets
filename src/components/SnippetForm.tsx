@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, LANGUAGE_MAP } from '../config';
-import Textfield from './Textfield';
-import Textarea from './Textarea';
-import Dropdown from './Dropdown';
 import Button from './Button';
 import CodeEditor from './CodeEditor';
-import { GlassPanel } from 'glass-design-system';
-import { SnippetFormValues } from '../types';
+import { GlassPanel, GlassInput, GlassTextarea, GlassInputWrap } from 'glass-design-system';
+import { SnippetFormSchema, SnippetFormValues } from '../types';
 
 const languages = AVAILABLE_LANGUAGES.map((lang) => ({
   label: LANGUAGE_MAP[lang as keyof typeof LANGUAGE_MAP] ?? lang,
@@ -16,6 +13,23 @@ const languages = AVAILABLE_LANGUAGES.map((lang) => ({
 type InputChangeEvent = React.ChangeEvent<
     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 >;
+
+type FormField = keyof SnippetFormValues;
+
+const FieldError = ({ message }: { message?: string }) =>
+    message ? (
+        <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.72rem', marginTop: '-0.25rem', fontWeight: 500, letterSpacing: '0.02em' }}>
+            {message}
+        </p>
+    ) : null;
+
+function getErrors(values: SnippetFormValues) {
+    const result = SnippetFormSchema.safeParse(values);
+    if (result.success) return {} as Partial<Record<FormField, string>>;
+    return Object.fromEntries(
+        result.error.issues.map((issue) => [issue.path[0], issue.message])
+    ) as Partial<Record<FormField, string>>;
+}
 
 const EMPTY_FORM_STATE: SnippetFormValues = {
     title: '',
@@ -73,21 +87,37 @@ const SnippetForm: React.FC<Props> = ({
         ...EMPTY_FORM_STATE,
         ...defaultValues,
     });
+    const [touched, setTouched] = useState<Partial<Record<FormField, boolean>>>({});
+    const [submitAttempted, setSubmitAttempted] = useState(false);
+
+    const errors = getErrors(formState);
+    const visibleErrors = Object.fromEntries(
+        Object.entries(errors).filter(([key]) => submitAttempted || touched[key as FormField])
+    ) as Partial<Record<FormField, string>>;
 
     const inputHandler = (event: InputChangeEvent) => {
         const { name, value } = event.target;
         setFormState((currentState) => ({ ...currentState, [name]: value }));
     };
 
+    const handleBlur = (field: FormField) => {
+        setTouched((t) => ({ ...t, [field]: true }));
+    };
+
     const handleCodeChange = (value: string) => {
         setFormState((currentState) => ({ ...currentState, content: value }));
     };
 
+    const handleSubmit = () => {
+        setSubmitAttempted(true);
+        if (Object.keys(getErrors(formState)).length > 0) return;
+        onSubmit(formState);
+    };
+
     useEffect(() => {
-        setFormState({
-            ...EMPTY_FORM_STATE,
-            ...defaultValues,
-        });
+        setFormState({ ...EMPTY_FORM_STATE, ...defaultValues });
+        setTouched({});
+        setSubmitAttempted(false);
     }, [defaultValues]);
 
     return (
@@ -95,12 +125,12 @@ const SnippetForm: React.FC<Props> = ({
             as="form"
             onSubmit={(event: React.FormEvent) => {
                 event.preventDefault();
-                onSubmit(formState);
+                handleSubmit();
             }}
             onKeyDown={(event: React.KeyboardEvent) => {
                 if (event.ctrlKey && event.key === 'Enter') {
                     event.preventDefault();
-                    onSubmit(formState);
+                    handleSubmit();
                 }
             }}
             intensity="strong"
@@ -108,7 +138,7 @@ const SnippetForm: React.FC<Props> = ({
             rounded="rounded-[2.4rem]"
             className="relative z-30 w-full p-8 md:p-12 lg:p-14"
             style={{
-                background: 'linear-gradient(160deg, oklch(0.19 0.024 254 / 0.88), oklch(0.15 0.018 255 / 0.92))',
+                background: 'linear-gradient(160deg, oklch(0.19 0.024 254 / 0.68), oklch(0.15 0.018 255 / 0.72))',
             }}
         >
 
@@ -121,15 +151,16 @@ const SnippetForm: React.FC<Props> = ({
                     <CodeEditor
                         id="snippet-content"
                         value={formState.content}
-                        onChange={handleCodeChange}
+                        onChange={(value) => { handleCodeChange(value); handleBlur('content'); }}
                         language={formState.language}
                         autoFocus={focusContent}
                         minHeight="20rem"
                         maxHeight="800px"
                         height="100%"
                         className="flex-1 max-h-[800px]"
-                        onSubmit={() => onSubmit(formState)}
+                        onSubmit={handleSubmit}
                     />
+                    <FieldError message={visibleErrors.content} />
                 </div>
 
                 {/* ── RIGHT: header + metadata + actions ────────────── */}
@@ -150,13 +181,15 @@ const SnippetForm: React.FC<Props> = ({
                         <label className={classes.label} htmlFor="snippet-title">
                             Title
                         </label>
-                        <Textfield
+                            <GlassInput
                             id="snippet-title"
                             name="title"
                             value={formState.title}
                             placeholder="Title"
                             onChange={inputHandler}
+                            onBlur={() => handleBlur('title')}
                         />
+                        <FieldError message={visibleErrors.title} />
                     </div>
 
                     {/* Description */}
@@ -164,14 +197,16 @@ const SnippetForm: React.FC<Props> = ({
                         <label className={classes.label} htmlFor="snippet-description">
                             Description
                         </label>
-                        <Textarea
+                            <GlassTextarea
                             id="snippet-description"
                             name="description"
                             placeholder="Description (optional)"
                             onChange={inputHandler}
+                            onBlur={() => handleBlur('description')}
                             rows={4}
                             value={formState.description}
                         />
+                        <FieldError message={visibleErrors.description} />
                     </div>
 
                     {/* Language */}
@@ -179,13 +214,23 @@ const SnippetForm: React.FC<Props> = ({
                         <label className={classes.label} htmlFor="snippet-language">
                             Language
                         </label>
-                        <Dropdown
-                            id="snippet-language"
-                            name="language"
-                            options={languages}
-                            value={formState.language}
-                            onChange={inputHandler}
-                        />
+                            <GlassInputWrap>
+                            <select
+                                id="snippet-language"
+                                name="language"
+                                value={formState.language}
+                                onChange={inputHandler}
+                                onBlur={() => handleBlur('language')}
+                                className="block w-full appearance-none bg-transparent px-5 py-4 text-base leading-normal text-[var(--color-text)] focus:outline-none md:px-6 md:py-5 md:text-lg"
+                            >
+                                {languages.map(({ label, value }) => (
+                                    <option key={value} value={value} style={{ background: 'oklch(0.14 0.02 254)' }}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
+                        </GlassInputWrap>
+                        <FieldError message={visibleErrors.language} />
                     </div>
 
                     {/* Actions */}
