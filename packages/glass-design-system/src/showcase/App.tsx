@@ -10,6 +10,7 @@ import ColorShowcase from './pages/ColorShowcase';
 import ProductDemo from './pages/ProductDemo';
 import ComponentDocs from './pages/ComponentDocs';
 import Portfolio from './pages/Portfolio';
+import LayoutShowcase from './pages/LayoutShowcase';
 
 // Inner component so it can consume the BackgroundContext
 const AppInner: React.FC = () => {
@@ -87,6 +88,7 @@ const AppInner: React.FC = () => {
             <GlassPill as={Link} to="/colors" size="sm">Colors</GlassPill>
             <GlassPill as={Link} to="/product" size="sm">Product</GlassPill>
             <GlassPill as={Link} to="/portfolio" size="sm">Portfolio</GlassPill>
+            <GlassPill as={Link} to="/layouts" size="sm">Layouts</GlassPill>
           </nav>
 
           {/* Background / pattern controls */}
@@ -102,6 +104,7 @@ const AppInner: React.FC = () => {
         <Route path="/colors" element={<ColorShowcase />} />
         <Route path="/product" element={<ProductDemo />} />
         <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/layouts" element={<LayoutShowcase />} />
       </Routes>
     </div>
   );
