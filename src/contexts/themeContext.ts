@@ -9,6 +9,8 @@ export type ThemeContextValue = {
   setTheme: (theme: string) => void;
   autoSize: boolean;
   setAutoSize: (v: boolean) => void;
+  showBackground: boolean;
+  setShowBackground: (v: boolean) => void;
 };
 
 const defaults: ThemeContextValue = {
@@ -19,6 +21,8 @@ const defaults: ThemeContextValue = {
   setTheme: () => {},
   autoSize: false,
   setAutoSize: () => {},
+  showBackground: true,
+  setShowBackground: () => {},
 };
 
 export const ThemeContext = React.createContext<ThemeContextValue>(defaults);

@@ -30,7 +30,7 @@ export const useSnippets = (params: SnippetQueryParams) => {
   return useQuery({
     queryKey: snippetKeys.list(params),
     queryFn: () => get<Snippet[]>(`snippets?${qs.toString()}`),
-    staleTime: 30_000,
+    staleTime: 30 * 60_000,
   });
 };
 
@@ -70,7 +70,7 @@ export const useSnippetNeighbors = (currentId: SnippetId | null): SnippetNeighbo
   const { data: snippets } = useQuery({
     queryKey: snippetNavOrderKey,
     queryFn: () => get<Snippet[]>('snippets?_sort=id&_order=asc'),
-    staleTime: 60_000,
+    staleTime: 30 * 60_000,
     // Seed from any cached list so navigation buttons are enabled immediately
     // when arriving from the archive page — no extra round-trip needed.
     initialData: () => {
@@ -114,7 +114,7 @@ export const useSnippet = (id: SnippetId | null, options: UseSnippetOptions = {}
   return useQuery({
     queryKey: snippetKeys.detail(id ?? 0),
     enabled: id !== null && (options.enabled ?? true),
-    staleTime: 30_000,
+    staleTime: 30 * 60_000,
     // Seed from any cached list so the detail page renders instantly on first visit
     initialData: () => {
       if (id === null) return undefined;

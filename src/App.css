@@ -4,33 +4,6 @@
   overflow: hidden;
 }
 
-.App::before,
-.App::after {
-  content: '';
-  position: fixed;
-  border-radius: 9999px;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(110px);
-  animation: fadeInOnly 650ms ease both;
-}
-
-.App::before {
-  top: -18rem;
-  right: -16rem;
-  width: 40rem;
-  height: 40rem;
-  background: radial-gradient(circle, oklch(0.28 0.11 226 / 0.34) 0%, transparent 70%);
-}
-
-.App::after {
-  left: -18rem;
-  bottom: -20rem;
-  width: 48rem;
-  height: 48rem;
-  background: radial-gradient(circle, oklch(0.24 0.10 210 / 0.28) 0%, transparent 72%);
-}
-
 .app-shell {
   position: relative;
   z-index: 1;
@@ -57,7 +30,9 @@
   font-weight: 600;
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  text-shadow: 0 1px 1px oklch(0 0 0 / 0.48), 0 -1px 0 oklch(1 0 0 / 0.07);
+  text-shadow:
+    0 1px 1px oklch(0 0 0 / 0.48),
+    0 -1px 0 oklch(1 0 0 / 0.07);
 }
 
 .app-title {
@@ -89,7 +64,12 @@
   bottom: 0.1em;
   height: 0.18em;
   border-radius: 9999px;
-  background: linear-gradient(90deg, oklch(0.78 0.15 230 / 0.42), oklch(0.66 0.17 245 / 0.08) 72%, transparent);
+  background: linear-gradient(
+    90deg,
+    oklch(0.78 0.15 230 / 0.42),
+    oklch(0.66 0.17 245 / 0.08) 72%,
+    transparent
+  );
   filter: blur(1px);
   z-index: -1;
 }
@@ -109,6 +89,22 @@
   padding-top: 0.5rem;
 }
 
+.mobile-menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 1.4rem;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-glass-card);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 8px 32px oklch(0.05 0.015 250 / 0.48),
+    0 2px 8px oklch(0.05 0.01 250 / 0.32),
+    inset 0 1px 0 oklch(0.9 0.1 230 / 0.12);
+}
+
 /* ─── Entrance animations ────────────────────────────── */
 
 @keyframes fadeInUp {
@@ -124,8 +120,12 @@
 }
 
 @keyframes fadeInOnly {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Zoom + slide-up + fade — used for panel entrances.
@@ -164,13 +164,25 @@
 
 /* Directional slide-in variants for arrow-key navigation */
 @keyframes slideInFromRight {
-  from { opacity: 0; transform: translateX(40px) scale(0.99); }
-  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 @keyframes slideInFromLeft {
-  from { opacity: 0; transform: translateX(-40px) scale(0.99); }
-  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateX(-40px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 .snippet-detail-enter-from-right {
@@ -221,17 +233,19 @@
 @font-face {
   font-family: 'fontello';
   src: url('./font/fontello.eot?71823067');
-  src: url('./font/fontello.eot?71823067#iefix') format('embedded-opentype'),
-       url('./font/fontello.woff2?71823067') format('woff2'),
-       url('./font/fontello.woff?71823067') format('woff'),
-       url('./font/fontello.ttf?71823067') format('truetype'),
-       url('./font/fontello.svg?71823067#fontello') format('svg');
+  src:
+    url('./font/fontello.eot?71823067#iefix') format('embedded-opentype'),
+    url('./font/fontello.woff2?71823067') format('woff2'),
+    url('./font/fontello.woff?71823067') format('woff'),
+    url('./font/fontello.ttf?71823067') format('truetype'),
+    url('./font/fontello.svg?71823067#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 
-[class^="icon-"]:before, [class*=" icon-"]:before {
-  font-family: "fontello";
+[class^='icon-']:before,
+[class*=' icon-']:before {
+  font-family: 'fontello';
   font-style: normal;
   font-weight: normal;
   speak: never;
@@ -248,25 +262,63 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-search:before { content: '\e800'; }
-.icon-plus:before { content: '\e801'; }
-.icon-heart:before { content: '\e802'; }
-.icon-heart-empty:before { content: '\e803'; }
-.icon-star:before { content: '\e804'; }
-.icon-star-empty:before { content: '\e805'; }
-.icon-user:before { content: '\e806'; }
-.icon-home:before { content: '\e807'; }
-.icon-link:before { content: '\e808'; }
-.icon-ok:before { content: '\e809'; }
-.icon-cog:before { content: '\e80a'; }
-.icon-lock:before { content: '\e80b'; }
-.icon-cancel:before { content: '\e80c'; }
-.icon-pencil:before { content: '\e80d'; }
-.icon-wrench:before { content: '\e80e'; }
-.icon-trash-empty:before { content: '\e80f'; }
-.icon-code:before { content: '\f121'; }
-.icon-info:before { content: '\f129'; }
-.icon-trash:before { content: '\f1f8'; }
+.icon-search:before {
+  content: '\e800';
+}
+.icon-plus:before {
+  content: '\e801';
+}
+.icon-heart:before {
+  content: '\e802';
+}
+.icon-heart-empty:before {
+  content: '\e803';
+}
+.icon-star:before {
+  content: '\e804';
+}
+.icon-star-empty:before {
+  content: '\e805';
+}
+.icon-user:before {
+  content: '\e806';
+}
+.icon-home:before {
+  content: '\e807';
+}
+.icon-link:before {
+  content: '\e808';
+}
+.icon-ok:before {
+  content: '\e809';
+}
+.icon-cog:before {
+  content: '\e80a';
+}
+.icon-lock:before {
+  content: '\e80b';
+}
+.icon-cancel:before {
+  content: '\e80c';
+}
+.icon-pencil:before {
+  content: '\e80d';
+}
+.icon-wrench:before {
+  content: '\e80e';
+}
+.icon-trash-empty:before {
+  content: '\e80f';
+}
+.icon-code:before {
+  content: '\f121';
+}
+.icon-info:before {
+  content: '\f129';
+}
+.icon-trash:before {
+  content: '\f1f8';
+}
 
 .spin-ring {
   width: 2rem;
@@ -278,7 +330,9 @@
 }
 
 @keyframes spin-ring {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Compact search results ─────────────────────────────────────── */
@@ -339,10 +393,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding: 0.85rem 1.4rem;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   text-decoration: none;
   transition: background 200ms ease;
+}
+
+@media (min-width: 640px) {
+  .search-result-link {
+    gap: 1.5rem;
+    padding: 0.85rem 1.4rem;
+  }
 }
 
 .search-result-link:hover,
@@ -360,8 +421,14 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--color-text);
-  text-shadow: 0 1px 1px oklch(0 0 0 / 0.48), 0 -1px 0 oklch(1 0 0 / 0.07);
+  text-shadow:
+    0 1px 1px oklch(0 0 0 / 0.48),
+    0 -1px 0 oklch(1 0 0 / 0.07);
   transition: color 200ms ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .search-result-link:hover .search-result-title,
@@ -432,7 +499,9 @@ kbd {
   letter-spacing: 0.38em;
   text-transform: uppercase;
   color: oklch(0.52 0.03 255);
-  text-shadow: 0 1px 1px oklch(0 0 0 / 0.5), 0 -1px 0 oklch(1 0 0 / 0.06);
+  text-shadow:
+    0 1px 1px oklch(0 0 0 / 0.5),
+    0 -1px 0 oklch(1 0 0 / 0.06);
 }
 
 /* ─── Hero Searchbar ─────────────────────────────────────────────── */
@@ -466,6 +535,22 @@ kbd {
   z-index: 0;
   pointer-events: none;
   isolation: isolate;
+  animation: bg-orbs-reveal 2s ease-out both;
+}
+
+@keyframes bg-orbs-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Orb animation constants ─────────────────────────────────── */
+/* Tweak these two variables to adjust the whole system at once.  */
+/* --orb-speed:   base cycle duration (lower = faster movement)   */
+/* --orb-opacity: peak alpha of every orb gradient               */
+
+:root {
+  --orb-speed: 3s;
+  --orb-opacity: 0.55;
 }
 
 /* ── Shared orb base ─────────────────────────────────────────── */
@@ -474,118 +559,182 @@ kbd {
   position: absolute;
   border-radius: 9999px;
   will-change: transform;
+  mix-blend-mode: screen;
 }
 
-/* ── Orb 1 — deep ocean blue, anchored top-right ────────────── */
-/* Dominates the upper half of the viewport */
+/* ── Orb 1 — vivid blue, top-right ──────────────────────────── */
 
 .bg-orb-1 {
-  width: 140vw;
-  height: 140vw;
-  top: -60vw;
-  right: -50vw;
-  background: radial-gradient(circle, oklch(0.26 0.10 230 / 0.54) 0%, transparent 65%);
-  animation: orb-drift-1 85s ease-in-out infinite alternate;
+  width: 80vw;
+  height: 80vw;
+  top: -15vh;
+  right: -15vw;
+  background: radial-gradient(
+    circle,
+    oklch(0.48 0.22 224 / var(--orb-opacity)) 0%,
+    transparent 68%
+  );
+  animation: orb-drift-1 calc(var(--orb-speed) * 2.75) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-1 {
-  0%   { transform: translate(0,     0);     }
-  30%  { transform: translate(-8vw,  12vw);  }
-  65%  { transform: translate(6vw,   5vw);   }
-  100% { transform: translate(-4vw,  18vw);  }
+  0% {
+    transform: translate(0, 0);
+  }
+  30% {
+    transform: translate(-10vw, 14vh);
+  }
+  65% {
+    transform: translate(5vw, 6vh);
+  }
+  100% {
+    transform: translate(-6vw, 20vh);
+  }
 }
 
-/* ── Orb 2 — midnight teal, bottom-left anchor ───────────────── */
+/* ── Orb 2 — teal-cyan, bottom-left ─────────────────────────── */
 
 .bg-orb-2 {
-  width: 160vw;
-  height: 160vw;
-  bottom: -80vw;
-  left: -60vw;
-  background: radial-gradient(circle, oklch(0.22 0.12 196 / 0.52) 0%, transparent 62%);
-  animation: orb-drift-2 110s ease-in-out infinite alternate;
+  width: 90vw;
+  height: 90vw;
+  bottom: -20vh;
+  left: -20vw;
+  background: radial-gradient(
+    circle,
+    oklch(0.44 0.24 196 / var(--orb-opacity)) 0%,
+    transparent 65%
+  );
+  animation: orb-drift-2 calc(var(--orb-speed) * 3.5) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-2 {
-  0%   { transform: translate(0,     0);     }
-  35%  { transform: translate(10vw, -8vw);   }
-  70%  { transform: translate(-6vw,  6vw);   }
-  100% { transform: translate(8vw,  -12vw);  }
+  0% {
+    transform: translate(0, 0);
+  }
+  35% {
+    transform: translate(12vw, -10vh);
+  }
+  70% {
+    transform: translate(-5vw, 8vh);
+  }
+  100% {
+    transform: translate(10vw, -14vh);
+  }
 }
 
-/* ── Orb 3 — indigo-violet, upper-left slow drift ────────────── */
+/* ── Orb 3 — indigo, upper-left ──────────────────────────────── */
 
 .bg-orb-3 {
-  width: 120vw;
-  height: 120vw;
-  top: -30vw;
-  left: -55vw;
-  background: radial-gradient(circle, oklch(0.20 0.08 268 / 0.48) 0%, transparent 65%);
-  animation: orb-drift-3 130s ease-in-out infinite alternate;
+  width: 70vw;
+  height: 70vw;
+  top: -10vh;
+  left: -10vw;
+  background: radial-gradient(
+    circle,
+    oklch(0.42 0.18 262 / var(--orb-opacity)) 0%,
+    transparent 65%
+  );
+  animation: orb-drift-3 calc(var(--orb-speed) * 4.375) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-3 {
-  0%   { transform: translate(0,     0);     }
-  40%  { transform: translate(12vw, -6vw);   }
-  75%  { transform: translate(-4vw,  10vw);  }
-  100% { transform: translate(7vw,   3vw);   }
+  0% {
+    transform: translate(0, 0);
+  }
+  40% {
+    transform: translate(14vw, 8vh);
+  }
+  75% {
+    transform: translate(-3vw, 16vh);
+  }
+  100% {
+    transform: translate(8vw, 4vh);
+  }
 }
 
-/* ── Orb 4 — cyan-green, mid-right ───────────────────────────── */
+/* ── Orb 4 — azure, mid-right ────────────────────────────────── */
 
 .bg-orb-4 {
-  width: 110vw;
-  height: 110vw;
-  top: 20vw;
-  right: -55vw;
-  background: radial-gradient(circle, oklch(0.24 0.12 186 / 0.46) 0%, transparent 62%);
-  animation: orb-drift-4 95s ease-in-out infinite alternate;
+  width: 65vw;
+  height: 65vw;
+  top: 30vh;
+  right: -10vw;
+  background: radial-gradient(circle, oklch(0.5 0.22 212 / var(--orb-opacity)) 0%, transparent 65%);
+  animation: orb-drift-4 calc(var(--orb-speed) * 3.125) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-4 {
-  0%   { transform: translate(0,     0);     }
-  45%  { transform: translate(-12vw, 8vw);   }
-  80%  { transform: translate(-5vw, -10vw);  }
-  100% { transform: translate(-9vw,  14vw);  }
+  0% {
+    transform: translate(0, 0);
+  }
+  45% {
+    transform: translate(-14vw, 10vh);
+  }
+  80% {
+    transform: translate(-6vw, -12vh);
+  }
+  100% {
+    transform: translate(-10vw, 16vh);
+  }
 }
 
-/* ── Orb 5 — deep blue, centred slow pulse ───────────────────── */
+/* ── Orb 5 — deep blue, centre-left mid ─────────────────────── */
 
 .bg-orb-5 {
-  width: 130vw;
-  height: 130vw;
-  top: 30vw;
-  left: -15vw;
-  background: radial-gradient(circle, oklch(0.18 0.08 246 / 0.44) 0%, transparent 60%);
-  animation: orb-drift-5 150s ease-in-out infinite alternate;
+  width: 75vw;
+  height: 75vw;
+  top: 40vh;
+  left: 5vw;
+  background: radial-gradient(circle, oklch(0.4 0.2 240 / var(--orb-opacity)) 0%, transparent 65%);
+  animation: orb-drift-5 calc(var(--orb-speed) * 5) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-5 {
-  0%   { transform: translate(0,     0);     }
-  25%  { transform: translate(8vw,  -14vw);  }
-  55%  { transform: translate(-7vw,  6vw);   }
-  80%  { transform: translate(10vw,  10vw);  }
-  100% { transform: translate(-5vw, -8vw);   }
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(10vw, -16vh);
+  }
+  55% {
+    transform: translate(-8vw, 8vh);
+  }
+  80% {
+    transform: translate(12vw, 12vh);
+  }
+  100% {
+    transform: translate(-4vw, -10vh);
+  }
 }
 
-/* ── Orb 6 — deep navy, bottom-centre anchor ─────────────────── */
-/* Provides the dark end of the dynamic range; sits at the page   */
-/* floor and drifts laterally so the bottom never feels static.  */
+/* ── Orb 6 — warm accent, bottom-centre sweep ───────────────── */
 
 .bg-orb-6 {
-  width: 150vw;
-  height: 90vw;
-  bottom: -55vw;
-  left: -25vw;
-  background: radial-gradient(ellipse, oklch(0.10 0.07 252 / 0.90) 0%, transparent 68%);
-  animation: orb-drift-6 120s ease-in-out infinite alternate;
+  width: 100vw;
+  height: 55vw;
+  bottom: -10vh;
+  left: 0;
+  background: radial-gradient(
+    ellipse,
+    oklch(0.38 0.16 250 / var(--orb-opacity)) 0%,
+    transparent 70%
+  );
+  animation: orb-drift-6 calc(var(--orb-speed) * 4) ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift-6 {
-  0%   { transform: translate(0,     0);    }
-  30%  { transform: translate(12vw, -5vw);  }
-  65%  { transform: translate(-8vw, -3vw);  }
-  100% { transform: translate(6vw,  -8vw);  }
+  0% {
+    transform: translate(0, 0);
+  }
+  30% {
+    transform: translate(14vw, -8vh);
+  }
+  65% {
+    transform: translate(-10vw, -4vh);
+  }
+  100% {
+    transform: translate(8vw, -10vh);
+  }
 }
 
 /* ── Suppress entrance animations on back/forward navigation ── */
@@ -595,10 +744,9 @@ kbd {
 .app--restore .app-hero,
 .app--restore .searchbar-hero,
 .app--restore .snippet-stream-item,
-.app--restore .snippet-detail-enter,
-.app--restore .App::before,
-.app--restore .App::after {
-  animation: none;
+.app--restore .snippet-detail-enter {
+  animation: fadeInOnly 0.35s ease both;
+  animation-delay: 0s !important;
 }
 
 /* ── Pause animation while a dialog is open ─────────────────── */
@@ -614,5 +762,7 @@ body.dialog-open .bg-anim-aurora {
 /* ── Reduced-motion: freeze orbs in place, keep colour ──────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-orb { animation: none; }
+  .bg-orb {
+    animation: none;
+  }
 }

@@ -125,10 +125,10 @@ const Preferences: React.FC = () => {
                 Appearance
               </p>
               <h5 className="mt-2 font-[var(--font-display)] text-xl font-[300] tracking-[-0.04em] text-[var(--color-text)]">
-                Background gradients
+                Background animation
               </h5>
               <p className="mt-2 text-sm leading-7 text-[var(--color-text-muted)]">
-                Show the ambient colour orbs and animated gradient behind the interface. Disable for a flat, minimal look.
+                Layer animated colour orbs over the static background gradient. Disable to keep the quieter, non-moving look.
               </p>
             </div>
             <label

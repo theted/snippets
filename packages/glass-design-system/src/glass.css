@@ -6,9 +6,9 @@
   --font-code: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
   --color-bg: oklch(0.12 0.030 246);
   --color-bg-deep: oklch(0.08 0.022 248);
-  --color-surface: oklch(0.23 0.03 254 / 0.76);
-  --color-surface-strong: oklch(0.27 0.04 252 / 0.9);
-  --color-surface-muted: oklch(0.2 0.024 254 / 0.82);
+  --color-surface: oklch(0.23 0.03 254 / 0.58);
+  --color-surface-strong: oklch(0.27 0.04 252 / 0.72);
+  --color-surface-muted: oklch(0.2 0.024 254 / 0.62);
   --color-border: oklch(0.4 0.044 248 / 0.38);
   --color-border-strong: oklch(0.69 0.13 240 / 0.42);
   --color-accent: oklch(0.71 0.17 244);
@@ -25,9 +25,9 @@
   /* ─── Glass surface tokens ──────────────────────────────
      Shared by every frosted-glass element (cards, modals,
      form fields). Edit here to retheme all glass at once. */
-  --color-glass-card:  oklch(0.2 0.025 254 / 0.46);
-  --color-glass-row:   oklch(0.2 0.024 254 / 0.42);
-  --color-glass-field: oklch(0.15 0.018 258 / 0.55);
+  --color-glass-card:  oklch(0.2 0.025 254 / 0.32);
+  --color-glass-row:   oklch(0.2 0.024 254 / 0.28);
+  --color-glass-field: oklch(0.15 0.018 258 / 0.22);
 }
 
 /* ─── Typography utilities ───────────────────────────────────────────────
