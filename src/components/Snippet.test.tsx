@@ -95,9 +95,10 @@ test('does not render description when omitted', () => {
 
 // ── Scroll cap + fade ────────────────────────────────────────────────────────
 
-test('code scroll wrapper has an 800px max-height cap', () => {
+test('card container has a max-height cap to prevent overflow', () => {
   renderSnippet();
-  expect(screen.getByTestId('code-scroll-wrap')).toHaveStyle('max-height: min(800px, 90vh)');
+  // The cap sits on the card container; the scroll wrapper fills it via height:100%.
+  expect(screen.getByTestId('snippet-card').style.maxHeight).toBe('650px');
 });
 
 test('scroll fade is hidden when content fits within the cap', () => {

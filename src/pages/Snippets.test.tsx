@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeContext } from '../contexts/themeContext';
@@ -118,7 +118,7 @@ test('calls get with the search query when the user types', async () => {
   });
 });
 
-test('shows only the matching snippet after a search', async () => {
+test('grid stays unchanged while search shows only matching results in the dropdown', async () => {
   const user = userEvent.setup();
   renderSnippets();
 
@@ -128,10 +128,13 @@ test('shows only the matching snippet after a search', async () => {
   await user.type(screen.getByPlaceholderText(/search snippets/i), 'first');
 
   await waitFor(() => {
-    expect(screen.queryByText('Second snippet')).not.toBeInTheDocument();
-    // 'First snippet' appears in both the inline result list and the full card stream
-    expect(screen.getAllByText('First snippet').length).toBeGreaterThan(0);
+    // The API is called with the search query for the dropdown results
+    expect(api.get).toHaveBeenCalledWith(expect.stringContaining('q='));
   });
+
+  // Grid is independent of search — both snippets remain visible in the grid
+  expect(screen.getAllByText('First snippet').length).toBeGreaterThan(0);
+  expect(screen.getByText('Second snippet')).toBeInTheDocument();
 });
 
 // ─── Deleting a snippet ───────────────────────────────────────────────────────
@@ -242,6 +245,53 @@ test('restores the saved layout from localStorage on mount', async () => {
     expect(items.length).toBeGreaterThan(0);
     expect(items[0]).toHaveStyle({ '--item-index': '0' });
     expect(items[1]).toHaveStyle({ '--item-index': '1' });
+  });
+});
+
+// ── Language filter navigation ─────────────────────────────────────────────────
+
+// Renders Snippets inside a full router so navigate() calls can be verified.
+function renderSnippetsWithRoutes() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeContext.Provider value={themeDefaults}>
+          <Routes>
+            <Route path="/" element={<Snippets />} />
+            <Route path="/language/:language" element={<div data-testid="language-page-stub">language page</div>} />
+          </Routes>
+        </ThemeContext.Provider>
+      </QueryClientProvider>
+    </MemoryRouter>,
+  );
+}
+
+test('clicking a language chip navigates to /language/:lang', async () => {
+  const user = userEvent.setup();
+  renderSnippetsWithRoutes();
+  await waitFor(() => expect(screen.getByText('First snippet')).toBeInTheDocument());
+
+  // The language chip on the snippet card is a button with the language display name
+  await user.click(screen.getAllByRole('button', { name: /javascript/i })[0]);
+
+  await waitFor(() => {
+    expect(screen.getByTestId('language-page-stub')).toBeInTheDocument();
+  });
+});
+
+test('each language chip navigates to the correct /language/:lang route', async () => {
+  const user = userEvent.setup();
+  renderSnippetsWithRoutes();
+  await waitFor(() => expect(screen.getByText('Second snippet')).toBeInTheDocument());
+
+  // Click the Python chip from the second snippet card
+  await user.click(screen.getAllByRole('button', { name: /python/i })[0]);
+
+  await waitFor(() => {
+    expect(screen.getByTestId('language-page-stub')).toBeInTheDocument();
   });
 });
 

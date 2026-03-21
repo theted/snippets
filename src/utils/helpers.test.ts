@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { capitalize } from './helpers';
 
 test('capitalizes the first letter of a lowercase string', () => {
