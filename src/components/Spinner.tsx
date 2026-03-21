@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useIsFetching } from '@tanstack/react-query';
 
 export const SpinFigure = () => (
@@ -7,11 +7,26 @@ export const SpinFigure = () => (
 
 const Spinner: React.FC = () => {
   const isFetching = useIsFetching();
+  const [visible, setVisible] = useState(false);
 
-  if (!isFetching) return null;
+  useEffect(() => {
+    if (isFetching > 0) {
+      // Delay before showing so fast cache-hit responses produce no flicker.
+      const t = setTimeout(() => setVisible(true), 150);
+      return () => clearTimeout(t);
+    }
+    setVisible(false);
+  }, [isFetching]);
 
   return (
-    <div className="pointer-events-none fixed right-5 top-5 z-40 hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] p-4 backdrop-blur-xl md:block">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.35s ease',
+      }}
+    >
       <SpinFigure />
     </div>
   );
