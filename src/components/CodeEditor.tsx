@@ -12,11 +12,16 @@ import { markdown } from '@codemirror/lang-markdown';
 import { php } from '@codemirror/lang-php';
 import { StreamLanguage } from '@codemirror/language';
 import { go } from '@codemirror/legacy-modes/mode/go';
-import { csharp } from '@codemirror/legacy-modes/mode/clike';
+import { csharp, java, scala } from '@codemirror/legacy-modes/mode/clike';
 import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
 import { less, sCSS } from '@codemirror/legacy-modes/mode/css';
 import { sass } from '@codemirror/legacy-modes/mode/sass';
 import { stylus } from '@codemirror/legacy-modes/mode/stylus';
+import { shell } from '@codemirror/legacy-modes/mode/shell';
+import { ruby } from '@codemirror/legacy-modes/mode/ruby';
+import { rust } from '@codemirror/legacy-modes/mode/rust';
+import { haskell } from '@codemirror/legacy-modes/mode/haskell';
+import { perl } from '@codemirror/legacy-modes/mode/perl';
 
 import { ThemeContext } from '../contexts/themeContext';
 
@@ -53,7 +58,22 @@ function getLanguageExtension(language: string) {
             return [StreamLanguage.define(csharp)];
         case 'dockerfile':
             return [StreamLanguage.define(dockerFile)];
-        // 'haml', 'plaintext' — no extension, plain text
+        case 'bash':
+            return [StreamLanguage.define(shell)];
+        case 'ruby':
+            return [StreamLanguage.define(ruby)];
+        case 'rust':
+            return [StreamLanguage.define(rust)];
+        case 'scala':
+            return [StreamLanguage.define(scala)];
+        case 'haskell':
+            return [StreamLanguage.define(haskell)];
+        case 'java':
+            return [StreamLanguage.define(java)];
+        case 'perl':
+            return [StreamLanguage.define(perl)];
+        // 'haml', 'plaintext', 'prolog' — no CodeMirror mode, plain text fallback
+
         default:
             return [];
     }
