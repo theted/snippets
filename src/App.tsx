@@ -12,6 +12,7 @@ import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
 import Favorites from './pages/Favorites';
 import LanguagePage from './pages/LanguagePage';
+import Stats from './pages/Stats';
 import NotFound from './pages/NotFound';
 import GoogleAuth from './components/GoogleAuth';
 import Spinner from './components/Spinner';
@@ -19,7 +20,7 @@ import BackgroundAnimation from './components/BackgroundAnimation';
 import Icon from './components/Icon';
 import { AuthProvider } from './contexts/authContext';
 import { ThemeContext, ThemeContextValue } from './contexts/themeContext';
-import { DEFAULT_THEME, ENVIRONMENT, EXPERIMENTAL_BACKGROUND, THEMES } from './config';
+import { DEFAULT_THEME, ENVIRONMENT, THEMES } from './config';
 import { createPersistentQueryClient } from './utils/queryPersist';
 
 const queryClient = createPersistentQueryClient();
@@ -33,15 +34,17 @@ let appHasNavigated = false;
 // the directional enter-animation class, and navigatingRef all reset cleanly.
 const SnippetPageRoute: FC = () => {
   const { id } = useParams<{ id: string }>();
+  useEffect(() => { window.scrollTo(0, 0); }, [id]);
   return <SnippetPage key={id} />;
 };
 
-type ThemePreferences = Pick<ThemeContextValue, 'showLineNumbers' | 'theme' | 'autoSize'>;
+type ThemePreferences = Pick<ThemeContextValue, 'showLineNumbers' | 'theme' | 'autoSize' | 'showBackground'>;
 
 const getDefaultGlobalState = (): ThemePreferences => ({
     theme: window.localStorage.getItem('theme') || DEFAULT_THEME,
     showLineNumbers: window.localStorage.getItem('showLineNumbers') === 'true',
     autoSize: window.localStorage.getItem('autoSize') === 'true',
+    showBackground: window.localStorage.getItem('showBackground') === 'true',
 });
 
 const App: FC = () => {
@@ -53,6 +56,7 @@ const App: FC = () => {
         if (flag) sessionStorage.removeItem('homeRestore');
         return !!flag;
     });
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const createSnippetRef = useRef<CreateSnippetHandle>(null);
     const searchbarRef = useRef<SearchbarHandle>(null);
     const navigate = useNavigate();
@@ -109,6 +113,11 @@ const App: FC = () => {
             setGlobalState((previous) => ({ ...previous, autoSize: nextValue }));
             window.localStorage.setItem('autoSize', String(nextValue));
         },
+        showBackground: globalState.showBackground,
+        setShowBackground: (nextValue: boolean) => {
+            setGlobalState((previous) => ({ ...previous, showBackground: nextValue }));
+            window.localStorage.setItem('showBackground', String(nextValue));
+        },
     };
 
     return (
@@ -116,9 +125,9 @@ const App: FC = () => {
             <AuthProvider>
                 <GlassProvider>
                 <ThemeContext.Provider value={value}>
+                    {globalState.showBackground && <BackgroundAnimation />}
                     <Spinner />
                     <div className={`App${homeRestore || (navType === 'POP' && appHasNavigated) ? ' app--restore' : ''}`}>
-                        {EXPERIMENTAL_BACKGROUND && <BackgroundAnimation />}
                         <Routes>
                             <Route
                                 path="/"
@@ -139,17 +148,92 @@ const App: FC = () => {
                                                     room.
                                                 </p>
                                                 <div className="app-toolbar">
-                                                    <CreateSnippet ref={createSnippetRef} />
-                                                    <Preferences />
-                                                    <GlassPill as={Link} to="/favorites" size="lg">
-                                                        <Icon name="star-empty" />
-                                                        <span>Favorites</span>
-                                                    </GlassPill>
-                                                    <GlassPill as={Link} to="/docs" size="lg">
-                                                        <Icon name="info" />
-                                                        <span>Shortcuts</span>
-                                                    </GlassPill>
+                                                    {/* Desktop toolbar — hidden on mobile */}
+                                                    <div className="hidden sm:contents">
+                                                        <CreateSnippet ref={createSnippetRef} />
+                                                        <Preferences />
+                                                        <GlassPill as={Link} to="/favorites" size="lg" className="whitespace-nowrap">
+                                                            <Icon name="star-empty" />
+                                                            <span>Favorites</span>
+                                                        </GlassPill>
+                                                        <GlassPill as={Link} to="/docs" size="lg" className="whitespace-nowrap">
+                                                            <Icon name="info" />
+                                                            <span>Shortcuts</span>
+                                                        </GlassPill>
+                                                        <GlassPill as={Link} to="/stats" size="lg" className="whitespace-nowrap">
+                                                            <Icon name="chart" />
+                                                            <span>Status</span>
+                                                        </GlassPill>
+                                                    </div>
+
+                                                    {/* Mobile hamburger */}
+                                                    <div className="relative sm:hidden">
+                                                        <GlassPill
+                                                            size="md"
+                                                            onClick={() => setMobileMenuOpen(v => !v)}
+                                                            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                                                            aria-expanded={mobileMenuOpen}
+                                                        >
+                                                            <Icon name={mobileMenuOpen ? 'close' : 'menu'} />
+                                                            <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Menu'}</span>
+                                                        </GlassPill>
+
+                                                        {/* Dropdown panel */}
+                                                        <div
+                                                            className={[
+                                                                'absolute left-0 top-full mt-2 z-50 w-64',
+                                                                'transition-all duration-200 ease-out origin-top-left',
+                                                                mobileMenuOpen
+                                                                    ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                                                                    : 'opacity-0 -translate-y-2 scale-95 pointer-events-none',
+                                                            ].join(' ')}
+                                                        >
+                                                            <div className="mobile-menu-panel">
+                                                                <CreateSnippet />
+                                                                <Preferences />
+                                                                <GlassPill
+                                                                    as={Link}
+                                                                    to="/favorites"
+                                                                    size="md"
+                                                                    className="w-full justify-start"
+                                                                    onClick={() => setMobileMenuOpen(false)}
+                                                                >
+                                                                    <Icon name="star-empty" />
+                                                                    Favorites
+                                                                </GlassPill>
+                                                                <GlassPill
+                                                                    as={Link}
+                                                                    to="/docs"
+                                                                    size="md"
+                                                                    className="w-full justify-start"
+                                                                    onClick={() => setMobileMenuOpen(false)}
+                                                                >
+                                                                    <Icon name="info" />
+                                                                    Shortcuts
+                                                                </GlassPill>
+                                                                <GlassPill
+                                                                    as={Link}
+                                                                    to="/stats"
+                                                                    size="md"
+                                                                    className="w-full justify-start"
+                                                                    onClick={() => setMobileMenuOpen(false)}
+                                                                >
+                                                                    <Icon name="chart" />
+                                                                    Status
+                                                                </GlassPill>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+
+                                                {/* Backdrop — closes menu when tapping outside */}
+                                                {mobileMenuOpen && (
+                                                    <div
+                                                        className="fixed inset-0 z-40 sm:hidden"
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                        aria-hidden="true"
+                                                    />
+                                                )}
                                                 <div className="mt-8 flex justify-end">
                                                     <GoogleAuth />
                                                 </div>
@@ -169,6 +253,7 @@ const App: FC = () => {
                             <Route path="/language/:language" element={<LanguagePage />} />
                             <Route path="/favorites" element={<Favorites />} />
                             <Route path="/docs" element={<Docs />} />
+                            <Route path="/stats" element={<Stats />} />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </div>

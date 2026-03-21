@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { CreateSnippet, Snippet, SnippetId } from '../../src/types';
-import { ListSnippetsOptions, SnippetStore } from './snippetStore';
+import { ListSnippetsOptions, SnippetStats, SnippetStore } from './snippetStore';
 
 type SnippetRow = {
   id: number;
@@ -101,6 +101,19 @@ export function createPostgresSnippetStore(pool: Pool): SnippetStore {
       const result = await pool.query('DELETE FROM snippets WHERE id = $1', [id]);
       return result.rowCount !== null && result.rowCount > 0;
     },
+
+    async getStats(): Promise<SnippetStats> {
+      const result = await pool.query<{ total_snippets: string; total_languages: string }>(`
+        SELECT COUNT(*) AS total_snippets,
+               COUNT(DISTINCT language) AS total_languages
+        FROM snippets
+      `);
+      return {
+        totalSnippets: Number(result.rows[0].total_snippets),
+        totalLanguages: Number(result.rows[0].total_languages),
+      };
+    },
+
     async close(): Promise<void> {},
   };
 }
