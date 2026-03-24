@@ -2703,7 +2703,7 @@ get-tsconfig@^4.7.0, get-tsconfig@^4.7.5:
 
 "glass-design-system@github:theted/glass-design-system":
   version "0.1.0"
-  resolved "git+ssh://git@github.com/theted/glass-design-system.git#fa5fa86687d3e6a541e24433ac0a8faf756ca36c"
+  resolved "git+https://github.com/theted/glass-design-system.git#d4cc24d84f9d62a8dbcb5b1fd6ca7d8cd0198a67"
 
 glob-parent@^6.0.2:
   version "6.0.2"
