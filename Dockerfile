@@ -12,7 +12,6 @@ ENV VITE_GOOGLE_AUTH_ENABLED=$VITE_GOOGLE_AUTH_ENABLED
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 COPY package.json package-lock.json ./
-COPY packages/glass-design-system/package.json ./packages/glass-design-system/
 RUN npm ci
 
 COPY . .
