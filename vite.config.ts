@@ -1,15 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      'glass-design-system': resolve(__dirname, 'packages/glass-design-system/src/index.ts'),
-    },
-  },
   optimizeDeps: {
     include: [
       '@codemirror/state',
