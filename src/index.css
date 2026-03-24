@@ -1,5 +1,5 @@
 /* Design tokens, typography utilities, and font imports live in the glass-design-system package */
-@import '../packages/glass-design-system/src/glass.css';
+@import 'glass-design-system/styles';
 @import "tailwindcss";
 
 *,

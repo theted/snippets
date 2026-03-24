@@ -539,8 +539,12 @@ kbd {
 }
 
 @keyframes bg-orbs-reveal {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Orb animation constants ─────────────────────────────────── */
@@ -549,8 +553,8 @@ kbd {
 /* --orb-opacity: peak alpha of every orb gradient               */
 
 :root {
-  --orb-speed: 3s;
-  --orb-opacity: 0.55;
+  --orb-speed: 6s;
+  --orb-opacity: 0.95;
 }
 
 /* ── Shared orb base ─────────────────────────────────────────── */
