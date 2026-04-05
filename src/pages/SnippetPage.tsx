@@ -1,246 +1,117 @@
-import React, {
-  useCallback, useContext, useEffect, useRef, useState, useTransition,
-} from 'react';
+import { useContext, useEffect, useState, useTransition } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { gsap } from 'gsap';
+import { useQueryClient } from '@tanstack/react-query';
 import { ThemeContext } from '../contexts/themeContext';
-import { useSnippet, useSnippetNeighbors, snippetKeys } from '../hooks/react-query';
-import { get, update, remove } from '../utils/api';
-import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
-import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
+import { useSnippet, useSnippetNeighbors } from '../hooks/react-query';
+import type { SnippetFormValues, SnippetId } from '../types';
 import { useFavorites } from '../hooks/useFavorites';
-import { computeCardWidth } from '../utils/snippetLayout';
 import Snippet from '../components/Snippet';
 import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { SpinFigure } from '../components/Spinner';
 import Toast from '../components/Toast';
-import { GlassPanel, GlassPill } from 'glass-design-system';
-import Icon from '../components/Icon';
+import SnippetPageToolbar from './snippet-page/SnippetPageToolbar';
+import useSnippetPageMutations from './snippet-page/useSnippetPageMutations';
+import useSnippetPageNavigation from './snippet-page/useSnippetPageNavigation';
+import {
+  getSnippetDetailWidth,
+  snippetPageClasses,
+} from './snippet-page/snippetPageUtils';
 
-// ── Direction bridging across navigation ──────────────────────────────────────
-// sessionStorage survives the React unmount/remount that happens on navigation,
-// but resets on tab close (unlike localStorage). It is read synchronously on
-// the very first render — before any effect runs — so the enter-animation class
-// is applied before the browser paints the new page.
+const parseSnippetId = (id: string | undefined): SnippetId | null => {
+  const parsedId = Number(id);
 
-type NavDirection = 'prev' | 'next';
-const NAV_DIRECTION_KEY = 'snippetNavDirection';
-
-function consumeNavDirection(): NavDirection | null {
-  const value = sessionStorage.getItem(NAV_DIRECTION_KEY) as NavDirection | null;
-  if (value) sessionStorage.removeItem(NAV_DIRECTION_KEY);
-  return value;
-}
-
-function enterClassForDirection(dir: NavDirection | null): string {
-  if (dir === 'next') return 'snippet-detail-enter-from-right';
-  if (dir === 'prev') return 'snippet-detail-enter-from-left';
-  return 'snippet-detail-enter';
-}
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const classes = {
-  shell: 'relative z-1 mx-auto w-full max-w-[100rem] px-[clamp(1.25rem,4vw,4rem)] pt-8 md:pt-10 pb-[clamp(2rem,5vw,4rem)]',
-  content: 'mt-10 flex flex-col justify-center',
-  contentWrap: 'mt-10 flex min-h-[calc(100vh-12rem)] flex-col items-center justify-center',
+  return Number.isFinite(parsedId) ? parsedId : null;
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
-const SnippetPage: React.FC = () => {
+const SnippetPage = () => {
   const { id } = useParams<{ id: string }>();
-  const snippetId = Number(id);
+  const snippetId = parseSnippetId(id);
   const { theme } = useContext(ThemeContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [, startTransition] = useTransition();
   const { isFavorite, toggle: toggleFavorite } = useFavorites();
 
-  // Read & clear the direction flag before first paint so the correct
-  // enter-animation class is set from the start (not swapped in via an effect).
-  const [enterClass] = useState(() => enterClassForDirection(consumeNavDirection()));
+  const { data: snippet, isPending, error } = useSnippet(snippetId);
+  const { prevId, nextId, prefetchIds } = useSnippetNeighbors(snippetId);
+  const {
+    contentRef,
+    enterClass,
+    linkCopied,
+    copyLink,
+    navigateBack,
+    navigateTo,
+  } = useSnippetPageNavigation({
+    isEditing,
+    prevId,
+    nextId,
+    prefetchIds,
+    queryClient,
+    navigate,
+    startTransition,
+  });
+  const {
+    updateSnippet,
+    updateError,
+    resetUpdate,
+    deleteSnippet,
+    deleteError,
+    resetDelete,
+  } = useSnippetPageMutations({
+    snippetId,
+    snippet,
+    queryClient,
+    navigate,
+    setIsEditing,
+    contentRef,
+  });
 
-  const [, startTransition] = useTransition();
-
-  const { data: snippet, isPending, error } = useSnippet(snippetId || null);
-  const { prevId, nextId, prefetchIds } = useSnippetNeighbors(snippetId || null);
-
-  const contentRef = useRef<HTMLDivElement>(null);
-  const exitTweenRef = useRef<gsap.core.Tween | null>(null);
-  // Prevents a second keypress from firing while the exit animation is running.
-  const navigatingRef = useRef(false);
-
-  // ── Prefetch neighbors ──────────────────────────────────────────────────────
-  // Cache both adjacent snippets as soon as their IDs are known so navigation
-  // is instant (the detail query resolves from cache, not the network).
-  //
-  // When the archive is paginated and useSnippetNeighbors switches to an API
-  // call, the prefetch calls below are unchanged — only the IDs come from a
-  // different source.
   useEffect(() => {
-    const prefetch = (neighborId: SnippetId) => queryClient.prefetchQuery({
-      queryKey: snippetKeys.detail(neighborId),
-      queryFn: () => get<ISnippet>(`snippets/${neighborId}`),
-      staleTime: 60_000,
-    });
+    if (snippet) {
+      document.title = `${snippet.title} · Snippets`;
+    }
 
-    prefetchIds.forEach(prefetch);
-  }, [prefetchIds, queryClient]);
-
-  // ── Animated navigation ─────────────────────────────────────────────────────
-  const navigateTo = useCallback((targetId: SnippetId, direction: NavDirection) => {
-    if (isEditing || navigatingRef.current) return;
-    navigatingRef.current = true;
-
-    // Slide the current content toward the direction of travel, then navigate.
-    // The new page reads NAV_DIRECTION_KEY and enters from the opposite side.
-    const xOut = direction === 'next' ? -40 : 40;
-    sessionStorage.setItem(NAV_DIRECTION_KEY, direction);
-
-    gsap.to(contentRef.current, {
-      opacity: 0,
-      x: xOut,
-      duration: 0.12,
-      ease: 'power2.in',
-      onComplete: () => startTransition(() => { navigate(`/snippets/${targetId}`); }),
-    });
-  }, [isEditing, navigate, startTransition]);
-
-  const navigateBack = useCallback(() => {
-    if (isEditing || navigatingRef.current) return;
-    navigatingRef.current = true;
-    gsap.to(contentRef.current, {
-      opacity: 0,
-      y: 20,
-      duration: 0.1,
-      ease: 'power2.in',
-      onComplete: () => startTransition(() => {
-        sessionStorage.setItem('homeRestore', '1');
-        navigate('/');
-      }),
-    });
-  }, [isEditing, navigate, startTransition]);
-
-  // ── Keyboard handler ────────────────────────────────────────────────────────
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const active = document.activeElement;
-      const isInput = active instanceof HTMLInputElement
-        || active instanceof HTMLTextAreaElement
-        || active instanceof HTMLSelectElement
-        || (active instanceof HTMLElement && active.isContentEditable);
-      if (isInput) return;
-
-      if (e.key === 'Escape' && !isEditing) { navigateBack(); return; }
-      if (e.key === 'ArrowRight' && nextId !== null) navigateTo(nextId, 'next');
-      if (e.key === 'ArrowLeft'  && prevId !== null) navigateTo(prevId, 'prev');
+    return () => {
+      document.title = 'Snippets';
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isEditing, prevId, nextId, navigate, navigateTo, navigateBack]);
-
-  // ── Mutations ───────────────────────────────────────────────────────────────
-  const { mutate: updateSnippet, error: updateError, reset: resetUpdate } = useMutation({
-    mutationFn: (formValues: SnippetFormValues) => update(
-      `snippets/${snippetId}`,
-      { ...snippet, ...formValues },
-    ),
-    onMutate: () => { setIsEditing(false); },
-    onError: () => { setIsEditing(true); },
-    onSuccess: async () => {
-      await invalidateSnippetQueries(queryClient);
-    },
-  });
-
-  const { mutate: deleteSnippet, error: deleteError, reset: resetDelete } = useMutation({
-    mutationFn: () => remove('snippets', snippetId),
-    onMutate: () => {
-      if (contentRef.current) {
-        exitTweenRef.current = gsap.to(contentRef.current, {
-          opacity: 0,
-          y: -20,
-          filter: 'blur(8px)',
-          duration: 0.45,
-          ease: 'power3.in',
-        });
-      }
-    },
-    onSuccess: async () => {
-      await invalidateSnippetQueries(queryClient);
-      if (exitTweenRef.current) await exitTweenRef.current;
-      sessionStorage.setItem('homeRestore', '1');
-      navigate('/');
-    },
-  });
-
-  // ── Document title ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (snippet) document.title = `${snippet.title} · Snippets`;
-    return () => { document.title = 'Snippets'; };
   }, [snippet]);
 
-  // ── Permalink ───────────────────────────────────────────────────────────────
-  const handleCopyLink = useCallback(() => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 2000);
-    });
-  }, []);
+  const handleFilterLanguage = (language: string) => {
+    navigate(`/language/${language}`);
+  };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const handleSubmit = (formValues: SnippetFormValues) => {
+    updateSnippet(formValues);
+  };
+
   return (
     <div className="App">
-      <div className={classes.shell}>
+      <div className={snippetPageClasses.shell}>
+        <SnippetPageToolbar
+          linkCopied={linkCopied}
+          prevId={prevId}
+          nextId={nextId}
+          onBack={() => {
+            void navigateBack();
+          }}
+          onCopyLink={() => {
+            void copyLink();
+          }}
+          onNavigatePrev={() => {
+            if (prevId !== null) {
+              void navigateTo(prevId, 'prev');
+            }
+          }}
+          onNavigateNext={() => {
+            if (nextId !== null) {
+              void navigateTo(nextId, 'next');
+            }
+          }}
+        />
 
-        {/* Top bar: floating glass navigation strip */}
-        <GlassPanel
-          intensity="subtle"
-          rounded="rounded-[1.6rem]"
-          className="sticky top-4 z-10 flex items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3"
-        >
-          <div className="relative z-10 flex items-center gap-2">
-            <GlassPill size="sm" className="whitespace-nowrap" onClick={navigateBack}>
-              <Icon name="home" style={{ fontSize: '0.85em' }} />
-              <span className="hidden sm:inline">Back to archive</span>
-            </GlassPill>
-            <GlassPill
-              size="sm"
-              className="whitespace-nowrap"
-              onClick={handleCopyLink}
-              title="Copy permalink"
-            >
-              <Icon name="link" style={{ fontSize: '0.85em' }} />
-              <span className="hidden sm:inline">{linkCopied ? 'Copied!' : 'Link'}</span>
-            </GlassPill>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-2">
-            <GlassPill
-              size="sm"
-              className="whitespace-nowrap"
-              disabled={prevId === null}
-              onClick={() => prevId !== null && navigateTo(prevId, 'prev')}
-              title="Previous snippet (←)"
-            >
-              ← <span className="hidden sm:inline">Older</span>
-            </GlassPill>
-            <GlassPill
-              size="sm"
-              className="whitespace-nowrap"
-              disabled={nextId === null}
-              onClick={() => nextId !== null && navigateTo(nextId, 'next')}
-              title="Next snippet (→)"
-            >
-              <span className="hidden sm:inline">Newer</span> →
-            </GlassPill>
-          </div>
-        </GlassPanel>
-
-        <div ref={contentRef} className={`${classes.contentWrap} ${enterClass}`}>
+        <div ref={contentRef} className={`${snippetPageClasses.contentWrap} ${enterClass}`}>
           {isPending && (
             <div className="flex min-h-[40vh] items-center justify-center">
               <SpinFigure />
@@ -248,7 +119,7 @@ const SnippetPage: React.FC = () => {
           )}
 
           {snippet && (
-            <div style={{ width: `clamp(50%, ${computeCardWidth(snippet.content)}px, 100%)` }}>
+            <div style={{ width: getSnippetDetailWidth(snippet.content) }}>
               <Snippet
                 id={snippet.id}
                 title={snippet.title}
@@ -261,7 +132,7 @@ const SnippetPage: React.FC = () => {
                 forceAutoSize
                 isFavorite={isFavorite(snippet.id)}
                 onToggleFavorite={toggleFavorite}
-                onFilterLanguage={(lang) => navigate(`/language/${lang}`)}
+                onFilterLanguage={handleFilterLanguage}
               />
             </div>
           )}
@@ -273,7 +144,7 @@ const SnippetPage: React.FC = () => {
           <SnippetForm
             defaultValues={snippet}
             isEditing
-            onSubmit={updateSnippet}
+            onSubmit={handleSubmit}
             closeModal={() => setIsEditing(false)}
           />
         </Modal>
@@ -283,7 +154,9 @@ const SnippetPage: React.FC = () => {
         <Toast
           variant="error"
           message={`Could not load snippet: ${error.message}`}
-          onDismiss={() => { /* query manages its own error state */ }}
+          onDismiss={() => {
+            /* query manages its own error state */
+          }}
         />
       )}
       {updateError instanceof Error && (
