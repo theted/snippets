@@ -1,6 +1,6 @@
 import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { post } from '../utils/api.ts';
+import { post } from '../utils/api';
 import Button from '../components/Button';
 import SnippetForm from '../components/SnippetForm';
 // eslint-disable-next-line import/no-named-as-default

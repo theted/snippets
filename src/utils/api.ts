@@ -6,7 +6,7 @@ type ApiErrorResponse = {
   errors?: string[];
 };
 
-function parseResponseBody(text: string): unknown {
+const parseResponseBody = (text: string): unknown => {
   if (!text) {
     return undefined;
   }
@@ -16,18 +16,18 @@ function parseResponseBody(text: string): unknown {
   } catch {
     return text;
   }
-}
+};
 
-function hasErrorList(value: unknown): value is ApiErrorResponse {
+const hasErrorList = (value: unknown): value is ApiErrorResponse => {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
 
   const errors = Reflect.get(value, 'errors');
   return Array.isArray(errors) && errors.every((error) => typeof error === 'string');
-}
+};
 
-function getErrorMessage(data: unknown, fallbackMessage: string): string {
+const getErrorMessage = (data: unknown, fallbackMessage: string): string => {
   if (hasErrorList(data) && data.errors && data.errors.length > 0) {
     return data.errors[0];
   }
@@ -37,10 +37,10 @@ function getErrorMessage(data: unknown, fallbackMessage: string): string {
   }
 
   return fallbackMessage;
-}
+};
 
-async function fetchData<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, init);
+const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
+  const response = await fetch(`${API_BASE}/${path}`, init);
   const data = parseResponseBody(await response.text());
 
   if (!response.ok) {
@@ -48,44 +48,30 @@ async function fetchData<T>(input: RequestInfo | URL, init?: RequestInit): Promi
   }
 
   return data as T;
-}
-
-export const get = async <T>(path: string): Promise<T> => {
-  const url = `${API_BASE}/${path}`;
-  const headers = defaultHeaders();
-
-  return fetchData(url, { headers });
 };
 
-export const post = async <TResponse, TBody>(path: string, data: TBody): Promise<TResponse> => {
-  const url = `${API_BASE}/${path}`;
-  const headers = defaultHeaders();
+export const get = <T>(path: string): Promise<T> =>
+  request<T>(path, { headers: defaultHeaders() });
 
-  return fetchData(url, {
-    headers,
+export const post = <TResponse, TBody>(path: string, data: TBody): Promise<TResponse> =>
+  request<TResponse>(path, {
+    headers: defaultHeaders(),
     method: 'POST',
     body: JSON.stringify(data),
   });
-};
 
-export const update = async <TResponse, TBody>(path: string, data: TBody): Promise<TResponse> => {
-  const url = `${API_BASE}/${path}`;
-  const headers = defaultHeaders();
-
-  return fetchData(url, {
-    headers,
+export const update = <TResponse, TBody>(path: string, data: TBody): Promise<TResponse> =>
+  request<TResponse>(path, {
+    headers: defaultHeaders(),
     method: 'PUT',
     body: JSON.stringify(data),
   });
-};
 
 export const remove = async (
   entity: string,
   idKey: string | number = 'id',
 ): Promise<void> => {
-  const url = `${API_BASE}/${entity}/${idKey}`;
-
-  await fetchData<void>(url, {
+  await request<void>(`${entity}/${idKey}`, {
     method: 'DELETE',
   });
 };

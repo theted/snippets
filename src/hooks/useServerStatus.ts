@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { get } from '../utils/api.ts';
+import { get } from '../utils/api';
 
 export type ServerStatus = {
   db: {

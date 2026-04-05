@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { remove, update } from '../utils/api.ts';
+import { remove, update } from '../utils/api';
 import { invalidateSnippetQueries, removeSnippetFromLists, restoreSnippetDetail, restoreSnippetLists, snapshotAndPatchSnippet, snapshotSnippetLists, SnippetDetailSnapshot, SnippetListSnapshot } from '../utils/snippetQueryCache';
 import { Snippet as ISnippet, SnippetId } from '../types';
 

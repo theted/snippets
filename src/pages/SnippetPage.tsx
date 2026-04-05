@@ -6,7 +6,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { gsap } from 'gsap';
 import { ThemeContext } from '../contexts/themeContext';
 import { useSnippet, useSnippetNeighbors, snippetKeys } from '../hooks/react-query';
-import { get, update, remove } from '../utils/api.ts';
+import { get, update, remove } from '../utils/api';
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 import { Snippet as ISnippet, SnippetFormValues, SnippetId } from '../types';
 import { useFavorites } from '../hooks/useFavorites';

@@ -1,4 +1,4 @@
-import React, { act } from 'react';
+import React, { act, type ComponentProps } from 'react';
 import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
@@ -21,7 +21,9 @@ vi.mock('gsap', () => ({
   },
 }));
 
-const defaultProps = {
+type SnippetProps = ComponentProps<typeof Snippet>;
+
+const defaultProps: SnippetProps = {
   id: 1,
   title: 'my snippet',
   content: 'const x = 1;',
@@ -30,9 +32,10 @@ const defaultProps = {
   onDelete: vi.fn(),
   onEdit: vi.fn(),
   theme: 'vs2015',
+  isFavorite: false,
 };
 
-function renderSnippet(props: Partial<typeof defaultProps> = {}) {
+function renderSnippet(props: Partial<SnippetProps> = {}) {
   return render(
     <MemoryRouter>
       <ThemeContext.Provider value={themeDefaults}>
@@ -203,7 +206,9 @@ test('highlights code immediately when forceAutoSize is true (detail page)', () 
 
 test('switches to highlighted output once IntersectionObserver fires', async () => {
   let intersect!: IntersectionObserverCallback;
-  vi.spyOn(global, 'IntersectionObserver').mockImplementation(function(cb) {
+  vi.spyOn(globalThis, 'IntersectionObserver').mockImplementation(function(
+    cb: IntersectionObserverCallback,
+  ) {
     intersect = cb;
     return { observe: vi.fn(), disconnect: vi.fn() } as unknown as IntersectionObserver;
   } as unknown as typeof IntersectionObserver);

@@ -4,7 +4,7 @@ import {
 } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import CreateSnippet from './CreateSnippet';
-import * as api from '../utils/api.ts';
+import * as api from '../utils/api';
 
 vi.mock('gsap', () => ({
   gsap: {
@@ -13,7 +13,7 @@ vi.mock('gsap', () => ({
   },
 }));
 
-vi.mock('../utils/api.ts', () => ({
+vi.mock('../utils/api', () => ({
   get: vi.fn(),
   post: vi.fn(),
   update: vi.fn(),

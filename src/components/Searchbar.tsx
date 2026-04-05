@@ -1,54 +1,32 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { useGlass } from 'glass-design-system';
-
-const TITLES: { kicker: string; headline: string }[] = [
-  { kicker: 'Curate The Archive',    headline: 'Find the exact fragment you need.' },
-  { kicker: 'Your Code Memory',      headline: 'Write it once. Find it forever.' },
-  { kicker: 'The Fragment Archive',  headline: 'Everything you\'ve earned, in order.' },
-  { kicker: 'Search Everything',     headline: 'The one line you half-remembered is in here.' },
-  { kicker: 'Recall Anything',       headline: 'Stop rewriting what you already solved.' },
-  { kicker: 'The Quiet Library',     headline: 'Dark, indexed, and always open.' },
-  { kicker: 'Your Second Brain',     headline: 'Code from six months ago, back in ten seconds.' },
-  { kicker: 'All Your Fragments',    headline: 'Organised the way your mind actually searches.' },
-  { kicker: 'The Reference Layer',   headline: 'Pull up the right pattern before the context vanishes.' },
-  { kicker: 'Institutional Memory',  headline: 'Every trick you\'ve learned. Nowhere to forget it.' },
-  { kicker: 'The Code Cellar',       headline: 'Aged well. Always ready.' },
-  { kicker: 'Preserved in Amber',    headline: 'Catch the good ones before they\'re gone.' },
-  { kicker: 'The Deep Stack',        headline: 'Every hard-won solution, within reach.' },
-  { kicker: 'Low Light, High Signal', headline: 'Everything useful. Nothing in the way.' },
-  { kicker: 'The Long Game',         headline: 'The snippets you\'ll still reach for in three years.' },
-  { kicker: 'Zero Noise',            headline: 'Just the code. Exactly what you need.' },
-  { kicker: 'The Night Shift',       headline: 'Still works at 2am when the syntax escapes you.' },
-  { kicker: 'Scar Tissue',           headline: 'Every bug you fixed. Every trick you earned.' },
-  { kicker: 'Dark And Indexed',      headline: 'The quieter the interface, the louder the code.' },
-  { kicker: 'The Slow Accumulation', headline: 'Built snippet by snippet. Invaluable over time.' },
-  { kicker: 'Pattern Recognition',   headline: 'The code your hands know before your brain does.' },
-  { kicker: 'The Good Stuff',        headline: 'None of the noise. All of the parts that matter.' },
-];
 import Textfield from './Textfield';
-import { SpinFigure } from './Spinner';
-import { capitalize } from '../utils/helpers';
-
-const RESULTS_LIMIT = 10;
-
-type SearchResult = { id: number; title: string; language?: string };
+import SearchbarResults from './SearchbarResults';
+import {
+  getRandomSearchbarTitle,
+  searchbarBoxShadows,
+  TITLE_TEXT_SHADOW,
+  type SearchbarResult,
+} from './searchbarContent';
 
 type Props = {
   onSearch: (value: string) => void;
-  results?: SearchResult[];
+  results?: SearchbarResult[];
   isLoadingResults?: boolean;
   isSearching?: boolean;
   debouncedQuery?: string;
-}
+};
 
 export type SearchbarHandle = { focus: () => void };
-
-const baseBoxShadow = '0 8px 40px oklch(0.05 0.015 250 / 0.42), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)';
-const hoverBoxShadow = '0 0 0 1px oklch(0.65 0.15 240 / 0.14), 0 14px 52px oklch(0.05 0.015 250 / 0.56), inset 0 1px 0 oklch(0.88 0.12 228 / 0.26)';
-const focusBoxShadow = '0 0 0 1px oklch(0.68 0.18 240 / 0.14), 0 20px 72px oklch(0.05 0.015 250 / 0.52), inset 0 1px 0 oklch(0.88 0.12 226 / 0.18)';
-
-const titleTextShadow = '0 1px 0 oklch(0.98 0.006 255 / 0.26), 0 0 48px oklch(0.72 0.18 244 / 0.12)';
 
 const Searchbar = forwardRef<SearchbarHandle, Props>(({
   onSearch,
@@ -58,7 +36,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
   debouncedQuery = '',
 }, ref) => {
   const { blur } = useGlass();
-  const [title] = useState(() => TITLES[Math.floor(Math.random() * TITLES.length)]);
+  const [title] = useState(getRandomSearchbarTitle);
   const [searchTerm, setSearchTerm] = useState('');
   const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
   const [isHovered, setIsHovered] = useState(false);
@@ -71,55 +49,60 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
   }));
 
   const clearSearch = () => {
+    resultRefs.current = [];
     setSearchTerm('');
     onSearch('');
   };
 
-  const searchCallback = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     setSearchTerm(value);
     onSearch(value);
   };
 
-  // ── Keyboard navigation ────────────────────────────────────────────────────
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown' && results.length > 0) {
-      e.preventDefault();
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown' && results.length > 0) {
+      event.preventDefault();
       resultRefs.current[0]?.focus();
-    } else if (e.key === 'Escape') {
+    } else if (event.key === 'Escape') {
       clearSearch();
     }
   };
 
-  const handleResultKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>, index: number) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (index < results.length - 1) resultRefs.current[index + 1]?.focus();
-      else inputRef.current?.focus(); // wrap back to input at end of list
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (index === 0) inputRef.current?.focus();
-      else resultRefs.current[index - 1]?.focus();
-    } else if (e.key === 'Escape') {
+  const handleResultKeyDown = (event: KeyboardEvent<HTMLAnchorElement>, index: number) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+
+      if (index < results.length - 1) {
+        resultRefs.current[index + 1]?.focus();
+      } else {
+        inputRef.current?.focus();
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+
+      if (index === 0) {
+        inputRef.current?.focus();
+      } else {
+        resultRefs.current[index - 1]?.focus();
+      }
+    } else if (event.key === 'Escape') {
       clearSearch();
       inputRef.current?.focus();
     }
   };
 
-  // ── Panel interaction ──────────────────────────────────────────────────────
+  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
     setMousePos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
+      x: ((event.clientX - rect.left) / rect.width) * 100,
+      y: ((event.clientY - rect.top) / rect.height) * 100,
     });
   };
 
-  // Keep panel lit while focus is anywhere inside it (input OR result items)
-  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+  const handleContainerBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setIsFocused(false);
     }
   };
@@ -139,16 +122,19 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         `,
         backgroundOrigin: 'padding-box, border-box',
         backgroundClip: 'padding-box, border-box',
-        boxShadow: isFocused ? focusBoxShadow : isHovered ? hoverBoxShadow : baseBoxShadow,
+        boxShadow: isFocused
+          ? searchbarBoxShadows.focus
+          : isHovered
+            ? searchbarBoxShadows.hover
+            : searchbarBoxShadows.base,
         transition: 'box-shadow 500ms ease, background 500ms ease',
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocusCapture={() => setIsFocused(true)}
-      onBlur={handleBlur}
+      onBlur={handleContainerBlur}
     >
-      {/* SVG noise filter definition — hidden, referenced by grain overlay */}
       <svg aria-hidden="true" className="pointer-events-none absolute" style={{ width: 0, height: 0 }}>
         <defs>
           <filter id="searchbar-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
@@ -160,7 +146,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         </defs>
       </svg>
 
-      {/* Grain / sandy texture overlay */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-[2.4rem]"
@@ -173,7 +158,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* Top-edge glass shimmer */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px transition-opacity duration-500"
@@ -182,7 +166,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* Grain texture overlay */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-[2.4rem]"
@@ -196,7 +179,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* Focus flood */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-500"
@@ -205,7 +187,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
           opacity: isFocused ? 1 : 0,
         }}
       />
-      {/* Focus glow — outer ambient when active */}
+
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-[-2rem] transition-opacity duration-700"
@@ -216,7 +198,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* Mouse-tracking reflective highlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
@@ -227,7 +208,6 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         }}
       />
 
-      {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-[var(--color-text-subtle)] text-bevel">
@@ -235,7 +215,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
           </p>
           <h2
             className="mt-3 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.055em] text-[var(--color-text)] md:text-6xl"
-            style={{ textShadow: titleTextShadow }}
+            style={{ textShadow: TITLE_TEXT_SHADOW }}
           >
             {title.headline}
           </h2>
@@ -251,7 +231,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
           ref={inputRef}
           name="searchString"
           value={searchTerm}
-          onChange={searchCallback}
+          onChange={handleSearchChange}
           onKeyDown={handleInputKeyDown}
           placeholder="Search snippets by title, description, or code"
           className="text-lg md:text-xl"
@@ -259,40 +239,19 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
         />
       </div>
 
-      {/* ── Inline search results ──────────────────────────────────── */}
-      <div className={`relative z-10 search-results-wrap${isSearching ? ' open' : ''}`}>
-        <div>
-          {isSearching && (
-            isLoadingResults ? (
-              <div className="flex items-center justify-center py-6">
-                <SpinFigure />
-              </div>
-            ) : results.length === 0 ? (
-              <p className="search-results-status">No snippets matched &ldquo;{debouncedQuery}&rdquo;</p>
-            ) : (
-              <ul className="search-results-list" role="listbox" aria-label="Search results">
-                {results.slice(0, RESULTS_LIMIT).map((snippet, index) => (
-                  <li key={snippet.id} className="search-result-item" role="option" aria-selected="false">
-                    <Link
-                      to={`/snippets/${snippet.id}`}
-                      ref={(el) => { resultRefs.current[index] = el; }}
-                      className="search-result-link"
-                      onKeyDown={(e) => handleResultKeyDown(e, index)}
-                      tabIndex={0}
-                    >
-                      <span className="search-result-title">{capitalize(snippet.title || 'Untitled snippet')}</span>
-                      <span className="search-result-lang">{snippet.language || 'plaintext'}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )
-          )}
-        </div>
-      </div>
+      <SearchbarResults
+        results={results}
+        isLoadingResults={isLoadingResults}
+        isSearching={isSearching}
+        debouncedQuery={debouncedQuery}
+        resultRefs={resultRefs}
+        onResultKeyDown={handleResultKeyDown}
+      />
 
       <p className="relative z-10 mt-5 text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[var(--color-text-subtle)] text-bevel">
-        {isSearching ? `${results.length} result${results.length !== 1 ? 's' : ''} found` : 'Showing every saved snippet'}
+        {isSearching
+          ? `${results.length} result${results.length !== 1 ? 's' : ''} found`
+          : 'Showing every saved snippet'}
       </p>
     </div>
   );

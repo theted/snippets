@@ -7,7 +7,7 @@ import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
 import LanguagePage from './LanguagePage';
 import { _resetSnippetsLoaded } from './Snippets';
-import * as api from '../utils/api.ts';
+import * as api from '../utils/api';
 
 vi.mock('gsap', () => ({
   gsap: {
@@ -17,7 +17,7 @@ vi.mock('gsap', () => ({
   },
 }));
 
-vi.mock('../utils/api.ts', () => ({
+vi.mock('../utils/api', () => ({
   get: vi.fn(),
   post: vi.fn(),
   update: vi.fn(),

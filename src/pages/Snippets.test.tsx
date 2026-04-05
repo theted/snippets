@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
 import Snippets, { _resetSnippetsLoaded } from './Snippets';
-import * as api from '../utils/api.ts';
+import * as api from '../utils/api';
 
 vi.mock('../components/CodeEditor', () => ({
   default: ({
@@ -34,7 +34,7 @@ vi.mock('../utils/utils', () => ({
   useDebounce: <T,>(value: T) => value,
 }));
 
-vi.mock('../utils/api.ts', () => ({
+vi.mock('../utils/api', () => ({
   get: vi.fn(),
   post: vi.fn(),
   update: vi.fn(),

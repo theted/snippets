@@ -22,7 +22,7 @@ vi.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({ vs2015: {} }))
 // IntersectionObserver is not implemented in jsdom. Provide a no-op stub so
 // components using it (e.g. Snippet's lazy syntax-highlight) mount without
 // throwing. Tests that need to trigger intersection can override this locally
-// with vi.spyOn(global, 'IntersectionObserver').
+// with vi.spyOn(globalThis, 'IntersectionObserver').
 class MockIntersectionObserver {
   observe    = vi.fn();
   unobserve  = vi.fn();
@@ -30,7 +30,7 @@ class MockIntersectionObserver {
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(_cb: IntersectionObserverCallback, _opts?: IntersectionObserverInit) {}
 }
-Object.defineProperty(global, 'IntersectionObserver', {
+Object.defineProperty(globalThis, 'IntersectionObserver', {
   writable: true, configurable: true, value: MockIntersectionObserver,
 });
 
@@ -42,7 +42,7 @@ class MockResizeObserver {
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(_cb: ResizeObserverCallback) {}
 }
-Object.defineProperty(global, 'ResizeObserver', {
+Object.defineProperty(globalThis, 'ResizeObserver', {
   writable: true, configurable: true, value: MockResizeObserver,
 });
 
