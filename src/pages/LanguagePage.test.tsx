@@ -75,12 +75,12 @@ test('shows the correct display name for mapped languages', () => {
 
 test('updates document.title to include the language name', () => {
   renderLanguagePage('javascript');
-  expect(document.title).toBe('Javascript — Snippets');
+  expect(document.title).toBe('JavaScript — Snippets');
 });
 
 test('restores document.title to "Snippets" on unmount', () => {
   const { unmount } = renderLanguagePage('javascript');
-  expect(document.title).toBe('Javascript — Snippets');
+  expect(document.title).toBe('JavaScript — Snippets');
   unmount();
   expect(document.title).toBe('Snippets');
 });

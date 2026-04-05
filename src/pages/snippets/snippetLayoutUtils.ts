@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 import {
   DEFAULT_SNIPPET_LAYOUT,
-  LANGUAGE_MAP,
   type SnippetLayout,
 } from '../../config';
+import { getLanguageLabel } from '../../utils/language';
 import { computeCardWidth } from '../../utils/snippetLayout';
 
 export const LAYOUT_OPTIONS: SnippetLayout[] = [
@@ -75,8 +75,7 @@ export const getSnippetEmptyStateMessage = (languageFilter: string | null) => {
     return 'No snippets yet — create one to get started.';
   }
 
-  const languageLabel = LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter;
-  return `No snippets with language "${languageLabel}"`;
+  return `No snippets with language "${getLanguageLabel(languageFilter)}"`;
 };
 
 export const groupByCascade = <T,>(items: T[]) => {

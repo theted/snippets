@@ -3,11 +3,11 @@ import { Link, useParams } from 'react-router-dom';
 import { GlassPill } from 'glass-design-system';
 import Icon from '../components/Icon';
 import Snippets from './Snippets';
-import { LANGUAGE_MAP } from '../config';
+import { getLanguageLabel } from '../utils/language';
 
 const LanguagePage: React.FC = () => {
   const { language = '' } = useParams<{ language: string }>();
-  const displayName = LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language;
+  const displayName = getLanguageLabel(language);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 

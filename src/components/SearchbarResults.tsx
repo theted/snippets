@@ -2,6 +2,7 @@ import type { KeyboardEvent, MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { SpinFigure } from './Spinner';
 import { capitalize } from '../utils/helpers';
+import { getLanguageLabel } from '../utils/language';
 import { RESULTS_LIMIT, type SearchbarResult } from './searchbarContent';
 
 type Props = {
@@ -46,7 +47,7 @@ const SearchbarResults = ({
                   <span className="search-result-title">
                     {capitalize(snippet.title || 'Untitled snippet')}
                   </span>
-                  <span className="search-result-lang">{snippet.language || 'plaintext'}</span>
+                  <span className="search-result-lang">{getLanguageLabel(snippet.language)}</span>
                 </Link>
               </li>
             ))}

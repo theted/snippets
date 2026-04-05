@@ -6,11 +6,17 @@ export type ServerStatus = {
     totalSnippets: number;
     totalLanguages: number;
     totalLines: number;
-    totalCharacters: number;
-    topLanguages: { language: string; count: number }[];
+    totalBytes: number;
+    topLanguages: { language: string; count: number; totalBytes: number }[];
   };
   cache: { snippetCount: number; cachedAt: number | null };
-  server: { version: string; deployedAt: string; uptimeSeconds: number };
+  server: {
+    version: string;
+    deployedAt: string;
+    uptimeSeconds: number;
+    loadAverage1m: number | null;
+    cpuCount: number;
+  };
 };
 
 export const useServerStatus = () =>

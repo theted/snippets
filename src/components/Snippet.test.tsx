@@ -53,12 +53,12 @@ test('renders title and description', () => {
 
 test('renders language badge', () => {
   renderSnippet();
-  expect(screen.getByText('Javascript')).toBeInTheDocument();
+  expect(screen.getByText('JavaScript')).toBeInTheDocument();
 });
 
-test('shows "plaintext" when no language is provided', () => {
+test('shows "Text" when no language is provided', () => {
   renderSnippet({ language: undefined });
-  expect(screen.getByText('plaintext')).toBeInTheDocument();
+  expect(screen.getByText('Text')).toBeInTheDocument();
 });
 
 test('renders delete and edit buttons', () => {

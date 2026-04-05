@@ -44,7 +44,7 @@ export const LANGUAGE_MAP = {
   haml: 'HAML',
   haskell: 'Haskell',
   java: 'Java',
-  javascript: 'Javascript',
+  javascript: 'JavaScript',
   less: 'LESS',
   markdown: 'Markdown',
   perl: 'Perl',
@@ -58,7 +58,7 @@ export const LANGUAGE_MAP = {
   scala: 'Scala',
   sql: 'SQL',
   stylus: 'Stylus',
-  typescript: 'Typescript',
+  typescript: 'TypeScript',
   yaml: 'YAML',
 };
 

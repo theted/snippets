@@ -1,3 +1,4 @@
+import { cpus, loadavg } from 'node:os';
 import { FastifyInstance } from 'fastify';
 import { SnippetCache } from '../cache/snippetCache';
 import { SnippetStore } from '../database/snippetStore';
@@ -11,13 +12,15 @@ export async function registerStatusRoute(
 
   app.get('/status', async () => {
     const stats = await store.getStats();
+    const cpuCount = cpus().length;
+    const loadAverage1m = process.platform === 'win32' ? null : loadavg()[0];
 
     return {
       db: {
         totalSnippets:   stats.totalSnippets,
         totalLanguages:  stats.totalLanguages,
         totalLines:      stats.totalLines,
-        totalCharacters: stats.totalCharacters,
+        totalBytes:      stats.totalBytes,
         topLanguages:    stats.topLanguages,
       },
       cache: {
@@ -28,6 +31,8 @@ export async function registerStatusRoute(
         version: process.env.npm_package_version ?? '0.1.0',
         deployedAt: process.env.DEPLOY_TIME ?? startedAt.toISOString(),
         uptimeSeconds: Math.floor(process.uptime()),
+        loadAverage1m,
+        cpuCount,
       },
     };
   });

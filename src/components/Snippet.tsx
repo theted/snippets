@@ -9,7 +9,7 @@ import { ThemeContext } from '../contexts/themeContext';
 import { useGlass } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetId } from '../types';
 import { capitalize } from '../utils/helpers';
-import { LANGUAGE_MAP } from '../config';
+import { getLanguageLabel } from '../utils/language';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import Icon from './Icon';
 import Toast from './Toast';
@@ -72,6 +72,7 @@ const Snippet: React.FC<Props> = ({
     const [highlighted, setHighlighted] = useState(forceAutoSize);
     const cardRef = useRef<HTMLDivElement>(null);
     const codeWrapRef = useRef<HTMLDivElement>(null);
+    const languageLabel = getLanguageLabel(language);
 
     const c = getSnippetClasses(compact);
     const codeStyle = getSnippetCodeStyle(c, compact);
@@ -184,11 +185,11 @@ const Snippet: React.FC<Props> = ({
                             ? (e) => { e.preventDefault(); e.stopPropagation(); onFilterLanguage(language ?? 'plaintext'); }
                             : undefined}
                         title={onFilterLanguage
-                            ? `Filter by ${LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}`
+                            ? `Filter by ${languageLabel}`
                             : undefined}
                         className={compact ? 'shrink-0' : ''}
                     >
-                        {LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language ?? 'plaintext'}
+                        {languageLabel}
                     </Chip>
                 </div>
             </div>

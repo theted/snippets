@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
-import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, LANGUAGE_MAP } from '../config';
+import { AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE } from '../config';
 import { SnippetFormSchema, type SnippetFormValues } from '../types';
+import { getLanguageLabel } from '../utils/language';
 
 export type InputChangeEvent = ChangeEvent<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -10,7 +11,7 @@ export type FormField = keyof SnippetFormValues;
 export type SnippetFormErrors = Partial<Record<FormField, string>>;
 
 export const languageOptions = AVAILABLE_LANGUAGES.map((language) => ({
-  label: LANGUAGE_MAP[language as keyof typeof LANGUAGE_MAP] ?? language,
+  label: getLanguageLabel(language),
   value: language,
 }));
 

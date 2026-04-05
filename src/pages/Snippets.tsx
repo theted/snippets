@@ -9,9 +9,10 @@ import SnippetForm from '../components/SnippetForm';
 import Modal from '../components/Modal';
 import { ThemeContext } from '../contexts/themeContext';
 import { snippetKeys, useSnippet, useSnippets } from '../hooks/react-query';
+import { getLanguageLabel } from '../utils/language';
 import { useDebounce } from '../utils/utils';
 import Toast from '../components/Toast';
-import { LANGUAGE_MAP, type SnippetLayout } from '../config';
+import { type SnippetLayout } from '../config';
 import Chip from '../components/Chip';
 import { useFavorites } from '../hooks/useFavorites';
 import { useDeleteSnippetMutation, useUpdateSnippetMutation } from '../hooks/useSnippetMutations';
@@ -169,7 +170,7 @@ const Snippets = ({ searchbarRef, initialLanguage }: Props) => {
             size="md"
             onRemove={() => (initialLanguage ? navigate('/') : setLanguageFilter(null))}
           >
-            {LANGUAGE_MAP[languageFilter as keyof typeof LANGUAGE_MAP] ?? languageFilter}
+            {getLanguageLabel(languageFilter)}
           </Chip>
         </div>
       )}
