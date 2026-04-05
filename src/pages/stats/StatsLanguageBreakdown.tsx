@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { GlassPanel } from 'glass-design-system';
 import { formatByteSize, formatCountLabel } from '../../utils/formatters';
 import { getLanguageLabel } from '../../utils/language';
@@ -43,10 +44,13 @@ const StatsLanguageBreakdown = ({ languages, className = '' }: Props) => {
               const relativeUsage = getRelativeUsagePercentage(language.totalBytes, maxBytes);
 
               return (
-                <div
+                <Link
                   key={language.language}
+                  to={`/language/${language.language}`}
                   className={[
-                    'flex items-center gap-3 py-3',
+                    'group flex items-center gap-3 rounded-[1.2rem] px-2 py-3 transition-colors duration-200',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/60',
+                    'hover:bg-[var(--color-glass-row)]',
                     index > 0 ? 'border-t border-[var(--color-border)]' : '',
                   ]
                     .filter(Boolean)
@@ -58,7 +62,7 @@ const StatsLanguageBreakdown = ({ languages, className = '' }: Props) => {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-sm text-[var(--color-text)] md:text-base">
+                      <span className="truncate text-sm text-[var(--color-text)] transition-colors duration-200 group-hover:text-[var(--color-accent-bright)] md:text-base">
                         {getLanguageLabel(language.language)}
                       </span>
                       <div className="flex shrink-0 items-baseline gap-3">
@@ -73,12 +77,12 @@ const StatsLanguageBreakdown = ({ languages, className = '' }: Props) => {
 
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--color-glass-row)]">
                       <div
-                        className="h-full rounded-full bg-[var(--color-accent)]"
+                        className="h-full rounded-full bg-[var(--color-accent)] transition-opacity duration-200 group-hover:opacity-100"
                         style={{ width: `${relativeUsage}%` }}
                       />
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

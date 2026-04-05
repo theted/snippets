@@ -14,6 +14,7 @@ export async function registerStatusRoute(
     const stats = await store.getStats();
     const cpuCount = cpus().length;
     const loadAverage1m = process.platform === 'win32' ? null : loadavg()[0];
+    const { rss, heapUsed } = process.memoryUsage();
 
     return {
       db: {
@@ -33,6 +34,8 @@ export async function registerStatusRoute(
         uptimeSeconds: Math.floor(process.uptime()),
         loadAverage1m,
         cpuCount,
+        memoryRssBytes: rss,
+        heapUsedBytes: heapUsed,
       },
     };
   });

@@ -16,6 +16,8 @@ export type ServerStatus = {
     uptimeSeconds: number;
     loadAverage1m: number | null;
     cpuCount: number;
+    memoryRssBytes: number;
+    heapUsedBytes: number;
   };
 };
 

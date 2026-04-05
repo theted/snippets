@@ -101,7 +101,7 @@ const Stats = () => {
         {
           kicker: 'In memory',
           value: formatNumber(status.cache.snippetCount),
-          label: 'snippets cached server-side',
+          // label: 'snippets cached server-side',
         },
         {
           kicker: 'Cache age',
@@ -110,7 +110,7 @@ const Stats = () => {
               {formatCacheAge(status.cache.cachedAt)}
             </span>
           ),
-          label: status.cache.cachedAt ? 'since last population' : 'cache is empty',
+          // label: status.cache.cachedAt ? 'since last population' : 'cache is empty',
         },
       ]
     : [];
@@ -122,13 +122,13 @@ const Stats = () => {
           value: status.server.version,
           // label: 'current build',
         },
-        {
-          kicker: 'Deployed',
-          value: (
-            <span className="text-4xl md:text-5xl">{formatDate(status.server.deployedAt)}</span>
-          ),
-          // label: 'last deployment',
-        },
+        // {
+        //   kicker: 'Deployed',
+        //   value: (
+        //     <span className="text-4xl md:text-5xl">{formatDate(status.server.deployedAt)}</span>
+        //   ),
+        //   // label: 'last deployment',
+        // },
         {
           kicker: 'Uptime',
           value: formatUptime(status.server.uptimeSeconds),
@@ -137,7 +137,11 @@ const Stats = () => {
         {
           kicker: 'Load',
           value: (
-            <span className={status.server.loadAverage1m === null ? 'text-[var(--color-text-subtle)]' : ''}>
+            <span
+              className={
+                status.server.loadAverage1m === null ? 'text-[var(--color-text-subtle)]' : ''
+              }
+            >
               {status.server.loadAverage1m === null
                 ? '—'
                 : formatDecimal(status.server.loadAverage1m, {
@@ -150,6 +154,11 @@ const Stats = () => {
             status.server.loadAverage1m === null
               ? 'not reported on this platform'
               : `1 min avg across ${formatCountLabel(status.server.cpuCount, 'core')}`,
+        },
+        {
+          kicker: 'Memory',
+          value: formatByteSize(status.server.memoryRssBytes),
+          label: `${formatByteSize(status.server.heapUsedBytes)} heap used`,
         },
       ]
     : [];
@@ -205,16 +214,18 @@ const Stats = () => {
             <>
               <StatsSectionPanel
                 title="Library"
-                description="Database-level snapshot of the archive, grouped into four headline metrics."
+                // description="Database-level snapshot of the archive, grouped into four headline metrics."
               >
                 <StatsTileGrid itemCount={libraryItems.length}>
                   {renderStatItems(libraryItems)}
                 </StatsTileGrid>
               </StatsSectionPanel>
 
+              <StatsLanguageBreakdown languages={status.db.topLanguages ?? []} />
+
               <StatsSectionPanel
                 title="Server"
-                description="Runtime and deployment details for the active API process."
+                // description="Runtime and deployment details for the active API process."
               >
                 <StatsTileGrid itemCount={serverItems.length}>
                   {renderStatItems(serverItems)}
@@ -223,20 +234,18 @@ const Stats = () => {
 
               <StatsSectionPanel
                 title="Server Cache"
-                description="Server-side snippet cache health and recency."
+                // description="Server-side snippet cache health and recency."
               >
                 <StatsTileGrid itemCount={serverCacheItems.length}>
                   {renderStatItems(serverCacheItems)}
                 </StatsTileGrid>
               </StatsSectionPanel>
-
-              <StatsLanguageBreakdown languages={status.db.topLanguages ?? []} />
             </>
           )}
 
           <StatsSectionPanel
             title="Client Cache"
-            description="React Query in-browser cache, independent of the server."
+            // description="React Query in-browser cache, independent of the server."
           >
             <StatsTileGrid itemCount={clientCacheItems.length}>
               {renderStatItems(clientCacheItems)}
