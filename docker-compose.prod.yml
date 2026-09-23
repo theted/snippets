@@ -8,6 +8,8 @@ services:
     environment:
       SNIPPETS_API_BACKEND: ${SNIPPETS_API_BACKEND:-json-server}
       API_PORT: 3200
+      # Marks the session cookie `Secure` (HTTPS-only).
+      NODE_ENV: production
       # Postgres is always an external container in production — never managed
       # by this process.  POSTGRES_USE_LOCAL=true skips the docker-compose
       # postgres startup that start-api.mjs would otherwise attempt (which

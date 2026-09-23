@@ -1,64 +1,12 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { AppConfig } from '../config';
 import { GoogleAuthService } from '../auth/google';
-
-const AUTH_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+import { clearAuthSessionCookie, getSessionUser, setAuthSessionCookie } from '../auth/session';
 
 const googleCredentialSchema = z.object({
   credential: z.string().min(1, 'Google credential is required.'),
 });
-
-const sessionCookieSchema = z.object({
-  userId: z.number().int().positive(),
-});
-
-type SessionCookiePayload = z.infer<typeof sessionCookieSchema>;
-
-function setAuthSessionCookie(
-  reply: FastifyReply,
-  config: AppConfig,
-  payload: SessionCookiePayload,
-) {
-  reply.setCookie(config.auth.sessionCookie.name, JSON.stringify(payload), {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    signed: true,
-    secure: config.auth.sessionCookie.secure,
-    maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
-  });
-}
-
-function clearAuthSessionCookie(reply: FastifyReply, config: AppConfig) {
-  reply.clearCookie(config.auth.sessionCookie.name, {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    signed: true,
-    secure: config.auth.sessionCookie.secure,
-  });
-}
-
-function readSessionCookie(request: FastifyRequest, config: AppConfig): SessionCookiePayload | null {
-  const rawCookie = request.cookies[config.auth.sessionCookie.name];
-
-  if (!rawCookie) {
-    return null;
-  }
-
-  const unsignedCookie = request.unsignCookie(rawCookie);
-
-  if (!unsignedCookie.valid) {
-    return null;
-  }
-
-  try {
-    return sessionCookieSchema.parse(JSON.parse(unsignedCookie.value));
-  } catch {
-    return null;
-  }
-}
 
 export async function registerAuthRoutes(
   app: FastifyInstance,
@@ -73,23 +21,10 @@ export async function registerAuthRoutes(
       };
     }
 
-    const session = readSessionCookie(request, config);
+    const user = await getSessionUser(request, config, googleAuthService);
 
-    if (!session) {
-      return {
-        authEnabled: true,
-        user: null,
-      };
-    }
-
-    const user = await googleAuthService.findUserById(session.userId);
-
-    if (!user) {
+    if (!user && request.cookies[config.auth.sessionCookie.name]) {
       clearAuthSessionCookie(reply, config);
-      return {
-        authEnabled: true,
-        user: null,
-      };
     }
 
     return {

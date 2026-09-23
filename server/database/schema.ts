@@ -6,6 +6,7 @@ export const snippets = pgTable('snippets', {
   content:     text('content').notNull(),
   description: text('description'),
   language:    varchar('language').notNull(),
+  userId:      bigint('user_id', { mode: 'number' }).references(() => users.id, { onDelete: 'set null' }),
   updatedAt:   timestamp('updated_at').defaultNow(),
 });
 

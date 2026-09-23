@@ -2,6 +2,7 @@ import React, { act, type ComponentProps } from 'react';
 import { render, screen, within, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
+import { AuthContext } from '../contexts/authContext';
 import { ThemeContext } from '../contexts/themeContext';
 import themeDefaults from '../contexts/themeContext';
 import Snippet from './Snippet';
@@ -223,4 +224,48 @@ test('switches to highlighted output once IntersectionObserver fires', async () 
   });
 
   vi.restoreAllMocks();
+});
+
+describe('owner-only actions when auth is enabled', () => {
+  const owner = { id: 7, email: 'owner@example.com', displayName: 'Owner' };
+
+  const renderWithAuth = (user: typeof owner | null, props: Partial<SnippetProps> = {}) => {
+    const authValue = {
+      authEnabled: true,
+      googleClientId: 'test-client',
+      user,
+      isLoading: false,
+      error: null,
+      signInWithGoogleCredential: vi.fn(),
+      signOut: vi.fn(),
+      clearError: vi.fn(),
+    };
+    return render(
+      <MemoryRouter>
+        <AuthContext.Provider value={authValue}>
+          <ThemeContext.Provider value={themeDefaults}>
+            <Snippet {...defaultProps} {...props} />
+          </ThemeContext.Provider>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+  };
+
+  test('shows edit and delete to the owner', () => {
+    renderWithAuth(owner, { userId: owner.id });
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+  });
+
+  test('hides edit and delete from other users', () => {
+    renderWithAuth({ ...owner, id: 8 }, { userId: owner.id });
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
+  });
+
+  test('hides edit and delete from signed-out visitors', () => {
+    renderWithAuth(null, { userId: owner.id });
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
+  });
 });
