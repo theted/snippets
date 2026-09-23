@@ -51,6 +51,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "dev-server": "node ./scripts/start-api.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
     "lint": "eslint .",
@@ -69,6 +70,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/vite": "^4.2.2",
     "@testing-library/dom": "^10.4.1",
