@@ -1,4 +1,4 @@
-import { CreateSnippet, Snippet, SnippetId } from '../../src/types';
+import { CreateSnippet, Snippet, SnippetId, UserId } from '../../src/types';
 
 export type ListSnippetsOptions = {
   query?: string;
@@ -18,7 +18,8 @@ export type SnippetStats = {
 export interface SnippetStore {
   listSnippets(options: ListSnippetsOptions): Promise<Snippet[]>;
   getSnippet(id: SnippetId): Promise<Snippet | null>;
-  createSnippet(input: CreateSnippet): Promise<Snippet>;
+  /** `ownerId` is null when auth is disabled. */
+  createSnippet(input: CreateSnippet, ownerId: UserId | null): Promise<Snippet>;
   updateSnippet(id: SnippetId, input: CreateSnippet): Promise<Snippet | null>;
   deleteSnippet(id: SnippetId): Promise<boolean>;
   getStats(): Promise<SnippetStats>;

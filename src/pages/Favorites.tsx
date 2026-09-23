@@ -107,6 +107,7 @@ const Favorites: React.FC = () => {
                     description={snippet.description}
                     content={snippet.content}
                     language={snippet.language}
+                    userId={snippet.userId}
                     onDelete={(id) => removeSnippet(id)}
                     onEdit={handleEdit}
                     theme={theme}

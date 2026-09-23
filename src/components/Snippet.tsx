@@ -5,6 +5,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import * as syntaxStyles from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { gsap } from 'gsap';
 
+import { useSnippetPermissions } from '../contexts/authContext';
 import { ThemeContext } from '../contexts/themeContext';
 import { useGlass } from 'glass-design-system';
 import { Snippet as ISnippet, SnippetId } from '../types';
@@ -49,6 +50,7 @@ const Snippet: React.FC<Props> = ({
     content = '',
     description = '',
     language,
+    userId,
     onDelete,
     onEdit,
     theme,
@@ -60,6 +62,7 @@ const Snippet: React.FC<Props> = ({
 }) => {
     const navigate = useNavigate();
     const glassConfig = useGlass();
+    const canManage = useSnippetPermissions().canManage(userId);
     const { showLineNumbers } = useContext(ThemeContext);
     const syntaxTheme = allStyles[theme as keyof typeof allStyles] ?? allStyles.vs2015;
     const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
@@ -229,22 +232,26 @@ const Snippet: React.FC<Props> = ({
                 style={getSnippetScrollFadeStyle(showScrollFade)}
             />
             <div className={c.controls}>
-                <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(true); }}
-                    className={c.controlButton}
-                >
-                    <Icon name="trash" />
-                    Delete
-                </button>
-                <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(id); }}
-                    className={c.controlButton}
-                >
-                    <Icon name="pencil" />
-                    Edit
-                </button>
+                {canManage && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(true); }}
+                            className={c.controlButton}
+                        >
+                            <Icon name="trash" />
+                            Delete
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(id); }}
+                            className={c.controlButton}
+                        >
+                            <Icon name="pencil" />
+                            Edit
+                        </button>
+                    </>
+                )}
                 <button
                     type="button"
                     onClick={handleCopy}
