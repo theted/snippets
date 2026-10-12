@@ -189,7 +189,7 @@ Pull requests only run `test`; the migrate and deploy jobs are skipped.
 | Service | Dockerfile | Exposed port | Purpose |
 |---|---|---|---|
 | `api` | `Dockerfile.api` | internal only (3200) | Fastify API or json-server |
-| `app` | `Dockerfile` | `5566:80` | React SPA + nginx proxy to `/api/` |
+| `app` | `Dockerfile` | `127.0.0.1:5566:80` | React SPA + nginx proxy to `/api/` |
 
 Both services use `restart: unless-stopped`.
 
