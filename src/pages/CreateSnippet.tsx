@@ -1,7 +1,7 @@
 import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { post } from '../utils/api';
-import Button from '../components/Button';
+import { GlassPill } from 'glass-design-system';
 import SnippetForm from '../components/SnippetForm';
 // eslint-disable-next-line import/no-named-as-default
 import Modal from '../components/Modal';
@@ -44,17 +44,16 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
   // the toolbar to reflow (the main "yank" on open/close).
   return (
     <>
-      <Button
-        type="button"
-        variant="success"
+      <GlassPill
+        size="lg"
+        variant="accent"
         onClick={openModal}
         disabled={!canCreate}
         title={canCreate ? undefined : 'Sign in with Google to create snippets'}
-        className="min-w-[14rem] justify-center md:justify-start disabled:pointer-events-none disabled:opacity-50"
       >
         <Icon name="plus" />
-        <span>Create Snippet</span>
-      </Button>
+        <span>Create snippet</span>
+      </GlassPill>
       {isFormVisible && (
         <Modal closeModal={closeModal}>
           <SnippetForm

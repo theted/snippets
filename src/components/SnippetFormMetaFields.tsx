@@ -1,5 +1,6 @@
-import { GlassInput, GlassInputWrap, GlassTextarea } from 'glass-design-system';
-import Button from './Button';
+import {
+  GlassInput, GlassInputWrap, GlassPill, GlassTextarea,
+} from 'glass-design-system';
 import SnippetFormFieldError from './SnippetFormFieldError';
 import {
   languageOptions,
@@ -97,17 +98,12 @@ const SnippetFormMetaFields = ({
     </div>
 
     <div className={snippetFormClasses.actions}>
-      <Button variant="success" type="submit" className="min-w-[10rem]">
+      <GlassPill size="lg" variant="accent" type="submit" className="min-w-[10rem] justify-center">
         {isEditing ? 'Update' : 'Create'}
-      </Button>
-      <Button
-        type="button"
-        variant="warning"
-        onClick={closeModal}
-        className="min-w-[10rem]"
-      >
+      </GlassPill>
+      <GlassPill size="lg" onClick={closeModal} className="min-w-[10rem] justify-center">
         Cancel
-      </Button>
+      </GlassPill>
     </div>
   </div>
 );

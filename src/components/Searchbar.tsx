@@ -214,7 +214,7 @@ const Searchbar = forwardRef<SearchbarHandle, Props>(({
             {title.kicker}
           </p>
           <h2
-            className="mt-3 font-[var(--font-display)] text-4xl font-[250] tracking-[-0.055em] text-[var(--color-text)] md:text-6xl"
+            className="mt-3 font-[var(--font-display)] text-3xl font-[250] tracking-[-0.055em] text-[var(--color-text)] md:text-5xl"
             style={{ textShadow: TITLE_TEXT_SHADOW }}
           >
             {title.headline}
