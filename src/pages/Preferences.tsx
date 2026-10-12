@@ -2,11 +2,15 @@ import React, { useContext, useState } from 'react';
 import { ThemeContext } from '../contexts/themeContext';
 import { THEMES } from '../config';
 import Modal from '../components/Modal';
-import Button from '../components/Button';
-import { GlassPanel, GlassDivider, GlassInputWrap } from 'glass-design-system';
+import { GlassPanel, GlassDivider, GlassInputWrap, GlassPill } from 'glass-design-system';
 import Icon from '../components/Icon';
 
-const Preferences: React.FC = () => {
+type Props = {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+};
+
+const Preferences: React.FC<Props> = ({ size = 'md', className }) => {
   const { showLineNumbers, setLineNumbers, setTheme, theme, autoSize, setAutoSize, showBackground, setShowBackground } = useContext(ThemeContext);
   const [showPreferences, setShowPreferences] = useState(false);
 
@@ -14,10 +18,10 @@ const Preferences: React.FC = () => {
 
   if (!showPreferences) {
     return (
-      <Button type="button" variant="info" onClick={() => setShowPreferences(true)}>
+      <GlassPill size={size} className={className} onClick={() => setShowPreferences(true)}>
         <Icon name="cog" />
         <span>Preferences</span>
-      </Button>
+      </GlassPill>
     );
   }
 
@@ -188,9 +192,9 @@ const Preferences: React.FC = () => {
 
           {/* Actions */}
           <div className="relative z-10 flex justify-end pt-2">
-            <Button type="button" variant="warning" onClick={closePreferences}>
-              Close Panel
-            </Button>
+            <GlassPill size="lg" onClick={closePreferences}>
+              Close
+            </GlassPill>
           </div>
         </div>
       </GlassPanel>

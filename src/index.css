@@ -52,42 +52,46 @@ body::before {
   min-height: 100vh;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+/* Element defaults sit in the base layer so component styles from the design
+   system (@layer components) and Tailwind utilities can override them. */
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
 
-button {
-  cursor: pointer;
-}
+  button {
+    cursor: pointer;
+  }
 
-code,
-pre {
-  font-family: var(--font-code);
-  font-feature-settings: 'liga' 1, 'calt' 1;
-  font-variant-ligatures: contextual;
-}
+  code,
+  pre {
+    font-family: var(--font-code);
+    font-feature-settings: 'liga' 1, 'calt' 1;
+    font-variant-ligatures: contextual;
+  }
 
-/* ─── Form field shadow ──────────────────────────────────────────────────
-   Single shallow inset shadow for smooth depth without a ribbed/heavy look.
-   The transparent field backgrounds let the glass card show through;
-   the shadow just adds a soft inner dimension.                            */
-input:not([type='checkbox']):not([type='radio']),
-textarea,
-select {
-  box-shadow: inset 0 1px 4px oklch(0.04 0.01 258 / 0.6);
-  transition:
-    box-shadow 300ms ease,
-    border-color 300ms ease;
-}
+  /* ─── Form field shadow ──────────────────────────────────────────────────
+     Single shallow inset shadow for smooth depth without a ribbed/heavy look.
+     The transparent field backgrounds let the glass card show through;
+     the shadow just adds a soft inner dimension.                            */
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select {
+    box-shadow: inset 0 1px 4px oklch(0.04 0.01 258 / 0.6);
+    transition:
+      box-shadow 300ms ease,
+      border-color 300ms ease;
+  }
 
-input:not([type='checkbox']):not([type='radio']):focus,
-textarea:focus,
-select:focus {
-  box-shadow:
-    inset 0 1px 3px oklch(0.04 0.01 258 / 0.35),
-    0 0 0 3px oklch(0.71 0.17 244 / 0.16),
-    0 0 18px oklch(0.71 0.17 244 / 0.08);
+  input:not([type='checkbox']):not([type='radio']):focus,
+  textarea:focus,
+  select:focus {
+    box-shadow:
+      inset 0 1px 3px oklch(0.04 0.01 258 / 0.35),
+      0 0 0 3px oklch(0.71 0.17 244 / 0.16),
+      0 0 18px oklch(0.71 0.17 244 / 0.08);
+  }
 }
