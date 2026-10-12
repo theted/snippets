@@ -120,7 +120,8 @@ const HomePage = ({ createSnippetRef, searchbarRef }: Props) => {
 
       <footer className="app-footer">
         <p className="app-footer-text">
-          © {new Date().getFullYear()} Snippets · Deep-Focus Code Archive
+          © {new Date().getFullYear()} Snippets · Deep-Focus Code Archive ·{' '}
+          <Link to="/privacy" className="app-footer-link">Privacy</Link>
         </p>
       </footer>
     </>
