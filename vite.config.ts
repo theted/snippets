@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -37,5 +38,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 15000,
     pool: 'forks',
+    // e2e/ holds Playwright specs, run by `npm run test:e2e`.
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 });
