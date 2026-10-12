@@ -504,6 +504,16 @@ kbd {
     0 -1px 0 oklch(1 0 0 / 0.06);
 }
 
+.app-footer-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.app-footer-link:hover {
+  color: oklch(0.75 0.03 255);
+}
+
 /* ─── Hero Searchbar ─────────────────────────────────────────────── */
 
 .searchbar-hero {

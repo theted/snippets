@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { GlassPanel, GlassPill } from 'glass-design-system';
 import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
+import useEscapeToHome from '../hooks/useEscapeToHome';
 
 // ── Shortcut row ─────────────────────────────────────────────────────────────
 
@@ -82,19 +83,7 @@ const classes = {
 const cardShadow = '0 8px 40px oklch(0.05 0.015 250 / 0.38), inset 0 1px 0 oklch(0.8 0.1 230 / 0.14)';
 
 const Docs: React.FC = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const active = document.activeElement;
-      const isInput = active instanceof HTMLInputElement
-        || active instanceof HTMLTextAreaElement
-        || active instanceof HTMLSelectElement;
-      if (e.key === 'Escape' && !isInput) navigate('/');
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [navigate]);
+  useEscapeToHome();
 
   return (
     <div className="App">

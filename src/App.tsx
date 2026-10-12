@@ -9,6 +9,7 @@ import SnippetPage from './pages/SnippetPage';
 import Docs from './pages/Docs';
 import Favorites from './pages/Favorites';
 import LanguagePage from './pages/LanguagePage';
+import Privacy from './pages/Privacy';
 import Stats from './pages/Stats';
 import NotFound from './pages/NotFound';
 import type { SearchbarHandle } from './components/Searchbar';
@@ -145,6 +146,7 @@ const App = () => {
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/docs" element={<Docs />} />
                 <Route path="/stats" element={<Stats />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
