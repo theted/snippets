@@ -9,11 +9,13 @@ import { CreateSnippet as CreateSnippetInput, Snippet, SnippetFormValues } from 
 import { invalidateSnippetQueries } from '../utils/snippetQueryCache';
 import Toast from '../components/Toast';
 import Icon from '../components/Icon';
+import { useSnippetPermissions } from '../contexts/authContext';
 
 export type CreateSnippetHandle = { open: () => void };
 
 const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
   const queryClient = useQueryClient();
+  const { canCreate } = useSnippetPermissions();
   const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
   const {
     mutate: createSnippet,
@@ -33,7 +35,7 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
     createSnippet(formValues);
   };
 
-  const openModal = () => setIsFormVisible(true);
+  const openModal = () => setIsFormVisible(canCreate);
 
   useImperativeHandle(ref, () => ({ open: openModal }));
 
@@ -46,7 +48,9 @@ const CreateSnippet = forwardRef<CreateSnippetHandle>((_, ref) => {
         type="button"
         variant="success"
         onClick={openModal}
-        className="min-w-[14rem] justify-center md:justify-start"
+        disabled={!canCreate}
+        title={canCreate ? undefined : 'Sign in with Google to create snippets'}
+        className="min-w-[14rem] justify-center md:justify-start disabled:pointer-events-none disabled:opacity-50"
       >
         <Icon name="plus" />
         <span>Create Snippet</span>

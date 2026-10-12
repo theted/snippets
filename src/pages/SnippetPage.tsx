@@ -126,6 +126,7 @@ const SnippetPage = () => {
                 content={snippet.content}
                 description={snippet.description}
                 language={snippet.language}
+                userId={snippet.userId}
                 onDelete={() => deleteSnippet()}
                 onEdit={() => setIsEditing(true)}
                 theme={theme}

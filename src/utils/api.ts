@@ -40,7 +40,8 @@ const getErrorMessage = (data: unknown, fallbackMessage: string): string => {
 };
 
 const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
-  const response = await fetch(`${API_BASE}/${path}`, init);
+  // Send the session cookie; in local dev the API runs on a different origin.
+  const response = await fetch(`${API_BASE}/${path}`, { ...init, credentials: 'include' });
   const data = parseResponseBody(await response.text());
 
   if (!response.ok) {

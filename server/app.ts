@@ -3,6 +3,7 @@ import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
 import { ZodError } from 'zod';
 import { createGoogleAuthService } from './auth/google';
+import { createRequireUser } from './auth/session';
 import { SnippetCache } from './cache/snippetCache';
 import { createPostgresAuthStore } from './database/postgresAuthStore';
 import { createPostgresPool } from './database/postgresPool';
@@ -37,6 +38,12 @@ export async function buildApp() {
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
+  if (!googleAuthService) {
+    app.log.warn('Google auth is disabled: anyone can create, edit and delete snippets.');
+  }
+
+  app.decorateRequest('authUser', null);
+
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ZodError) {
       reply.status(400).send({
@@ -52,7 +59,7 @@ export async function buildApp() {
   });
 
   await registerAuthRoutes(app, config, googleAuthService);
-  await registerSnippetRoutes(app, store, cache);
+  await registerSnippetRoutes(app, store, cache, createRequireUser(config, googleAuthService));
   await registerStatusRoute(app, store, cache);
 
   app.addHook('onClose', async () => {

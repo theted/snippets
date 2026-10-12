@@ -1,5 +1,5 @@
 import { and, asc, count, countDistinct, desc, eq, ilike, or, sql } from 'drizzle-orm';
-import { CreateSnippet, Snippet, SnippetId } from '../../src/types';
+import { CreateSnippet, Snippet, SnippetId, UserId } from '../../src/types';
 import { DrizzleDb } from './db';
 import { SnippetRow, snippets } from './schema';
 import { ListSnippetsOptions, SnippetStats, SnippetStore } from './snippetStore';
@@ -11,6 +11,7 @@ function mapSnippetRow(row: SnippetRow): Snippet {
     content: row.content,
     description: row.description ?? '',
     language: row.language,
+    ...(row.userId !== null && { userId: row.userId }),
   };
 }
 
@@ -42,6 +43,7 @@ export function createPostgresSnippetStore(db: DrizzleDb): SnippetStore {
           content:     snippets.content,
           description: snippets.description,
           language:    snippets.language,
+          userId:      snippets.userId,
           updatedAt:   snippets.updatedAt,
         })
         .from(snippets)
@@ -61,7 +63,7 @@ export function createPostgresSnippetStore(db: DrizzleDb): SnippetStore {
       return row ? mapSnippetRow(row) : null;
     },
 
-    async createSnippet(input: CreateSnippet): Promise<Snippet> {
+    async createSnippet(input: CreateSnippet, ownerId: UserId | null): Promise<Snippet> {
       const [row] = await db
         .insert(snippets)
         .values({
@@ -69,6 +71,7 @@ export function createPostgresSnippetStore(db: DrizzleDb): SnippetStore {
           content:     input.content,
           description: input.description ?? '',
           language:    input.language ?? 'javascript',
+          userId:      ownerId,
         })
         .returning();
 

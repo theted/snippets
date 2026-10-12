@@ -43,6 +43,7 @@ const SnippetCard = ({
       description={snippet.description}
       content={snippet.content}
       language={snippet.language}
+      userId={snippet.userId}
       onDelete={onDelete}
       onEdit={onEdit}
       theme={theme}

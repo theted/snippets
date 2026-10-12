@@ -99,10 +99,9 @@ const GoogleAuth: React.FC = () => {
 
   return (
     <div className={classes.shell}>
-      <p className={classes.kicker}>Identity Preview</p>
+      <p className={classes.kicker}>Account</p>
       <p className={classes.title}>
-        Google sign-in is optional for now.
-        Anonymous snippet creation remains enabled.
+        Anyone can browse snippets. Sign in to create your own and edit or delete them.
       </p>
 
       {user ? (
@@ -133,10 +132,6 @@ const GoogleAuth: React.FC = () => {
       ) : (
         <>
           <div ref={buttonRef} className={classes.buttonMount} />
-          <p className={classes.meta}>
-            The backend verifies Google ID tokens and stores user records, but snippet posting is
-            still open to everyone for now.
-          </p>
         </>
       )}
 

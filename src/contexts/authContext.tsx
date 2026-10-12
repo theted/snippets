@@ -2,7 +2,7 @@ import React, {
   createContext, PropsWithChildren, useContext, useEffect, useMemo, useState,
 } from 'react';
 import { GOOGLE_AUTH_ENABLED, GOOGLE_CLIENT_ID } from '../config';
-import { AuthUser } from '../types';
+import { AuthUser, UserId } from '../types';
 import { getAuthSession, loginWithGoogleCredential, logoutAuth } from '../utils/auth';
 
 const AUTH_STORAGE_KEY = 'snippets.auth.user';
@@ -163,3 +163,17 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+/**
+ * What the current visitor may do with snippets. With auth disabled
+ * everything stays open; otherwise creating requires a session and editing or
+ * deleting requires owning the snippet. The API enforces the same rules.
+ */
+export const useSnippetPermissions = () => {
+  const { authEnabled, user } = useAuth();
+
+  return {
+    canCreate: !authEnabled || user !== null,
+    canManage: (ownerId: UserId | undefined) => !authEnabled || (user !== null && ownerId === user.id),
+  };
+};

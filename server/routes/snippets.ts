@@ -1,6 +1,6 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest, preHandlerHookHandler } from 'fastify';
 import { z } from 'zod';
-import { CreateSnippet } from '../../src/types';
+import { CreateSnippet, Snippet } from '../../src/types';
 import { SnippetCache } from '../cache/snippetCache';
 import { SnippetStore } from '../database/snippetStore';
 
@@ -33,7 +33,37 @@ function normalizeSnippetInput(input: z.infer<typeof snippetInputSchema>): Creat
   };
 }
 
-export async function registerSnippetRoutes(app: FastifyInstance, store: SnippetStore, cache: SnippetCache) {
+export async function registerSnippetRoutes(
+  app: FastifyInstance,
+  store: SnippetStore,
+  cache: SnippetCache,
+  requireUser: preHandlerHookHandler,
+) {
+  /**
+   * Loads a snippet the current user may modify, or sends 404/403.
+   * `authUser` is only null when auth is disabled, in which case anyone may
+   * modify any snippet.
+   */
+  const findOwnedSnippet = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<Snippet | null> => {
+    const { id } = snippetParamsSchema.parse(request.params);
+    const snippet = await store.getSnippet(id);
+
+    if (!snippet) {
+      await reply.status(404).send({ errors: [`Snippet ${id} was not found.`] });
+      return null;
+    }
+
+    if (request.authUser && snippet.userId !== request.authUser.id) {
+      await reply.status(403).send({ errors: ['You can only change your own snippets.'] });
+      return null;
+    }
+
+    return snippet;
+  };
+
   app.get('/health', async () => ({ ok: true }));
 
   app.get('/snippets', async (request) => {
@@ -71,17 +101,20 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
     return snippet;
   });
 
-  app.post('/snippets', async (request, reply) => {
+  app.post('/snippets', { preHandler: requireUser }, async (request, reply) => {
     const payload = normalizeSnippetInput(snippetInputSchema.parse(request.body));
-    const snippet = await store.createSnippet(payload);
+    const snippet = await store.createSnippet(payload, request.authUser?.id ?? null);
     cache.invalidate();
     reply.status(201);
     return snippet;
   });
 
-  app.put('/snippets/:id', async (request, reply) => {
-    const { id } = snippetParamsSchema.parse(request.params);
+  app.put('/snippets/:id', { preHandler: requireUser }, async (request, reply) => {
     const payload = normalizeSnippetInput(snippetInputSchema.parse(request.body));
+    const existing = await findOwnedSnippet(request, reply);
+    if (!existing) return reply;
+
+    const { id } = existing;
     const snippet = await store.updateSnippet(id, payload);
 
     if (!snippet) {
@@ -93,8 +126,11 @@ export async function registerSnippetRoutes(app: FastifyInstance, store: Snippet
     return snippet;
   });
 
-  app.delete('/snippets/:id', async (request, reply) => {
-    const { id } = snippetParamsSchema.parse(request.params);
+  app.delete('/snippets/:id', { preHandler: requireUser }, async (request, reply) => {
+    const existing = await findOwnedSnippet(request, reply);
+    if (!existing) return reply;
+
+    const { id } = existing;
     const deleted = await store.deleteSnippet(id);
 
     if (!deleted) {
