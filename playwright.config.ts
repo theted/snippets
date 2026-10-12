@@ -5,8 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * Required environment variables:
  *   E2E_BASE_URL  – URL of the deployed frontend  (e.g. https://snippets.example.com)
- *   E2E_API_URL   – URL of the deployed API server (e.g. https://snippets.example.com:3200)
- *                   Falls back to E2E_BASE_URL with port 3200 when omitted.
+ *   E2E_API_URL   – API base URL (e.g. http://localhost:3200 for a local API).
+ *                   Falls back to E2E_BASE_URL + /api, where deployed stacks proxy it.
  */
 
 const baseURL = process.env.E2E_BASE_URL;
