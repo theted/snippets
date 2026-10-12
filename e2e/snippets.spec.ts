@@ -1,13 +1,18 @@
 /**
- * Snippet CRUD — end-to-end tests
+ * Snippets — end-to-end tests
  *
  * These tests run against a live deployment (E2E_BASE_URL).
- * Each test creates its own data and cleans up after itself so they
- * can be safely run against the production database.
+ *
+ * - "Signed-out visitors" runs when Google sign-in is enabled (production).
+ *   It only reads, plus write attempts the API must reject, so it is safe to
+ *   run after every deploy.
+ * - "Snippets CRUD" runs when sign-in is disabled (a local or preview stack
+ *   with GOOGLE_AUTH_ENABLED=false or the json-server API). Each test creates
+ *   its own data and cleans up after itself.
  *
  * Required env:
  *   E2E_BASE_URL  – frontend URL   (consumed by playwright.config.ts)
- *   E2E_API_URL   – API server URL (defaults to E2E_BASE_URL with :3200)
+ *   E2E_API_URL   – API base URL   (defaults to E2E_BASE_URL + /api)
  */
 
 import { test, expect, type APIRequestContext } from '@playwright/test';
@@ -19,15 +24,9 @@ import { test, expect, type APIRequestContext } from '@playwright/test';
 function apiUrl(): string {
   const explicit = process.env.E2E_API_URL;
   if (explicit) return explicit.replace(/\/$/, '');
-  // Fall back: same host as the frontend but on port 3200.
-  const base = process.env.E2E_BASE_URL ?? '';
-  try {
-    const u = new URL(base);
-    u.port = '3200';
-    return u.origin;
-  } catch {
-    return 'http://localhost:3200';
-  }
+  // Deployed stacks proxy the API under /api on the frontend host.
+  const base = (process.env.E2E_BASE_URL ?? '').replace(/\/$/, '');
+  return `${base}/api`;
 }
 
 interface SnippetPayload {
@@ -39,6 +38,23 @@ interface SnippetPayload {
 
 interface Snippet extends Required<SnippetPayload> {
   id: number;
+}
+
+/** GET /auth/session → whether writes require a Google sign-in. */
+async function isAuthEnabled(request: APIRequestContext): Promise<boolean> {
+  const response = await request.get(`${apiUrl()}/auth/session`);
+  // The json-server mock API has no /auth routes, and its writes are open.
+  if (response.status() === 404) return false;
+  expect(response.ok(), `API session check failed: ${response.status()}`).toBeTruthy();
+  const { authEnabled } = await response.json();
+  return authEnabled === true;
+}
+
+/** GET /snippets */
+async function apiListSnippets(request: APIRequestContext): Promise<Snippet[]> {
+  const response = await request.get(`${apiUrl()}/snippets`);
+  expect(response.ok(), `API list failed: ${response.status()}`).toBeTruthy();
+  return response.json() as Promise<Snippet[]>;
 }
 
 /** POST /snippets → newly created snippet */
@@ -61,11 +77,64 @@ function uniqueTitle(base: string): string {
   return `[E2E] ${base} ${Date.now()}`;
 }
 
+// No snippet has this id, so a write that slips past auth still changes nothing.
+const MISSING_SNIPPET_ID = 2147483647;
+
 // ---------------------------------------------------------------------------
-// Tests
+// Signed-out visitors (sign-in enabled)
+// ---------------------------------------------------------------------------
+
+test.describe('Signed-out visitors', () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(!(await isAuthEnabled(request)), 'Sign-in is disabled on this deployment.');
+  });
+
+  test('can browse snippets but not create them', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('h1')).toContainText('Snippets');
+    await expect(page.locator('[data-testid="snippet-card"]').first()).toBeVisible();
+
+    const createButton = page.getByRole('button', { name: /create snippet/i }).first();
+    await expect(createButton).toBeDisabled();
+    await expect(createButton).toHaveAttribute('title', /sign in with google/i);
+  });
+
+  test('see a snippet without edit or delete controls', async ({ page, request }) => {
+    const [snippet] = await apiListSnippets(request);
+
+    await page.goto(`/snippets/${snippet.id}`);
+
+    await expect(page.getByRole('heading', { name: snippet.title })).toBeVisible();
+    const card = page.locator('[data-testid="snippet-card"]').first();
+    await expect(card.getByRole('button', { name: /copy/i })).toBeVisible();
+    // Button names include an icon-font glyph, so match by substring.
+    await expect(card.getByRole('button', { name: 'Edit' })).toHaveCount(0);
+    await expect(card.getByRole('button', { name: 'Delete' })).toHaveCount(0);
+  });
+
+  test('cannot write through the API without a session', async ({ request }) => {
+    const responses = await Promise.all([
+      request.post(`${apiUrl()}/snippets`, { data: {} }),
+      request.put(`${apiUrl()}/snippets/${MISSING_SNIPPET_ID}`, { data: {} }),
+      request.delete(`${apiUrl()}/snippets/${MISSING_SNIPPET_ID}`),
+    ]);
+
+    expect(responses.map((response) => response.status())).toEqual([401, 401, 401]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Snippets CRUD (sign-in disabled)
 // ---------------------------------------------------------------------------
 
 test.describe('Snippets CRUD', () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(
+      await isAuthEnabled(request),
+      'Writes need a Google sign-in here; run against a stack with GOOGLE_AUTH_ENABLED=false.',
+    );
+  });
+
   // ── Create ─────────────────────────────────────────────────────────────────
 
   test('create a snippet via the UI', async ({ page, request }) => {
@@ -131,7 +200,7 @@ test.describe('Snippets CRUD', () => {
       await page.goto(`/snippets/${snippet.id}`);
 
       // Title should appear in the page.
-      await expect(page.getByRole('heading', { name: new RegExp(title, 'i') })).toBeVisible();
+      await expect(page.getByRole('heading', { name: title })).toBeVisible();
 
       // Code content should be rendered.
       await expect(page.locator('[data-testid="snippet-card"]')).toContainText(code);
@@ -179,7 +248,7 @@ test.describe('Snippets CRUD', () => {
       // Modal closes; updated title appears.
       await expect(titleInput).not.toBeVisible();
       await expect(
-        page.getByRole('heading', { name: new RegExp(updatedTitle, 'i') }),
+        page.getByRole('heading', { name: updatedTitle }),
       ).toBeVisible({ timeout: 15_000 });
     } finally {
       await apiDeleteSnippet(request, snippet.id);
@@ -204,7 +273,7 @@ test.describe('Snippets CRUD', () => {
     await card.hover();
 
     // Click the Delete button on the snippet card.
-    await card.getByRole('button', { name: /^delete$/i }).click();
+    await card.getByRole('button', { name: 'Delete' }).click();
 
     // Confirmation dialog should appear.
     const dialog = page.getByRole('alertdialog');
@@ -212,7 +281,7 @@ test.describe('Snippets CRUD', () => {
     await expect(dialog).toContainText(/delete this snippet/i);
 
     // Confirm deletion.
-    await dialog.getByRole('button', { name: /^delete$/i }).click();
+    await dialog.getByRole('button', { name: 'Delete' }).click();
 
     // Should navigate back to the home page after deletion.
     await page.waitForURL('/', { timeout: 15_000 });

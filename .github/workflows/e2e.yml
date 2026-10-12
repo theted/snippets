@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       base_url:
-        description: 'Frontend URL to test against (overrides the E2E_BASE_URL secret)'
+        description: 'Frontend URL to test against (defaults to production)'
         required: false
         type: string
       api_url:
-        description: 'API URL to test against (overrides the E2E_API_URL secret)'
+        description: 'API base URL to test against (defaults to the frontend URL + /api)'
         required: false
         type: string
 
@@ -45,9 +45,10 @@ jobs:
 
       - name: Run E2E tests
         env:
-          # Prefer explicit workflow input; fall back to the repository secret.
-          E2E_BASE_URL: ${{ inputs.base_url || secrets.E2E_BASE_URL }}
-          E2E_API_URL: ${{ inputs.api_url || secrets.E2E_API_URL }}
+          # Prefer explicit workflow input; fall back to production. With
+          # sign-in enabled there, only the read-only and auth checks run.
+          E2E_BASE_URL: ${{ inputs.base_url || 'https://snippets.sundbergsolutions.se' }}
+          E2E_API_URL: ${{ inputs.api_url }}
         run: npm run test:e2e
 
       - name: Upload Playwright report
