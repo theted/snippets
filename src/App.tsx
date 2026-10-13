@@ -19,6 +19,7 @@ import HomePage from './components/HomePage';
 import { AuthProvider } from './contexts/authContext';
 import { ThemeContext } from './contexts/themeContext';
 import { ENVIRONMENT } from './config';
+import useVisitCounter from './hooks/useVisitCounter';
 import { createPersistentQueryClient } from './utils/queryPersist';
 import {
   consumeHomeRestoreFlag,
@@ -51,6 +52,7 @@ const App = () => {
   const searchbarRef = useRef<SearchbarHandle>(null);
   const navigate = useNavigate();
   const navType = useNavigationType();
+  useVisitCounter();
 
   useEffect(() => {
     appHasNavigated = true;

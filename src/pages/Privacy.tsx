@@ -5,7 +5,7 @@ import Icon from '../components/Icon';
 import Kicker from '../components/Kicker';
 import useEscapeToHome from '../hooks/useEscapeToHome';
 
-const LAST_UPDATED = '12 October 2026';
+const LAST_UPDATED = '13 October 2026';
 const REPOSITORY_URL = 'https://github.com/theted/snippets';
 const GOOGLE_PRIVACY_URL = 'https://policies.google.com/privacy';
 
@@ -52,6 +52,18 @@ const sections: Section[] = [
     ),
   },
   {
+    label: 'Visit counter',
+    body: (
+      <>
+        Each page you open sends one request to our visit counter at visits.sundbergsolutions.se.
+        It keeps daily totals only: page views, how many different visitors came that day, and the
+        domain of the site that linked you here. The counter sets no cookie and keeps no IP
+        address. To tell visitors apart within a day it uses a one-way code made from your IP
+        address and browser type, which changes every day and is deleted once the day is over.
+      </>
+    ),
+  },
+  {
     label: 'Google sign-in and server logs',
     body: (
       <>
@@ -60,8 +72,8 @@ const sections: Section[] = [
           Google&apos;s privacy policy
         </a>{' '}
         covers that interaction. Our web server keeps standard access logs (IP address, time,
-        requested page and browser type), which are used only to run and secure the site. There
-        are no analytics, ads or third-party trackers.
+        requested page and browser type), which are used only to run and secure the site. Apart
+        from the visit counter, there are no analytics, ads or third-party trackers.
       </>
     ),
   },
